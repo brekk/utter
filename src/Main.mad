@@ -1,0 +1,17 @@
+import IO from "IO"
+
+import { Machine } from "@/Machine"
+
+
+
+main = () => {
+  m = Machine(
+    "turnstile",
+    {{
+      "locked": Machine("locked", {{}}, {{ "pay": "unlocked" }}),
+      "unlocked": Machine("unlocked", {{}}, {{ "walk": "locked" }}),
+    }},
+    {{}},
+  )
+  IO.pTrace("machine!", m)
+}

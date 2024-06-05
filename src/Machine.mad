@@ -21,16 +21,59 @@ export name = where {
     n
 }
 
-states :: Machine -> StateMap
-export states = where {
-  Machine(_, s, _) =>
-    s
+children :: Machine -> StateMap
+export children = where {
+  Machine(_, c, _) =>
+    c
+}
+
+eventMap :: Machine -> EventMap
+export eventMap = where {
+  Machine(_, _, t) =>
+    t
 }
 
 subStates :: Machine -> List String
 export subStates = pipe(
-  states,
+  children,
   Dict.keys,
+)
+
+events :: Machine -> List String
+export events = pipe(
+  eventMap,
+  Dict.keys,
+)
+
+walkDown :: (Machine -> List a) -> Machine -> List a
+export walkDown = (fn, m) => {
+  walk :: Machine -> List a -> List a
+  walk = (item, list) => where(list) {
+    [] =>
+      fn(item)
+
+    [a, ...xs] =>
+      [a, ...walk(item, xs)]
+  }
+
+  return walk(m, [])
+}
+
+allStates :: Machine -> List String
+export allStates = walkDown(
+  (m) => {
+    n = name(m)
+    return List.concat(
+      subStates(m),
+      pipe(
+        children,
+        Dict.values,
+        map(subStates),
+        List.flatten,
+        map(mappend(n ++ ".")),
+      )(m),
+    )
+  },
 )
 
 canTransitionTo :: String -> Machine -> Boolean
@@ -39,8 +82,15 @@ export canTransitionTo = (x, machine) => pipe(
   List.includes(x),
 )(machine)
 
-events :: Machine -> EventMap
-export events = where {
-  Machine(_, _, t) =>
-    t
-}
+allEvents :: Machine -> List String
+export allEvents = walkDown(
+  (m) => List.concat(
+    events(m),
+    pipe(
+      children,
+      Dict.values,
+      map(events),
+      List.flatten,
+    )(m),
+  ),
+)

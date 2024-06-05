@@ -2,7 +2,7 @@ import type { Maybe } from "Maybe"
 
 import type { EventMap, Machine, StateMap } from "@/Machine"
 
-import { Nothing, fromMaybe } from "Maybe"
+import { Nothing } from "Maybe"
 
 import { Machine } from "@/Machine"
 

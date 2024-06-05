@@ -1,0 +1,51 @@
+import type { EventMap, Machine, StateMap, Transition } from "@/Machine"
+
+import { assertEquals, test } from "Test"
+
+import {
+  Machine,
+  allEvents,
+  allStates,
+  canTransitionTo,
+  children,
+  events,
+  name,
+  subStates,
+} from "@/Machine"
+
+
+
+TURNSTILE = Machine(
+  "turnstile",
+  {{
+    "locked": Machine("locked", {{}}, {{ "pay": "unlocked" }}),
+    "unlocked": Machine("unlocked", {{}}, {{ "walk": "locked" }}),
+  }},
+  {{}},
+)
+
+test("name", () => assertEquals(name(TURNSTILE), "turnstile"))
+
+test(
+  "children",
+  () => assertEquals(
+    children(TURNSTILE),
+    {{
+      "locked": Machine("locked", {{}}, {{ "pay": "unlocked" }}),
+      "unlocked": Machine("unlocked", {{}}, {{ "walk": "locked" }}),
+    }},
+  ),
+)
+
+test("subStates", () => assertEquals(subStates(TURNSTILE), ["locked", "unlocked"]))
+
+test("events", () => assertEquals(events(TURNSTILE), []))
+test("allEvents", () => assertEquals(allEvents(TURNSTILE), ["pay", "walk"]))
+
+test(
+  "allStates",
+  () => assertEquals(
+    allStates(Machine("subway", {{ "turnstile": TURNSTILE }}, {{ "rideLoop": "turnstile" }})),
+    ["turnstile", "locked", "unlocked"],
+  ),
+)
