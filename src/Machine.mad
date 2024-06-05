@@ -1,0 +1,46 @@
+import Dict from "Dictionary"
+import List from "List"
+
+
+
+export alias Transition = Machine -> {}
+export alias StateMap = Dictionary String Machine
+export alias EventMap = Dictionary String String
+
+/**
+ * @constructor Machine
+ * @param name        - String
+ * @param states      - Dictionary String StateMachine
+ * @param transitions - Dictionary String Transition
+ */
+export type Machine = Machine(String, Dictionary String Machine, Dictionary String String)
+
+name :: Machine -> String
+export name = where {
+  Machine(n, _, _) =>
+    n
+}
+
+states :: Machine -> StateMap
+export states = where {
+  Machine(_, s, _) =>
+    s
+}
+
+subStates :: Machine -> List String
+export subStates = pipe(
+  states,
+  Dict.keys,
+)
+
+canTransitionTo :: String -> Machine -> Boolean
+export canTransitionTo = (x, machine) => pipe(
+  subStates,
+  List.includes(x),
+)(machine)
+
+events :: Machine -> EventMap
+export events = where {
+  Machine(_, _, t) =>
+    t
+}

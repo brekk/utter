@@ -1,0 +1,44 @@
+import type { Maybe } from "Maybe"
+
+import type { EventMap, Machine, StateMap } from "@/Machine"
+
+import { Nothing, fromMaybe } from "Maybe"
+
+import { Machine } from "@/Machine"
+
+
+
+/**
+ * @constructor StateMachine
+ * @param machine - Machine
+ * @param state   - String
+ * @param context - Maybe a
+ */
+export type StateMachine a = StateMachine(Machine, String, Maybe a)
+
+definition :: StateMachine a -> Machine
+export definition = where {
+  StateMachine(m, _, _) =>
+    m
+}
+
+state :: StateMachine a -> String
+export state = where {
+  StateMachine(_, s, _) =>
+    s
+}
+
+context :: StateMachine a -> Maybe a
+export context = where {
+  StateMachine(_, _, c) =>
+    c
+}
+
+create :: String -> StateMap -> EventMap -> String -> Maybe a -> StateMachine a
+export create = (mName, mStateMap, mEventMap, initialState, ctx) => {
+  m = Machine(mName, mStateMap, mEventMap)
+  // validation
+  return StateMachine(m, initialState, ctx)
+}
+
+export init = create($, $, $, $, Nothing)
