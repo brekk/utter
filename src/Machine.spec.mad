@@ -2,16 +2,7 @@ import type { EventMap, Machine, StateMap, Transition } from "@/Machine"
 
 import { assertEquals, test } from "Test"
 
-import {
-  Machine,
-  allEvents,
-  allStates,
-  canTransitionTo,
-  children,
-  events,
-  name,
-  subStates,
-} from "@/Machine"
+import { Machine, allEvents, allStates, children, events, name, subStates } from "@/Machine"
 
 
 
@@ -46,6 +37,6 @@ test(
   "allStates",
   () => assertEquals(
     allStates(Machine("subway", {{ "turnstile": TURNSTILE }}, {{ "rideLoop": "turnstile" }})),
-    ["turnstile", "locked", "unlocked"],
+    ["turnstile", "turnstile.locked", "turnstile.unlocked"],
   ),
 )

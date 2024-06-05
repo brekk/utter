@@ -59,29 +59,6 @@ export walkDown = (fn, m) => {
   return walk(m, [])
 }
 
-allStates :: Machine -> List String
-export allStates = walkDown(
-  (m) => {
-    n = name(m)
-    return List.concat(
-      subStates(m),
-      pipe(
-        children,
-        Dict.values,
-        map(subStates),
-        List.flatten,
-        map(mappend(n ++ ".")),
-      )(m),
-    )
-  },
-)
-
-canTransitionTo :: String -> Machine -> Boolean
-export canTransitionTo = (x, machine) => pipe(
-  subStates,
-  List.includes(x),
-)(machine)
-
 allEvents :: Machine -> List String
 export allEvents = walkDown(
   (m) => List.concat(
@@ -90,6 +67,27 @@ export allEvents = walkDown(
       children,
       Dict.values,
       map(events),
+      List.flatten,
+    )(m),
+  ),
+)
+
+allStates :: Machine -> List String
+export allStates = walkDown(
+  (m) => List.concat(
+    subStates(m),
+    pipe(
+      children,
+      Dict.toList,
+      map(
+        where {
+          #[k, v] =>
+            pipe(
+              subStates,
+              map(mappend(k ++ ".")),
+            )(v)
+        },
+      ),
       List.flatten,
     )(m),
   ),
