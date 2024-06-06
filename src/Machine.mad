@@ -10,7 +10,7 @@ export alias EventMap = Dictionary String String
 /**
  * @constructor Machine
  * @param name        - String
- * @param states      - Dictionary String StateMachine
+ * @param states      - Dictionary String Machine
  * @param transitions - Dictionary String Transition
  */
 export type Machine = Machine(String, Dictionary String Machine, Dictionary String String)
