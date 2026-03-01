@@ -1,0 +1,33 @@
+import type { Maybe } from "Maybe"
+
+import { Just, Nothing } from "Maybe"
+
+import { log, say } from "@/Log"
+
+
+
+export type EventType = Immediate | Triggered
+// events have a type, a state and an optional payload
+export type Event value payload = Event(EventType, value, Maybe payload)
+
+// user events,     with payload
+export trigger = Event(Triggered)
+// user event,      no payload
+export create = trigger($, Nothing)
+// immediate event, with payload
+export immediate = Event(Immediate)
+// immediate event, no payload
+export instant = immediate($, Nothing)
+
+export kind = where {
+  Event(t, _, _) =>
+    t
+}
+export value = where {
+  Event(_, v, _) =>
+    v
+}
+export payload = where {
+  Event(_, _, p) =>
+    p
+}

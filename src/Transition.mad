@@ -1,0 +1,33 @@
+import type { Actions } from "@/Action"
+import type { Event } from "@/Event"
+import type { Guards } from "@/Guard"
+
+import List from "List"
+
+import Event from "@/Event"
+
+
+
+export type Transition value payload context
+  = Transition(
+    Event value payload,
+    value,
+    Guards value payload context,
+    Actions value payload context,
+  )
+
+event :: Transition a b c -> Event a b
+export event = where {
+  Transition(e, _, _, _) =>
+    e
+}
+
+output :: Transition a b c -> a
+export output = where {
+  Transition(_, o, _, _) =>
+    o
+}
+
+export alias Transitions a b c = List (Transition a b c)
+
+export create = Transition($, $, [], [])

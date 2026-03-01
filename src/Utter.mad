@@ -2,6 +2,12 @@ import type { Either } from "Either"
 import type { Maybe } from "Maybe"
 import type { Set } from "Set"
 
+import type { Actions } from "@/Action"
+import type { Event } from "@/Event"
+import type { Guard, Guards } from "@/Guard"
+import type { State } from "@/State"
+import type { Transitions } from "@/Transition"
+
 import { EQ, GT, LT } from "Compare"
 import Dict from "Dictionary"
 import { Left, Right } from "Either"
@@ -12,210 +18,25 @@ import Set from "Set"
 import String from "String"
 
 import { ERRORS, ERROR_CODES } from "@/Error"
+import Event from "@/Event"
 import { log, say } from "@/Log"
+import Machine from "@/Machine"
+import Robot from "@/Robot"
+import { State } from "@/State"
+import Transition from "@/Transition"
 
 
-
-// naive solution
-export type EventType = Immediate | Triggered
-// events have a type, a state and an optional payload
-export type Event value payload = Event(EventType, value, Maybe payload)
-
-// user events,     with payload
-export trigger = Event(Triggered)
-// user event,      no payload
-export event = trigger($, Nothing)
-// immediate event, with payload
-export immediate = Event(Immediate)
-// immediate event, no payload
-export instant = immediate($, Nothing)
-
-// guards take an event and a context and return a boolean
-export type Guard value payload context = Guard(Event value payload -> context -> Boolean)
-export alias Guards v p x = List (Guard v p x)
-
-// actions modify the context based on an event
-export type Action value payload context = Action(Event value payload -> context -> context)
-export alias Actions v p x = List (Action v p x)
-
-export type Transition value payload context
-  = Transition(
-    Event value payload,
-    value,
-    Guards value payload context,
-    Actions value payload context,
-  )
-
-transitionEvent :: Transition a b c -> Event a b
-export transitionEvent = where {
-  Transition(e, _, _, _) =>
-    e
-}
-
-transitionOutput :: Transition a b c -> a
-export transitionOutput = where {
-  Transition(_, o, _, _) =>
-    o
-}
-
-export alias Transitions a b c = List (Transition a b c)
-
-export guardedAction = Transition
-export transition = Transition($, $, [], [])
-
-export type State a b c = State(b, Transitions a b c)
-
-// log.state("created"),
-state :: b -> Transitions a b c -> State a b c
-export state = (a, b) => pipe(
-  State(a),
-)(b)
-
-// logCreated = say($, "created!", $)
-
-
-export type Machine a p x = Machine(a, List (State a p x), x)
-
-export machineValue = where {
-  Machine(a, _, _) =>
-    a
-}
-export machineStates = where {
-  Machine(_, s, _) =>
-    s
-}
-export machineContext = where {
-  Machine(_, _, c) =>
-    c
-}
-
-// export type Step a p x = Emit(a, p, x) | Halt
-
-alias RobotDictionary a b c = Dictionary a (Transitions a b c)
-
-export type Robot a p x = InvalidRobot(String) | Robot(RobotDictionary a p x, x)
-
-alias RobotContext a b c = {
-  dict :: Dictionary a (Transitions a b c),
-  error :: Byte,
-  states :: { defined :: Set a, matched :: Set a, missed :: Set a },
-}
-
-// compiler :: RobotContext a b c -> State a b c -> RobotContext a b c
-compiler = (iter, stx) => if (iter.error > 0) {
-  iter
-} else {
-  where(stx) {
-    State(value, trans) =>
-      if (Dict.includes(value, iter.dict)) {
-        ({ error: ERROR_CODES.STATE_ALREADY_DEFINED, dict: iter.dict, states: iter.states })
-      } else do {
-        matched = pipe(
-          map(transitionOutput),
-          List.reduce(Fn.flip(Set.insert), iter.states.matched),
-        )(trans)
-        defined = Set.insert(value, iter.states.defined)
-        return (
-          {
-            dict: Dict.insert(value, trans, iter.dict),
-            error: 0,
-            states: { matched, defined, missed: iter.states.missed },
-          }
-        )
-      }
-  }
-}
-
-ROBOT_INITIAL_STATE :: RobotContext a b c
-ROBOT_INITIAL_STATE = {
-  dict: Dict.empty,
-  error: 0_b,
-  states: { matched: Set.empty, defined: Set.empty, missed: Set.empty },
-}
-
-
-import IO from "IO"
-
-
-
-// buildContext :: Comparable a => List (State a p x) -> RobotContext a p x
-buildContext = (stx) => pipe(
-  List.reduce(compiler, ROBOT_INITIAL_STATE),
-  where {
-    { dict, error, states } =>
-      do {
-        // we are in the middle of iterating in the prior compiler step
-        // so this catches up at the end of all iterations
-        missed = Set.diff(states.matched, states.defined)
-        valid = error == 0_b
-        log.robot("query", #[missed, valid])
-        return if (!valid) {
-          { dict, error, states }
-        } else {
-          {
-            dict,
-            error: Set.length(missed) > 0 ? ERROR_CODES.STATES_NOT_DEFINED : error,
-            states: { matched: states.matched, defined: states.defined, missed },
-          }
-        }
-      }
-  },
-)(stx)
-
-
-/*
- */
-export errorToString = (missed, code) => if (code == ERROR_CODES.FAILURE) {
-  ERRORS.FAILURE
-} else if (code == ERROR_CODES.INVALID_STATES) {
-  ERRORS.INVALID_STATES
-} else if (code == ERROR_CODES.DEV_MODE_ONLY) {
-  ERRORS.DEV_MODE_ONLY
-} else if (code == ERROR_CODES.STATE_ALREADY_DEFINED) {
-  ERRORS.STATE_ALREADY_DEFINED
-} else if (code == ERROR_CODES.STATES_NOT_DEFINED) {
-  pipe(
-    Set.toList,
-    String.join(", "),
-    ERRORS.statesNotDefined,
-  )(missed)
-} else {
-  ""
-}
-
-// robotContextToEither :: RobotContext a b c -> Either String (RobotDictionary a b c)
-robotContextToEither = (roboctx) => where(roboctx) {
-  { dict, error, states } =>
-    error > 0 ? Left(errorToString(states.missed, error)) : Right(dict)
-}
-
-// compileStates :: Comparable a => List (State a p x)
-// -> Either String (Dictionary a (Transitions a p x))
-compileStates = (states) => pipe(
-  buildContext,
-  robotContextToEither,
-)(states)
-
-// validate :: Comparable a => Machine a p x -> RobotContext a p x
-export normalizeRobotContext = pipe(
-  machineStates,
-  buildContext,
-)
-export validate = pipe(
-  normalizeRobotContext,
-  (x) => x.error == 0,
-)
 
 // create :: Machine String p x -> Robot String p x
 // create :: Comparable a => Machine a p x -> Robot a p x
 export create = where {
-  Machine(name, states, context) =>
-    where(compileStates(states)) {
+  Machine.Machine(name, states, context) =>
+    where(Robot.prepare(states)) {
       Right(dict) =>
-        Robot(dict, context)
+        Robot.Robot(dict, context)
 
       Left(reason) =>
-        InvalidRobot(reason)
+        Robot.InvalidRobot(reason)
     }
 }
 

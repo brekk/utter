@@ -1,0 +1,12 @@
+import type { Event } from "@/Event"
+
+import List from "List"
+
+import Event from "@/Event"
+import { log, say } from "@/Log"
+
+
+
+// guards take an event and a context and return a boolean
+export type Guard value payload context = Guard(Event value payload -> context -> Boolean)
+export alias Guards v p x = List (Guard v p x)

@@ -1,154 +1,28 @@
-import type { Maybe } from "Maybe"
+import type { State } from "@/State"
 
-import { gt, lt } from "Compare"
-import Dict from "Dictionary"
-import { ifElse } from "Function"
-import IO from "IO"
 import List from "List"
-import { Just, Nothing, fromMaybe, isJust } from "Maybe"
+
+import { ERRORS, ERROR_CODES } from "@/Error"
+import { log, say } from "@/Log"
 
 
 
-export alias Transition = Machine -> {}
-export alias StateMap = List Machine
-export alias EventMap = Dictionary String String
+// logCreated = say($, "created!", $)
 
-/**
- * @constructor NestedMachine
- * @param name        - String
- * @param states      - List Machine
- * @param transitions - Dictionary String Transition
- */
-export type Machine
-  = NestedMachine(String, List Machine, Dictionary String String)
-  | Machine(String, Dictionary String String)
 
-name :: Machine -> String
-export name = where {
-  NestedMachine(n, _, _) =>
-    n
+export type Machine a p x = Machine(a, List (State a p x), x)
 
-  Machine(n, _) =>
-    n
+export create = Machine
+
+export value = where {
+  Machine(a, _, _) =>
+    a
 }
-
-children :: Machine -> StateMap
-export children = where {
-  NestedMachine(_, c, _) =>
+export states = where {
+  Machine(_, s, _) =>
+    s
+}
+export context = where {
+  Machine(_, _, c) =>
     c
-
-  _ =>
-    []
 }
-
-hasChildren :: Machine -> Boolean
-export hasChildren = pipe(
-  children,
-  List.length,
-  lt(0),
-)
-
-eventMap :: Machine -> EventMap
-export eventMap = where {
-  NestedMachine(_, _, t) =>
-    t
-
-  Machine(_, t) =>
-    t
-}
-
-subStates :: Machine -> List String
-export subStates = pipe(
-  children,
-  map(name),
-)
-
-events :: Machine -> List String
-export events = pipe(
-  eventMap,
-  Dict.keys,
-)
-
-walkDown :: (Machine -> List a) -> Machine -> List a
-export walkDown = (fn, m) => {
-  walk :: Machine -> List a -> List a
-  walk = (item, list) => where(list) {
-    [] =>
-      fn(item)
-
-    [a, ...xs] =>
-      [a, ...walk(item, xs)]
-  }
-
-  return walk(m, [])
-}
-
-descendants :: Machine -> List Machine
-export descendants = (m) => {
-  stack = [m]
-  res = []
-  checkHead = pipe(
-    List.first,
-    isJust,
-  )
-  while(checkHead(stack)) do {
-    curr = pipe(
-      List.first,
-      map(children),
-      fromMaybe([]),
-    )(stack)
-    stack := [...List.tail(stack), ...curr]
-    res := [...res, ...curr]
-  }
-  return res
-}
-
-descend :: (Machine -> List Machine -> List a) -> Machine -> List a
-export descend = (fn, m) => {
-  stack = [m]
-  res = []
-  checkHead = pipe(
-    List.first,
-    isJust,
-  )
-  while(checkHead(stack)) do {
-    fst = pipe(
-      List.first,
-      fromMaybe(Machine("noop", {{}})),
-    )(stack)
-    kids = children(fst)
-    stack := [...List.tail(stack), ...kids]
-    res := [...res, ...fn(fst, kids)]
-  }
-  return res
-}
-
-flatten :: Machine -> List Machine
-export flatten = (m) => [m, ...descendants(m)]
-
-allEvents :: Machine -> List String
-export allEvents = pipe(
-  flatten,
-  map(events),
-  List.flatten,
-)
-
-/*
-allStates :: Machine -> List String
-export allStates = walkDown(
-  (x) => pipe(
-    children,
-    map(
-      pipe(
-        map(
-          (y) => pipe(
-            subStates,
-            map(mappend(name(y) ++ ".")),
-          )(y),
-        ),
-        List.flatten,
-      ),
-    ),
-  )(x),
-)
-*/

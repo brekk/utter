@@ -3,51 +3,57 @@ import IO from "IO"
 import List from "List"
 import { fromMaybe } from "Maybe"
 
+import Event from "@/Event"
 import { log } from "@/Log"
-import {
-  Machine,
-  State,
-  Transition,
-  create,
-  event,
-  immediate,
-  instant,
-  normalizeRobotContext,
-  state,
-  transition,
-  trigger,
-  validate,
-} from "@/Utter"
+import Machine from "@/Machine"
+import Robot from "@/Robot"
+import State from "@/State"
+import Transition from "@/Transition"
+import Utter from "@/Utter"
 
 
 
 STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
 main = () => {
-  extended = state(STATES.EXTENDED, [transition(event("click"), STATES.CONTRACTED)])
+  extended = State.withTransitions(
+    STATES.EXTENDED,
+    [Transition.create(Event.create("click"), STATES.CONTRACTED)],
+  )
   v = log.state("TEST", extended)
   IO.pTrace("V better not be unit", v)
   log.state("state:extended", extended)
-  contracted = State(STATES.CONTRACTED, [transition(event("click"), STATES.EXTENDED)])
+  contracted = State.withTransitions(
+    STATES.CONTRACTED,
+    [Transition.create(Event.create("click"), STATES.EXTENDED)],
+  )
   log.state("state:contracted", contracted)
-  penMachine = Machine("pen", [extended, contracted], { ink: 100 })
-  penRobot = create(penMachine)
-  badRobot = create(Machine("pen", [extended, extended, contracted], { ink: 100 }))
-  checking = validate(Machine("pen", [extended, extended, contracted], { ink: 100 }))
+  penMachine = Machine.create("pen", [extended, contracted], { ink: 100 })
+  penRobot = Utter.create(penMachine)
+  badRobot = Utter.create(Machine.create("pen", [extended, extended, contracted], { ink: 100 }))
+  checking = Robot.validate(Machine.create("pen", [extended, extended, contracted], { ink: 100 }))
   log.utter("values", #[penRobot, badRobot, checking])
-  checking2 = normalizeRobotContext(
-    Machine(
+  checking2 = Robot.validate(
+    Machine.create(
       "pen",
-      [extended, contracted, State("garbage", [transition(event("throw"), "trash")])],
+      [
+        extended,
+        contracted,
+        State.withTransitions("garbage", [Transition.create(Event.create("throw"), "trash")]),
+      ],
       { ink: 100 },
     ),
   )
   log.utter("Missing State?", checking2)
   IO.pTrace(
     "invalid!",
-    create(
-      Machine(
+    Utter.create(
+      Machine.create(
         "pen",
-        [extended, contracted, State("garbage", [transition(event("throw"), "trash")])],
+        [
+          extended,
+          contracted,
+          State.withTransitions("garbage", [Transition.create(Event.create("throw"), "trash")]),
+        ],
         { ink: 100 },
       ),
     ),

@@ -1,0 +1,13 @@
+import type { Event } from "@/Event"
+
+import List from "List"
+
+import { ERRORS, ERROR_CODES } from "@/Error"
+import Event from "@/Event"
+import { log, say } from "@/Log"
+
+
+
+// actions modify the context based on an event
+export type Action value payload context = Action(Event value payload -> context -> context)
+export alias Actions v p x = List (Action v p x)
