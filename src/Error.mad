@@ -1,7 +1,11 @@
 export ICON = `🥛`
 
-export FAILURE = `Utter fail: milk spilled ${ICON}`
-export INVALID_STATES = `Utterly invalid states: a whole mood ${ICON}`
-export DEV_MODE_ONLY = `Utterly incomprehensible: try using DEV_MODE ${ICON}`
+export moo = (x) => `${ICON} Utter` ++ x
 
-export ERRORS = { FAILURE, INVALID_STATES, DEV_MODE_ONLY }
+export stateAlreadyDefined = (state) => moo(` confusion: that state (${state}) is already defined!`)
+export statesNotDefined = (states) => moo(` ambiguity: that state (${states}) is not defined yet`)
+export FAILURE = moo(` fail: milk spilled`)
+export INVALID_STATES = moo(`ly invalid states: a whole mood`)
+export DEV_MODE_ONLY = moo(`ly incomprehensible: try using DEV_MODE`)
+
+export ERRORS = { FAILURE, INVALID_STATES, DEV_MODE_ONLY, stateAlreadyDefined, statesNotDefined }

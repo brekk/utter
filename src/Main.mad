@@ -13,6 +13,7 @@ import {
   instant,
   transition,
   trigger,
+  validate,
 } from "@/Utter"
 
 
@@ -73,6 +74,19 @@ main = () => {
   extended = State(STATES.EXTENDED, [transition(event("click"), STATES.CONTRACTED)])
   contracted = State(STATES.CONTRACTED, [transition(event("click"), STATES.EXTENDED)])
   IO.pTrace("two states, two princes", #[extended, contracted])
-  penRobot = create(Machine("pen", [extended, contracted], { ink: 100 }))
-  IO.pTrace("PEN MACHINE", penRobot)
+  penMachine = Machine("pen", [extended, contracted], { ink: 100 })
+  penRobot = create(penMachine)
+  checked = validate(penMachine)
+  badRobot = create(Machine("pen", [extended, extended, contracted], { ink: 100 }))
+  IO.pTrace("PEN MACHINE", #[penRobot, checked])
+  checking = validate(Machine("pen", [extended, extended, contracted], { ink: 100 }))
+  IO.pTrace("PEN FAIL?", #[badRobot, checking])
+  checking2 = validate(
+    Machine(
+      "pen",
+      [extended, contracted, State("garbage", [transition(event("throw"), "trash")])],
+      { ink: 100 },
+    ),
+  )
+  IO.pTrace("Missing State?", checking2)
 }
