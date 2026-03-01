@@ -1,4 +1,3 @@
-import type { Comparison } from "Compare"
 import type { Either } from "Either"
 import type { Maybe } from "Maybe"
 import type { Set } from "Set"
@@ -13,6 +12,7 @@ import Set from "Set"
 import String from "String"
 
 import { ERRORS } from "@/Error"
+import { log, say } from "@/Log"
 
 
 
@@ -34,6 +34,7 @@ export instant = immediate($, Nothing)
 export type Guard value payload context = Guard(Event value payload -> context -> Boolean)
 export alias Guards v p x = List (Guard v p x)
 
+// actions modify the context based on an event
 export type Action value payload context = Action(Event value payload -> context -> context)
 export alias Actions v p x = List (Action v p x)
 
@@ -64,19 +65,15 @@ export transition = Transition($, $, [], [])
 
 export type State value payload context = State(value, List (Transition value payload context))
 
-// instance Comparable (State value payload context) {
-//   compare = compareStates
-// }
-//
-// compareStates :: Comparable a => State a b c -> State a b c -> Comparison
-// export compareStates = (a, b) => where(#[a, b]) {
-//   #[State(v, _), State(w, _)] =>
-//     v < w ? LT : v == w ? EQ : GT
-//
-// }
+// logCreated = say($, "created!", $)
 
+// state :: a -> List (Transition a b c) -> State a b c
+// (v, trans) => log.state("created", State(v, trans))
+export ustate = (x, y) => pipe(
+  State(x),
+  log.ustate("created"),
+)(y)
 
-// export finalState = State($, $, [])
 
 export type Machine a p x = Machine(a, List (State a p x), x)
 
@@ -105,10 +102,10 @@ alias RobotContext a p x = {
 }
 
 // compiler :: Comparable a => RobotContext a b c -> State a b c -> RobotContext a b c
-compiler = (iter, state) => if (!iter.valid) {
+compiler = (iter, stx) => if (!iter.valid) {
   iter
 } else {
-  where(state) {
+  where(stx) {
     State(value, trans) =>
       if (Dict.includes(value, iter.dict)) {
         (
@@ -149,25 +146,24 @@ robotContextToEither = where {
   { dict, valid, reason } =>
     !valid ? Left(reason) : Right(dict)
 }
-import IO from "IO"
 
 
 
-// buildContext :: (Show a, Comparable a) => List (State a p x) -> RobotContext a p x
+// buildContext :: Comparable a => List (State a p x) -> RobotContext a p x
 buildContext = (stx) => pipe(
   List.reduce(compiler, ROBOT_INITIAL_STATE),
   where {
     { dict, valid, reason, states } =>
       do {
+        // we are in the middle of iterating in the prior compiler step
+        // so this catches up at the end of all iterations
         missed = Set.diff(states.matched, states.defined)
-        IO.pTrace("BARF", missed)
         return if (valid && Set.length(missed) > 0) {
           {
             dict,
             valid: false,
             reason: pipe(
-              Set.toList,
-              String.join(", "),
+              show,
               ERRORS.statesNotDefined,
             )(missed),
             states,
@@ -179,20 +175,25 @@ buildContext = (stx) => pipe(
   },
 )(stx)
 
-// compileStates :: (Show a, Comparable a) => List (State a p x)
+// compileStates :: Comparable a => List (State a p x)
 // -> Either String (Dictionary a (Transitions a p x))
 compileStates = (states) => pipe(
   buildContext,
   robotContextToEither,
 )(states)
 
-// validate :: (Show a, Comparable a) => Machine a p x -> RobotContext a p x
-export validate = pipe(
+// validate :: Comparable a => Machine a p x -> RobotContext a p x
+export normalizeRobotContext = pipe(
   machineStates,
   buildContext,
 )
+export validate = pipe(
+  normalizeRobotContext,
+  robotContextToEither,
+)
 
-// create :: (Show a, Comparable a) => Machine a p x -> Robot a p x
+// create :: Machine String p x -> Robot String p x
+// create :: Comparable a => Machine a p x -> Robot a p x
 export create = where {
   Machine(name, states, context) =>
     where(compileStates(states)) {

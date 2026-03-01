@@ -1,0 +1,45 @@
+// import IO from "IO"
+
+import { DEFAULT_CONFIG, bus, tag, tagWithScope } from "PartyBus"
+
+
+
+/*
+BUSCONFIG = {
+  seed: "utter",
+  decorate: (base, t, msg, x) => decorateWithStyleAndDate(base, t, msg, x),
+  effect: IO.pTrace,
+  change: (x) => x,
+  check: always,
+}
+*/
+env = bus(DEFAULT_CONFIG)
+
+export TAGS = {
+  action: tag("guard"),
+  event: tag("event"),
+  guard: tag("guard"),
+  immediate: tagWithScope("event", ["immediate"]),
+  machine: tag("machine"),
+  robot: tag("robot"),
+  ustate: tag("state"),
+  transition: tag("transition"),
+  trigger: tagWithScope("event", ["trigger"]),
+  utter: tag("utter"),
+}
+
+export log = {
+  action: env(TAGS.action),
+  event: env(TAGS.event),
+  guard: env(TAGS.guard),
+  immediate: env(TAGS.immediate),
+  machine: env(TAGS.machine),
+  robot: env(TAGS.robot),
+  ustate: env(TAGS.ustate),
+  transition: env(TAGS.transition),
+  trigger: env(TAGS.trigger),
+  utter: env(TAGS.utter),
+}
+
+
+export say = (who, says, what) => who(says, what)
