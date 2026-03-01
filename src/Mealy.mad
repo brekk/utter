@@ -1,0 +1,27 @@
+
+// type Mealy f a b = Mealy(i -> f)
+// functor / apply / applicative / bind / monad / semigroup / monoid
+// export type Wish e a = Wish((e -> {}) -> (a -> {}) -> {} -> {})
+/*
+type Step f i o = Halt | Emit(o, Mealy f i o)
+type Mealy f i o = Mealy(i -> f -> Step f i o)
+
+runMealy :: Mealy f i o -> i -> f -> Step f i o
+runMealy = where {
+  Mealy(f) => f
+}
+
+
+alias Source f o = Mealy f {} o
+alias Sink f i = Mealy f i {}
+*/
+//
+// hoistStep = (o, step) => where (step) {
+//   Emit(o, Mealy(inner)) => Halt
+//   _ => Halt
+// }
+// hoistMealy = (f2g, m) => where (m) {
+//   Mealy(f) => Mealy(
+//     (i, g) => hoistStep(f2g, f(i))
+//   )
+// }

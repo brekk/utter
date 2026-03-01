@@ -1,0 +1,7 @@
+export ICON = `🥛`
+
+export FAILURE = `Utter fail: milk spilled ${ICON}`
+export INVALID_STATES = `Utterly invalid states: a whole mood ${ICON}`
+export DEV_MODE_ONLY = `Utterly incomprehensible: try using DEV_MODE ${ICON}`
+
+export ERRORS = { FAILURE, INVALID_STATES, DEV_MODE_ONLY }

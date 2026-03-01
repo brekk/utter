@@ -1,17 +1,78 @@
+import Dict from "Dictionary"
 import IO from "IO"
+import List from "List"
+import { fromMaybe } from "Maybe"
 
-import { Machine } from "@/Machine"
+import {
+  Machine,
+  State,
+  Transition,
+  create,
+  event,
+  immediate,
+  instant,
+  transition,
+  trigger,
+} from "@/Utter"
+
+
+
+/*
+import M from "@/Machine"
 
 
 
 main = () => {
-  m = Machine(
+  turnstile = M.NestedMachine(
     "turnstile",
-    {{
-      "locked": Machine("locked", {{}}, {{ "pay": "unlocked" }}),
-      "unlocked": Machine("unlocked", {{}}, {{ "walk": "locked" }}),
-    }},
+    [M.Machine("locked", {{ "pay": "unlocked" }}), M.Machine("unlocked", {{ "walk": "locked" }})],
     {{}},
   )
-  IO.pTrace("machine!", m)
+  IO.pTrace("machine!", turnstile)
+  mName = M.name(turnstile)
+  mStates = M.subStates(turnstile)
+  IO.pTrace("STATES", map(mappend(mName ++ "."), mStates))
+  IO.pTrace("DESCENDANTS", M.descendants(turnstile))
+  alpha = M.NestedMachine(
+    "a",
+    [
+      M.NestedMachine(
+        "b",
+        [
+          M.NestedMachine(
+            "c",
+            [
+              M.NestedMachine(
+                "d",
+                [M.NestedMachine("e", [M.NestedMachine("f", [M.Machine("g", {{}})], {{}})], {{}})],
+                {{}},
+              ),
+            ],
+            {{ "call": "f", "create": "e", "clean": "d" }},
+          ),
+        ],
+        {{ "bellow": "a", "berate": "c" }},
+      ),
+    ],
+    {{ "ack": "f", "abbrev": "b" }},
+  )
+
+  IO.pTrace(
+    "alphabet DESCENDANTS",
+    pipe(
+      M.flatten,
+      map(M.name),
+    )(alpha),
+  )
+  IO.pTrace("ALL EVENTS", M.allEvents(turnstile))
+  IO.pTrace("EVENTS FOR ALL", M.allEvents(alpha))
+}
+*/
+main = () => {
+  STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
+  extended = State(STATES.EXTENDED, [transition(event("click"), STATES.CONTRACTED)])
+  contracted = State(STATES.CONTRACTED, [transition(event("click"), STATES.EXTENDED)])
+  IO.pTrace("two states, two princes", #[extended, contracted])
+  penRobot = create(Machine("pen", [extended, contracted], { ink: 100 }))
+  IO.pTrace("PEN MACHINE", penRobot)
 }

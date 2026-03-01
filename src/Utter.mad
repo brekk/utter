@@ -1,0 +1,104 @@
+import type { Comparison } from "Compare"
+import type { Maybe } from "Maybe"
+
+import { EQ, GT, LT } from "Compare"
+import Dict from "Dictionary"
+import List from "List"
+import { Just, Nothing } from "Maybe"
+
+import { ERRORS } from "@/Error"
+
+
+
+// naive solution
+export type EventType = Immediate | Triggered
+// events have a type, a state and an optional payload
+export type Event value payload = Event(EventType, value, Maybe payload)
+
+// user events,     with payload
+export trigger = Event(Triggered)
+// user event,      no payload
+export event = trigger($, Nothing)
+// immediate event, with payload
+export immediate = Event(Immediate)
+// immediate event, no payload
+export instant = immediate($, Nothing)
+
+// guards take an event and a context and return a boolean
+export type Guard value payload context = Guard(Event value payload -> context -> Boolean)
+export alias Guards v p x = List (Guard v p x)
+
+export type Action value payload context = Action(Event value payload -> context -> context)
+export alias Actions v p x = List (Action v p x)
+
+export type Transition value payload context
+  = Transition(
+    Event value payload,
+    value,
+    Guards value payload context,
+    Actions value payload context,
+  )
+
+export alias Transitions a b c = List (Transition a b c)
+
+export guardedAction = Transition
+export transition = Transition($, $, [], [])
+
+export type State value payload context = State(value, List (Transition value payload context))
+
+// instance Comparable (State value payload context) {
+//   compare = compareStates
+// }
+//
+// compareStates :: Comparable a => State a b c -> State a b c -> Comparison
+// export compareStates = (a, b) => where(#[a, b]) {
+//   #[State(v, _), State(w, _)] =>
+//     v < w ? LT : v == w ? EQ : GT
+//
+// }
+
+
+// export finalState = State($, $, [])
+
+export type Machine a p x = Machine(a, List (State a p x), x)
+
+// export type Step a p x = Emit(a, p, x) | Halt
+
+export type Robot a p x
+  = InvalidRobot(String, List (State a p x), List (State a p x))
+  | Robot(Dictionary a (Transitions a p x), x)
+
+compileStates :: Comparable a => List (State a p x) -> Maybe (Dictionary a (Transitions a p x))
+compileStates = (states) => pipe(
+  List.reduce(
+    (iter, state) => if (!iter.valid) {
+      iter
+    } else {
+      where(state) {
+        State(value, transitions) =>
+          ({ valid: true, pairs: List.append(#[value, transitions], iter.pairs) })
+      }
+    },
+    { pairs: [], valid: true },
+  ),
+  where {
+    { pairs, valid } =>
+      !valid ? Nothing : Just(Dict.fromList(pairs))
+  },
+)(states)
+
+create :: Comparable a => Machine a p x -> Robot a p x
+export create = where {
+  Machine(name, states, context) =>
+    where(compileStates(states)) {
+      Just(dict) =>
+        Robot(dict, context)
+
+      _ =>
+        InvalidRobot(ERRORS.FAILURE, [], [])
+    }
+}
+
+// when we do mealy stuff later
+// export type Step a p x = Emit(a, p, x) | Halt
+// export type Mealy f i o = Mealy(i -> f (Step ))
