@@ -141,11 +141,16 @@ buildContext = (stx) => pipe(
         // we are in the middle of iterating in the prior compiler step
         // so this catches up at the end of all iterations
         missed = Set.diff(states.matched, states.defined)
-        valid = error > 0
-        return {
-          dict,
-          error: (valid && Set.length(missed) > 0 ? ERROR_CODES.STATES_NOT_DEFINED : error),
-          states: { matched: states.matched, defined: states.defined, missed },
+        valid = error == 0_b
+        log.robot("query", #[missed, valid])
+        return if (!valid) {
+          { dict, error, states }
+        } else {
+          {
+            dict,
+            error: Set.length(missed) > 0 ? ERROR_CODES.STATES_NOT_DEFINED : error,
+            states: { matched: states.matched, defined: states.defined, missed },
+          }
         }
       }
   },
@@ -192,7 +197,7 @@ export normalizeRobotContext = pipe(
 )
 export validate = pipe(
   normalizeRobotContext,
-  (x) => x.error > 0,
+  (x) => x.error == 0,
 )
 
 // create :: Machine String p x -> Robot String p x

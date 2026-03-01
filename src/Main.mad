@@ -39,4 +39,14 @@ main = () => {
     ),
   )
   log.utter("Missing State?", checking2)
+  IO.pTrace(
+    "invalid!",
+    create(
+      Machine(
+        "pen",
+        [extended, contracted, State("garbage", [transition(event("throw"), "trash")])],
+        { ink: 100 },
+      ),
+    ),
+  )
 }
