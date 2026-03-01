@@ -1,0 +1,121 @@
+import type { Sketch } from "@/Blueprint/Types"
+
+import Dict from "Dictionary"
+import { Left, Right } from "Either"
+import Fn from "Function"
+import List from "List"
+import Set from "Set"
+import String from "String"
+
+import { ERRORS, ERROR_CODES } from "@/Error"
+import Event from "@/Event"
+import { State } from "@/State"
+import Transition from "@/Transition"
+
+
+
+draw = (iter, stx) => if (iter.error > 0) {
+  iter
+} else {
+  where(stx) {
+    State(value, trans) =>
+      if (Dict.includes(value, iter.dict)) {
+        (
+          {
+            error: ERROR_CODES.STATE_ALREADY_DEFINED,
+            dict: iter.dict,
+            states: iter.states,
+            events: iter.events,
+          }
+        )
+      } else do {
+        matched = pipe(
+          map(Transition.destination),
+          List.reduce(Fn.flip(Set.insert), iter.states.matched),
+        )(trans)
+        events = pipe(
+          map(
+            pipe(
+              Transition.event,
+              Event.value,
+            ),
+          ),
+          Set.fromList,
+        )(trans)
+        defined = Set.insert(value, iter.states.defined)
+        return (
+          {
+            events: Set.merge(iter.events, events),
+            dict: Dict.insert(value, trans, iter.dict),
+            error: 0,
+            states: { matched, defined, missed: iter.states.missed },
+          }
+        )
+      }
+  }
+}
+
+// a Blueprint is an optimized machine
+
+BP_INITIAL_STATE :: Sketch a b c
+BP_INITIAL_STATE = {
+  dict: Dict.empty,
+  error: 0_b,
+  states: { matched: Set.empty, defined: Set.empty, missed: Set.empty },
+  events: Set.empty,
+}
+
+
+export fromStates = (stx) => pipe(
+  List.reduce(draw, BP_INITIAL_STATE),
+  where {
+    { dict, error, states, events } =>
+      do {
+        // we are in the middle of iterating in the prior draw step
+        // so this catches up at the end of all iterations
+        valid = error == 0_b
+        // barf early if we're already invalid
+        return if (!valid) {
+          { dict, error, states, events }
+        } else do {
+          missed = Set.diff(states.matched, states.defined)
+          return {
+            dict,
+            error: Set.length(missed) > 0 ? ERROR_CODES.STATES_NOT_DEFINED : error,
+            states: { matched: states.matched, defined: states.defined, missed },
+            events,
+          }
+        }
+      }
+  },
+)(stx)
+
+
+
+export errorToString = (missed, code) => if (code == ERROR_CODES.FAILURE) {
+  ERRORS.FAILURE
+} else if (code == ERROR_CODES.INVALID_STATES) {
+  ERRORS.INVALID_STATES
+} else if (code == ERROR_CODES.DEV_MODE_ONLY) {
+  ERRORS.DEV_MODE_ONLY
+} else if (code == ERROR_CODES.STATE_ALREADY_DEFINED) {
+  ERRORS.STATE_ALREADY_DEFINED
+} else if (code == ERROR_CODES.STATES_NOT_DEFINED) {
+  pipe(
+    Set.toList,
+    String.join(", "),
+    ERRORS.statesNotDefined,
+  )(missed)
+} else {
+  ""
+}
+
+export sketchToEither = (roboctx) => where(roboctx) {
+  { dict, error, states } =>
+    error > 0 ? Left(errorToString(states.missed, error)) : Right(dict)
+}
+
+export prepare = (states) => pipe(
+  fromStates,
+  sketchToEither,
+)(states)

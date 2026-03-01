@@ -1,0 +1,27 @@
+import Sketch from "@/Blueprint/Sketch"
+import { Draft } from "@/Blueprint/Types"
+import Machine from "@/Machine"
+
+
+
+export build = (stx) => pipe(
+  Sketch.fromStates,
+  where {
+    { dict, states, events } =>
+      Draft(dict, states.defined, events)
+  },
+)(stx)
+
+export draftFromMachine = pipe(
+  Machine.states,
+  build,
+)
+
+export normalize = pipe(
+  Machine.states,
+  Sketch.fromStates,
+)
+export validate = pipe(
+  normalize,
+  (x) => x.error == 0,
+)

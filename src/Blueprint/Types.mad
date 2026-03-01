@@ -1,0 +1,24 @@
+import type { Set } from "Set"
+
+import type { Transitions } from "@/Transition"
+
+
+
+export alias BlueprintDict a b c = Dictionary a (Transitions a b c)
+
+export alias Sketch a b c = {
+  dict :: BlueprintDict a b c,
+  error :: Byte,
+  events :: Set a,
+  states :: { defined :: Set a, matched :: Set a, missed :: Set a },
+}
+
+export type Draft a b c
+  = Draft(
+    // Dictionary States Transitions
+    BlueprintDict a b c,
+    // states 
+    Set a,
+    // events
+    Set a,
+  )
