@@ -71,10 +71,12 @@ main = () => {
   IO.pTrace("EVENTS FOR ALL", M.allEvents(alpha))
 }
 */
+
+
+STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
 main = () => {
   log.event("yo", 100)
   log.ustate("hey", "shit")
-  STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
   // swap the next two lines for a fun error, 'ustate' throws an error that I can't understand
   // extended = ustate(STATES.EXTENDED, [transition(event("click"), STATES.CONTRACTED)])
   extended = State(STATES.EXTENDED, [transition(event("click"), STATES.CONTRACTED)])

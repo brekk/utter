@@ -69,11 +69,22 @@ export type State value payload context = State(value, List (Transition value pa
 
 // state :: a -> List (Transition a b c) -> State a b c
 // (v, trans) => log.state("created", State(v, trans))
+
+// this shouldn't barf, but it return Unit
+/*
 export ustate = (x, y) => pipe(
   State(x),
   log.ustate("created"),
 )(y)
+*/
 
+// this appears to return unit
+export ustate = (x, y) => {
+  z = State(x, y)
+  // #-{ console.log(z) }-#
+  log.ustate("created", z)
+  return z
+}
 
 export type Machine a p x = Machine(a, List (State a p x), x)
 
