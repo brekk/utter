@@ -73,30 +73,15 @@ main = () => {
   pipe(
     Interpreter.create($, Just({ ink: true }), (inter) => {}),
     IO.pTrace("interpurty?"),
-    where {
-      Interpreter.Interpreter(m, init, run) =>
-        do {
-          IO.pTrace("interpreterringgigng", init)
-          bp = Blueprint.fromMachine(m, init)
-          return bp
-        }
-    },
+    // where {
+    //   Interpreter.Interpreter(m, init, run) =>
+    //     do {
+    //       IO.pTrace("interpreterringgigng", init)
+    //       bp = Blueprint.fromMachine(m, init)
+    //       return bp
+    //     }
+    // },
     // ???,
-    // Interpreter.control
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    Interpreter.control,
   )(penMachine)
 }
