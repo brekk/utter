@@ -17,26 +17,26 @@ import { Just, Nothing } from "Maybe"
 import Set from "Set"
 import String from "String"
 
+import Blueprint from "@/Blueprint"
 import { ERRORS, ERROR_CODES } from "@/Error"
 import Event from "@/Event"
 import { log, say } from "@/Log"
 import Machine from "@/Machine"
-import Robot from "@/Robot"
 import { State } from "@/State"
 import Transition from "@/Transition"
 
 
 
-// create :: Machine String p x -> Robot String p x
-// create :: Comparable a => Machine a p x -> Robot a p x
+// create :: Machine String p x -> Blueprint String p x
+// create :: Comparable a => Machine a p x -> Blueprint a p x
 export create = where {
   Machine.Machine(name, states, context) =>
-    where(Robot.prepare(states)) {
+    where(Blueprint.prepare(states)) {
       Right(dict) =>
-        Robot.Robot(dict, context)
+        Blueprint.Blueprint(dict, context)
 
       Left(reason) =>
-        Robot.InvalidRobot(reason)
+        Blueprint.InvalidBlueprint(reason)
     }
 }
 

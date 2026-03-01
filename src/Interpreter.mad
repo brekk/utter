@@ -1,0 +1,41 @@
+import type { Maybe } from "Maybe"
+
+import type { Machine } from "@/Machine"
+
+import List from "List"
+import { Just, Nothing } from "Maybe"
+import Set from "Set"
+
+import Blueprint from "@/Blueprint"
+import { log } from "@/Log"
+import Machine from "@/Machine"
+
+
+
+export type Interpreter a b c = Interpreter(Machine a b c, Interpreter a b c -> {}, Maybe c)
+
+export createFromContext = Interpreter
+export create = Interpreter($, $, Nothing)
+
+export alias Talkback a b c = { latest :: {} -> Machine a b c, send :: String -> Maybe b -> {} }
+
+// control :: Interpreter String String String -> Talkback String String String
+export control = where {
+  Interpreter(machine, run, init) =>
+    where(Blueprint.draftFromMachine(machine)) {
+      Blueprint.Draft(dict, states, events) =>
+        do {
+          log.interpreter("draft info", { dict, states, events })
+          isState = Set.includes($, states)
+          isEvent = Set.includes($, events)
+          current = machine
+          send = (e, payload) => {
+            if (isEvent(e)) do {
+              log.interpreter("valid event", e)
+            }
+          }
+          latest = () => current
+          return { send, latest }
+        }
+    }
+}

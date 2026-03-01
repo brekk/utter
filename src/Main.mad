@@ -1,12 +1,13 @@
 import Dict from "Dictionary"
 import IO from "IO"
 import List from "List"
-import { fromMaybe } from "Maybe"
+import { Just, Nothing, fromMaybe } from "Maybe"
 
+import Blueprint from "@/Blueprint"
 import Event from "@/Event"
+import Interpreter from "@/Interpreter"
 import { log } from "@/Log"
 import Machine from "@/Machine"
-import Robot from "@/Robot"
 import State from "@/State"
 import Transition from "@/Transition"
 import Utter from "@/Utter"
@@ -14,48 +15,58 @@ import Utter from "@/Utter"
 
 
 STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
+
+/*
+        penBlueprint = Utter.create(penMachine)
+        badBlueprint = Utter.create(Machine.create("pen", [extended, extended, contracted], { ink: 100 }))
+        checking = Blueprint.validate(
+          Machine.create("pen", [extended, extended, contracted], { ink: 100 }),
+        )
+        log.utter("values", #[penBlueprint, badBlueprint, checking])
+        checking2 = Blueprint.validate(
+          Machine.create(
+            "pen",
+            [
+              extended,
+              contracted,
+              State.withTransitions("garbage", [Transition.create(Event.create("throw"), "trash")]),
+            ],
+            { ink: 100 },
+          ),
+        )
+        log.utter("Missing State?", checking2)
+        IO.pTrace(
+          "invalid!",
+          Utter.create(
+            Machine.create(
+              "pen",
+              [
+                extended,
+                contracted,
+                State.withTransitions("garbage", [Transition.create(Event.create("throw"), "trash")]),
+              ],
+              { ink: 100 },
+            ),
+          ),
+        )
+        */
+
 main = () => {
   extended = State.withTransitions(
     STATES.EXTENDED,
     [Transition.create(Event.create("click"), STATES.CONTRACTED)],
   )
-  v = log.state("TEST", extended)
-  IO.pTrace("V better not be unit", v)
-  log.state("state:extended", extended)
+  // v = log.state("TEST", extended)
+  // IO.pTrace("V better not be unit", v)
+  // log.state("state:extended", extended)
   contracted = State.withTransitions(
     STATES.CONTRACTED,
     [Transition.create(Event.create("click"), STATES.EXTENDED)],
   )
-  log.state("state:contracted", contracted)
+  // log.state("state:contracted", contracted)
   penMachine = Machine.create("pen", [extended, contracted], { ink: 100 })
-  penRobot = Utter.create(penMachine)
-  badRobot = Utter.create(Machine.create("pen", [extended, extended, contracted], { ink: 100 }))
-  checking = Robot.validate(Machine.create("pen", [extended, extended, contracted], { ink: 100 }))
-  log.utter("values", #[penRobot, badRobot, checking])
-  checking2 = Robot.validate(
-    Machine.create(
-      "pen",
-      [
-        extended,
-        contracted,
-        State.withTransitions("garbage", [Transition.create(Event.create("throw"), "trash")]),
-      ],
-      { ink: 100 },
-    ),
-  )
-  log.utter("Missing State?", checking2)
-  IO.pTrace(
-    "invalid!",
-    Utter.create(
-      Machine.create(
-        "pen",
-        [
-          extended,
-          contracted,
-          State.withTransitions("garbage", [Transition.create(Event.create("throw"), "trash")]),
-        ],
-        { ink: 100 },
-      ),
-    ),
-  )
+
+  penController = Interpreter.control(Interpreter.create(penMachine, (inter) => {}))
+  // log.interpreter("pen!", penController.latest())
+  penController.send("click", Nothing)
 }

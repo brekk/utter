@@ -26,6 +26,7 @@ export TAGS = {
   transition: tagWithScope("utter", ["transition"]),
   trigger: tagWithScope("utter", ["event", "trigger"]),
   utter: tag("utter"),
+  interpreter: tagWithScope("utter", ["interpreter"]),
 }
 
 export log = {
@@ -39,6 +40,7 @@ export log = {
   transition: env(TAGS.transition),
   trigger: env(TAGS.trigger),
   utter: env(TAGS.utter),
+  interpreter: env(TAGS.interpreter),
 }
 
 

@@ -28,19 +28,16 @@ import Transition from "@/Transition"
 
 // export type Step a p x = Emit(a, p, x) | Halt
 
-alias RobotDictionary a b c = Dictionary a (Transitions a b c)
 
-export type Robot a p x = InvalidRobot(String) | Robot(RobotDictionary a p x, x)
-
-alias RobotContext a b c = {
-  dict :: Dictionary a (Transitions a b c),
+export alias Sketch a b c = {
+  dict :: BlueprintDict a b c,
   error :: Byte,
   events :: Set a,
   states :: { defined :: Set a, matched :: Set a, missed :: Set a },
 }
 
-// compiler :: RobotContext a b c -> State a b c -> RobotContext a b c
-compiler = (iter, stx) => if (iter.error > 0) {
+
+draw = (iter, stx) => if (iter.error > 0) {
   iter
 } else {
   where(stx) {
@@ -59,10 +56,19 @@ compiler = (iter, stx) => if (iter.error > 0) {
           map(Transition.output),
           List.reduce(Fn.flip(Set.insert), iter.states.matched),
         )(trans)
+        events = pipe(
+          map(
+            pipe(
+              Transition.event,
+              Event.value,
+            ),
+          ),
+          Set.fromList,
+        )(trans)
         defined = Set.insert(value, iter.states.defined)
         return (
           {
-            events: iter.events,
+            events: Set.merge(iter.events, events),
             dict: Dict.insert(value, trans, iter.dict),
             error: 0,
             states: { matched, defined, missed: iter.states.missed },
@@ -72,10 +78,10 @@ compiler = (iter, stx) => if (iter.error > 0) {
   }
 }
 
-// a robot is an optimized machine
+// a Blueprint is an optimized machine
 
-ROBOT_INITIAL_STATE :: RobotContext a b c
-ROBOT_INITIAL_STATE = {
+BP_INITIAL_STATE :: Sketch a b c
+BP_INITIAL_STATE = {
   dict: Dict.empty,
   error: 0_b,
   states: { matched: Set.empty, defined: Set.empty, missed: Set.empty },
@@ -83,28 +89,31 @@ ROBOT_INITIAL_STATE = {
 }
 
 
-buildContext = (stx) => pipe(
-  List.reduce(compiler, ROBOT_INITIAL_STATE),
+export sketchStates = (stx) => pipe(
+  List.reduce(draw, BP_INITIAL_STATE),
   where {
-    { dict, error, states } =>
+    { dict, error, states, events } =>
       do {
-        // we are in the middle of iterating in the prior compiler step
+        // we are in the middle of iterating in the prior draw step
         // so this catches up at the end of all iterations
         valid = error == 0_b
         // barf early if we're already invalid
         return if (!valid) {
-          { dict, error, states }
+          { dict, error, states, events }
         } else do {
           missed = Set.diff(states.matched, states.defined)
           return {
             dict,
             error: Set.length(missed) > 0 ? ERROR_CODES.STATES_NOT_DEFINED : error,
             states: { matched: states.matched, defined: states.defined, missed },
+            events,
           }
         }
       }
   },
 )(stx)
+
+
 
 export errorToString = (missed, code) => if (code == ERROR_CODES.FAILURE) {
   ERRORS.FAILURE
@@ -124,24 +133,49 @@ export errorToString = (missed, code) => if (code == ERROR_CODES.FAILURE) {
   ""
 }
 
-// robotContextToEither :: RobotContext a b c -> Either String (RobotDictionary a b c)
-export toEither = (roboctx) => where(roboctx) {
+export sketchToEither = (roboctx) => where(roboctx) {
   { dict, error, states } =>
     error > 0 ? Left(errorToString(states.missed, error)) : Right(dict)
 }
 
-// compileStates :: List (State a b c) -> Either String (Dictionary a (Transitions a b c))
 export prepare = (states) => pipe(
-  buildContext,
-  toEither,
+  sketchStates,
+  sketchToEither,
 )(states)
 
-// validate :: Comparable a => Machine a p x -> RobotContext a p x
+alias BlueprintDict a b c = Dictionary a (Transitions a b c)
+
+
+export type Draft a b c
+  = Draft(
+    // Dictionary States Transitions
+    BlueprintDict a b c,
+    // states 
+    Set a,
+    // events
+    Set a,
+  )
+
+export buildDraft = (stx) => pipe(
+  sketchStates,
+  where {
+    { dict, states, events } =>
+      Draft(dict, states.defined, events)
+  },
+)(stx)
+
+export draftFromMachine = pipe(
+  Machine.states,
+  buildDraft,
+)
+
 export normalize = pipe(
   Machine.states,
-  buildContext,
+  sketchStates,
 )
 export validate = pipe(
   normalize,
   (x) => x.error == 0,
 )
+
+export type Blueprint a p x = InvalidBlueprint(String) | Blueprint(BlueprintDict a p x, x)
