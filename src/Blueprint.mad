@@ -1,6 +1,6 @@
 import type { Maybe } from "Maybe"
 
-import type { Concrete, Draft, SketchDict } from "@/Blueprint/Types"
+import type { Blueprint, Concrete, Draft, SketchDict } from "@/Blueprint/Types"
 
 import Dict from "Dictionary"
 import { fromMaybe } from "Maybe"
@@ -8,7 +8,7 @@ import Set from "Set"
 import String from "String"
 
 import D from "@/Blueprint/Draft"
-import { Draft } from "@/Blueprint/Types"
+import { Blueprint, Draft } from "@/Blueprint/Types"
 import { log } from "@/Log"
 import Machine from "@/Machine"
 import State from "@/State"
@@ -19,6 +19,9 @@ export type Draft
 export Draft
 export draft = Draft
 export buildDraft = D.fromSketch
+
+export type Blueprint
+export Blueprint
 
 
 

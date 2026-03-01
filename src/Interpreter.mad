@@ -32,8 +32,13 @@ export alias TalkbackStructure a b = {
 }
 export type Talkback a b = Silence | Talkback(TalkbackStructure a b)
 
-/*
-where(Blueprint.fromMachine(m, init)) {
+import IO from "IO"
+
+
+
+export control = where {
+  Interpreter(m, init, run) =>
+    where(Blueprint.fromMachine(m, init)) {
       Blueprint.Blueprint({ destinations, isEvent, isState }) =>
         do {
           log.interpreter("OUT", destinations)
@@ -50,16 +55,5 @@ where(Blueprint.fromMachine(m, init)) {
 
       _ =>
         Silence
-    }
-    */
-import IO from "IO"
-
-
-
-export control = where {
-  Interpreter(m, init, run) =>
-    do {
-      IO.pTrace("MMMM", m)
-      return Blueprint.fromMachine(m, init)
     }
 }

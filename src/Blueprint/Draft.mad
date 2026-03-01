@@ -1,3 +1,8 @@
+import type { Maybe } from "Maybe"
+
+import type { Concrete, Draft, DraftDict, Sketch, SketchDict } from "@/Blueprint/Types"
+import type { Transitions } from "@/Transition"
+
 import Dict from "Dictionary"
 import { fromMaybe } from "Maybe"
 import Set from "Set"
@@ -11,6 +16,7 @@ import Transition from "@/Transition"
 
 
 
+fromSketch :: Comparable a => List (State a b) -> Draft a b c
 export fromSketch = (stx) => pipe(
   Sketch.fromStates,
   where {
@@ -22,21 +28,25 @@ export fromSketch = (stx) => pipe(
   },
 )(stx)
 
+fromMachine :: Comparable a => Machine a b -> Draft a b c
 export fromMachine = pipe(
   Machine.states,
   fromSketch,
 )
 
+normalize :: Comparable a => Machine a b -> Sketch a b
 export normalize = pipe(
   Machine.states,
   Sketch.fromStates,
 )
+validate :: Comparable a => Machine a b -> Boolean
 export validate = pipe(
   normalize,
   (x) => x.error == 0,
 )
 
-
+/*
+toConcrete :: Draft a b c -> Maybe (State a b) -> Concrete a b c
 export toConcrete = (dft, initial) => where(dft) {
   Draft(dict, stateSet, eventSet) =>
     do {
@@ -56,3 +66,4 @@ export toConcrete = (dft, initial) => where(dft) {
       return ({ isState, isEvent, destinations, context })
     }
 }
+*/
