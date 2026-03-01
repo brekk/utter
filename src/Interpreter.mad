@@ -1,6 +1,7 @@
 import type { Maybe } from "Maybe"
 
 import type { Machine } from "@/Machine"
+import type { State } from "@/State"
 
 import { Just, Nothing, fromMaybe } from "Maybe"
 
@@ -11,10 +12,10 @@ import Machine from "@/Machine"
 
 
 export type Interpreter a pay ctx
-  = Interpreter(Machine a pay, Interpreter a pay ctx -> {}, Maybe ctx)
+  = Interpreter(Machine a pay, Maybe ctx, Interpreter a pay ctx -> {})
 
 export create = Interpreter
-export contextless = Interpreter($, $, Nothing)
+export contextless = Interpreter($, Nothing, $)
 
 export alias TalkbackStructure a b = {
   latest :: {} -> Machine a b,
@@ -23,7 +24,7 @@ export alias TalkbackStructure a b = {
 export type Talkback a b = Silence | Talkback(TalkbackStructure a b)
 
 export control = where {
-  Interpreter(machine, run, init) =>
+  Interpreter(machine, init, run) =>
     where(Blueprint.fromMachine(machine, init)) {
       Blueprint.Blueprint({ destinations, isEvent, isState }) =>
         do {

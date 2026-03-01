@@ -11,6 +11,7 @@ import { ERRORS, ERROR_CODES } from "@/Error"
 import Event from "@/Event"
 import { State } from "@/State"
 import Transition from "@/Transition"
+import Route from "@/Transition/Route"
 
 
 
@@ -36,7 +37,7 @@ draw = (iter, stx) => if (iter.error > 0) {
         events = pipe(
           map(
             pipe(
-              Transition.event,
+              Route.event,
               Event.value,
             ),
           ),

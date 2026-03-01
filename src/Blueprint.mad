@@ -1,3 +1,5 @@
+import type { Maybe } from "Maybe"
+
 import type { BlueprintDict, Concrete, Draft } from "@/Blueprint/Types"
 
 import Dict from "Dictionary"
@@ -44,6 +46,7 @@ export fromDraft = (initial, dft) => where(dft) {
 }
 
 
+fromMachine :: Machine a b -> Maybe c -> Blueprint a b c
 export fromMachine = (machine, initial) => pipe(
   D.fromMachine,
   fromDraft(initial),

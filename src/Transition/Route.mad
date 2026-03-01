@@ -1,0 +1,23 @@
+import type { Event } from "@/Event"
+
+import List from "List"
+
+import Event from "@/Event"
+
+
+
+export type Route a payload = Route(Event a payload, a)
+export alias Routes a payload = List (Route a payload)
+
+
+destination :: Route a b -> a
+export destination = where {
+  Route(_, o) =>
+    o
+}
+
+event :: Route a b -> Event a b
+export event = where {
+  Route(e, _) =>
+    e
+}

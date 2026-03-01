@@ -53,24 +53,38 @@ STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
 main = () => {
   extended = State.create(
     STATES.EXTENDED,
-    [Transition.create(Event.create("click"), STATES.CONTRACTED)],
+    [Transition.Route.create(Event.create("click"), STATES.CONTRACTED)],
   )
   // v = log.state("TEST", extended)
   // IO.pTrace("V better not be unit", v)
   // log.state("state:extended", extended)
   contracted = State.create(
     STATES.CONTRACTED,
-    [Transition.create(Event.create("click"), STATES.EXTENDED)],
+    [Transition.Route.create(Event.create("click"), STATES.EXTENDED)],
   )
   // log.state("state:contracted", contracted)
-  penMachine = Machine.create("pen", [extended, contracted], { ink: 100 })
+  penMachine = Machine.create("pen", [extended, contracted])
 
   pipe(
-    Interpreter.create(penMachine),
-    Interpreter.control,
-    (penController) => {
-      log.interpreter("pen!", penController.latest())
-      penController.send("click", Nothing)
-    },
+    Interpreter.create(penMachine, Just({ ink: true })),
+    Blueprint.fromMachine($, Nothing),
+    IO.pTrace("hohohoh"),
+    // Interpreter.control,
+    // (penController) => {
+    //   log.interpreter("pen!", penController.latest())
+    //   penController.send("click", Nothing)
+    // },
+
+
+
+
+
+
+
+
+
+
+
+
   )((inter) => {})
 }

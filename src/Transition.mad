@@ -17,7 +17,12 @@ export fromRoute = where {
 
 export type Route
 export type Routes
-export Route = { destination: R.destination, toTransition: fromRoute }
+export Route = {
+  create: R.Route,
+  event: R.event,
+  destination: R.destination,
+  toTransition: fromRoute,
+}
 
 
 // transitions are routes with context
