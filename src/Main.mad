@@ -13,6 +13,7 @@ import {
   immediate,
   instant,
   normalizeRobotContext,
+  state,
   transition,
   trigger,
   validate,
@@ -22,7 +23,9 @@ import {
 
 STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
 main = () => {
-  extended = State(STATES.EXTENDED, [transition(event("click"), STATES.CONTRACTED)])
+  extended = state(STATES.EXTENDED, [transition(event("click"), STATES.CONTRACTED)])
+  v = log.state("TEST", extended)
+  IO.pTrace("V better not be unit", v)
   log.state("state:extended", extended)
   contracted = State(STATES.CONTRACTED, [transition(event("click"), STATES.EXTENDED)])
   log.state("state:contracted", contracted)

@@ -65,6 +65,12 @@ export transition = Transition($, $, [], [])
 
 export type State a b c = State(b, Transitions a b c)
 
+// log.state("created"),
+state :: b -> Transitions a b c -> State a b c
+export state = (a, b) => pipe(
+  State(a),
+)(b)
+
 // logCreated = say($, "created!", $)
 
 
