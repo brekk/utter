@@ -48,7 +48,7 @@ export Blueprint
 
 // fromDraft(initial),
 // fromMachine :: Machine a b -> Maybe c -> Blueprint a b c
-export fromMachine = (initial, machine) => pipe(
+export fromMachine = (machine) => pipe(
   D.fromMachine,
-  D.toConcrete(initial),
+  D.toConcrete(Machine.initial(machine)),
 )(machine)

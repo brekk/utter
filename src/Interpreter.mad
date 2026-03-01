@@ -38,7 +38,7 @@ import IO from "IO"
 
 export control = where {
   Interpreter(m, init, run) =>
-    Blueprint.fromMachine(Machine.initial(m), m)
+    Blueprint.fromMachine(m)
 }
 
 // */

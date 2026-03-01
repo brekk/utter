@@ -35,4 +35,4 @@ export alias Concrete a pay ctx = {
 }
 
 
-export type Blueprint a pay ctx = InvalidBlueprint(String) | Blueprint(Concrete a pay (Maybe ctx))
+export type Blueprint a pay ctx = Blueprint(Concrete a pay (Maybe ctx))
