@@ -1,0 +1,36 @@
+import type { Event, EventType } from "@/Event"
+
+import { Just, Nothing } from "Maybe"
+
+import { caseN2, report } from "Study"
+
+import Event from "@/Event"
+import State from "@/State"
+import Transition from "@/Transition"
+
+
+
+nowish = Just({ date: "now" })
+
+FIXTURE = {
+  CLICK_EVENT: Event.Event(Event.Triggered, "click", Nothing),
+  CLICK_EVENT_WITH_PAYLOAD: Event.Event(Event.Triggered, "click", nowish),
+  POWER_EVENT: Event.Event(Event.Immediate, "power", Nothing),
+  POWER_EVENT_WITH_PAYLOAD: Event.Event(Event.Immediate, "power", nowish),
+}
+
+report(Event.create, "Event.create", [#["click", FIXTURE.CLICK_EVENT]])
+
+report(Event.urgent, "Event.urgent", [#["power", FIXTURE.POWER_EVENT]])
+
+report(
+  Event.kind,
+  "Event.kind",
+  [#[FIXTURE.CLICK_EVENT, Event.Triggered], #[FIXTURE.POWER_EVENT, Event.Immediate]],
+)
+
+report(
+  Event.payload,
+  "Event.payload",
+  [#[FIXTURE.CLICK_EVENT, Nothing], #[FIXTURE.POWER_EVENT_WITH_PAYLOAD, nowish]],
+)
