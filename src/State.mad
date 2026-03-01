@@ -7,6 +7,15 @@ import { log, say } from "@/Log"
 
 export type State a b c = State(b, Transitions a b c)
 
+export id = where {
+  State(i, _) =>
+    i
+}
+export transitions = where {
+  State(_, t) =>
+    t
+}
+
 withTransitions :: b -> Transitions a b c -> State a b c
 export withTransitions = State
 

@@ -1,6 +1,9 @@
+import type { Maybe } from "Maybe"
+
 import type { State } from "@/State"
 
 import List from "List"
+import { Just, Nothing } from "Maybe"
 
 import { ERRORS, ERROR_CODES } from "@/Error"
 import { log, say } from "@/Log"
@@ -10,19 +13,24 @@ import { log, say } from "@/Log"
 // logCreated = say($, "created!", $)
 
 
-export type Machine a p x = Machine(a, List (State a p x), x)
+export type Machine a p x = Machine(a, List (State a p x), Maybe (State a p x), x)
 
-export create = Machine
+export create = (a, sts, x) => Machine(a, sts, List.first(sts), x)
+export createWithInit = Machine
 
 export value = where {
-  Machine(a, _, _) =>
+  Machine(a, _, _, _) =>
     a
 }
 export states = where {
-  Machine(_, s, _) =>
+  Machine(_, s, _, _) =>
     s
 }
+export initial = where {
+  Machine(_, _, i, _) =>
+    i
+}
 export context = where {
-  Machine(_, _, c) =>
+  Machine(_, _, _, c) =>
     c
 }

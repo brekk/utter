@@ -1,21 +1,4 @@
-import type { Either } from "Either"
-import type { Maybe } from "Maybe"
-import type { Set } from "Set"
-
-import type { Actions } from "@/Action"
-import type { Event } from "@/Event"
-import type { Guard, Guards } from "@/Guard"
-import type { State } from "@/State"
-import type { Transitions } from "@/Transition"
-
-import { EQ, GT, LT } from "Compare"
-import Dict from "Dictionary"
 import { Left, Right } from "Either"
-import Fn from "Function"
-import List from "List"
-import { Just, Nothing } from "Maybe"
-import Set from "Set"
-import String from "String"
 
 import Blueprint from "@/Blueprint"
 import { ERRORS, ERROR_CODES } from "@/Error"
@@ -30,7 +13,7 @@ import Transition from "@/Transition"
 // create :: Machine String p x -> Blueprint String p x
 // create :: Comparable a => Machine a p x -> Blueprint a p x
 export create = where {
-  Machine.Machine(name, states, context) =>
+  Machine.Machine(name, states, init, context) =>
     where(Blueprint.prepare(states)) {
       Right(dict) =>
         Blueprint.Blueprint(dict, context)

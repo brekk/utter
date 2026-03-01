@@ -2,13 +2,16 @@ import type { Maybe } from "Maybe"
 
 import type { Machine } from "@/Machine"
 
+import Dict from "Dictionary"
 import List from "List"
-import { Just, Nothing } from "Maybe"
+import { Just, Nothing, fromMaybe } from "Maybe"
 import Set from "Set"
 
 import Blueprint from "@/Blueprint"
 import { log } from "@/Log"
 import Machine from "@/Machine"
+import State from "@/State"
+import Transition from "@/Transition"
 
 
 
@@ -22,20 +25,32 @@ export alias Talkback a b c = { latest :: {} -> Machine a b c, send :: String ->
 // control :: Interpreter String String String -> Talkback String String String
 export control = where {
   Interpreter(machine, run, init) =>
-    where(Blueprint.draftFromMachine(machine)) {
-      Blueprint.Draft(dict, states, events) =>
-        do {
-          log.interpreter("draft info", { dict, states, events })
-          isState = Set.includes($, states)
-          isEvent = Set.includes($, events)
-          current = machine
-          send = (e, payload) => {
-            if (isEvent(e)) do {
-              log.interpreter("valid event", e)
+    where(machine) {
+      Machine.Machine(a, states, initial, context) =>
+        where(Blueprint.buildDraft(states)) {
+          Blueprint.Draft(dict, stateSet, eventSet) =>
+            do {
+              // log.interpreter("draft info", { dict, initial })
+              // map(map(Transition.output)),
+              // fromMaybe([]),
+              destinations = pipe(
+                map(State.id),
+                chain(Dict.get($, dict)),
+              )(initial)
+
+              log.interpreter("OUT", destinations)
+              // isDestination = List.includes($, destinations)
+              isState = Set.includes($, stateSet)
+              isEvent = Set.includes($, eventSet)
+              current = machine
+              send = (e, payload) => {
+                if (isEvent(e)) do {
+                  log.interpreter("valid event", e)
+                }
+              }
+              latest = () => current
+              return { send, latest }
             }
-          }
-          latest = () => current
-          return { send, latest }
         }
     }
 }
