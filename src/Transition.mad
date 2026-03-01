@@ -10,9 +10,9 @@ import R from "@/Transition/Route"
 
 
 
-export fromRoute = where {
+export fromRoute = (r, guards, actions) => where(r) {
   R.Route(a, b) =>
-    Transition(a, b, [], [])
+    Transition(a, b, guards, actions)
 }
 
 export type Route

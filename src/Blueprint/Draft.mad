@@ -1,20 +1,30 @@
+import Dict from "Dictionary"
+import { fromMaybe } from "Maybe"
+import Set from "Set"
+
 import Sketch from "@/Blueprint/Sketch"
 import { Draft } from "@/Blueprint/Types"
+import { log } from "@/Log"
 import Machine from "@/Machine"
+import State from "@/State"
+import Transition from "@/Transition"
 
 
 
-export build = (stx) => pipe(
+export fromSketch = (stx) => pipe(
   Sketch.fromStates,
   where {
     { dict, states, events } =>
-      Draft(dict, states.defined, events)
+      do {
+        update = map((s) => map((t) => Transition.fromRoute(t, [], []), s), dict)
+        return Draft(update, states.defined, events)
+      }
   },
 )(stx)
 
 export fromMachine = pipe(
   Machine.states,
-  build,
+  fromSketch,
 )
 
 export normalize = pipe(
@@ -25,3 +35,24 @@ export validate = pipe(
   normalize,
   (x) => x.error == 0,
 )
+
+
+export toConcrete = (dft, initial) => where(dft) {
+  Draft(dict, stateSet, eventSet) =>
+    do {
+      // log.interpreter("draft info", { dict, initial })
+      // map(map(Transition.output)),
+      destinations = pipe(
+        map(State.id),
+        chain(Dict.get($, dict)),
+        fromMaybe([]),
+      )(initial)
+
+      log.interpreter("OUT", destinations)
+      // isDestination = List.includes($, destinations)
+      isState = Set.includes($, stateSet)
+      isEvent = Set.includes($, eventSet)
+      context = initial
+      return ({ isState, isEvent, destinations, context })
+    }
+}

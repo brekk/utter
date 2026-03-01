@@ -1,22 +1,26 @@
+import type { Maybe } from "Maybe"
 import type { Set } from "Set"
 
 import type { Routes, Transitions } from "@/Transition"
 
 
 
-export alias BlueprintDict a b = Dictionary a (Routes a b)
+export alias SketchDict a b = Dictionary a (Routes a b)
+export alias DraftDict a b c = Dictionary a (Transitions a b c)
 
+// Sketches handle routes
 export alias Sketch a b = {
-  dict :: BlueprintDict a b,
+  dict :: SketchDict a b,
   error :: Byte,
   events :: Set a,
   states :: { defined :: Set a, matched :: Set a, missed :: Set a },
 }
 
-export type Draft a b
+// Drafts handle transitions
+export type Draft a b c
   = Draft(
     // Dictionary States Transitions
-    BlueprintDict a b,
+    DraftDict a b c,
     // states 
     Set a,
     // events
@@ -24,7 +28,11 @@ export type Draft a b
   )
 
 export alias Concrete a pay ctx = {
+  context :: Maybe ctx,
   destinations :: List a,
   isEvent :: String -> Boolean,
   isState :: String -> Boolean,
 }
+
+
+export type Blueprint a pay ctx = InvalidBlueprint(String) | Blueprint(Concrete a pay (Maybe ctx))

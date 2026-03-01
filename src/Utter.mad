@@ -1,5 +1,6 @@
 import type { State } from "@/State"
 import type { Transition } from "@/Transition"
+import type { Route } from "@/Transition/Route"
 
 import Event from "@/Event"
 import State from "@/State"
@@ -7,11 +8,16 @@ import Transition from "@/Transition"
 
 
 
-transitions :: List #[String, String] -> List (Transition String a b)
-transitions = map(where { #[event, newState] => Transition.create(Event.create(event), newState) })
+routes :: List #[String, String] -> List (Route String a)
+export routes = map(
+  where {
+    #[event, newState] =>
+      Transition.Route.create(Event.create(event), newState)
+  },
+)
 
-state :: String -> List #[String, String] -> State String String a
+// state :: String -> List #[String, String] -> State String String a
 export state = (s, ts) => pipe(
-  transitions,
+  routes,
   State.create(s),
 )(ts)

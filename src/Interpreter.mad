@@ -12,10 +12,19 @@ import Machine from "@/Machine"
 
 
 export type Interpreter a pay ctx
-  = Interpreter(Machine a pay, Maybe ctx, Interpreter a pay ctx -> {})
+  = Interpreter(Machine a pay, Maybe ctx, Interpreter a pay (Maybe ctx) -> {})
 
 export create = Interpreter
 export contextless = Interpreter($, Nothing, $)
+
+export machine = where {
+  Interpreter(m, _, _) =>
+    m
+}
+export context = where {
+  Interpreter(_, c, _) =>
+    c
+}
 
 export alias TalkbackStructure a b = {
   latest :: {} -> Machine a b,
@@ -23,14 +32,13 @@ export alias TalkbackStructure a b = {
 }
 export type Talkback a b = Silence | Talkback(TalkbackStructure a b)
 
-export control = where {
-  Interpreter(machine, init, run) =>
-    where(Blueprint.fromMachine(machine, init)) {
+/*
+where(Blueprint.fromMachine(m, init)) {
       Blueprint.Blueprint({ destinations, isEvent, isState }) =>
         do {
           log.interpreter("OUT", destinations)
 
-          current = machine
+          current = m
           send = (e, payload) => {
             if (isEvent(e)) do {
               log.interpreter("valid event", e)
@@ -42,5 +50,16 @@ export control = where {
 
       _ =>
         Silence
+    }
+    */
+import IO from "IO"
+
+
+
+export control = where {
+  Interpreter(m, init, run) =>
+    do {
+      IO.pTrace("MMMM", m)
+      return Blueprint.fromMachine(m, init)
     }
 }
