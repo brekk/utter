@@ -11,7 +11,7 @@ import { Just, Nothing } from "Maybe"
 import Set from "Set"
 import String from "String"
 
-import { ERRORS } from "@/Error"
+import { ERRORS, ERROR_CODES } from "@/Error"
 import { log, say } from "@/Log"
 
 
@@ -63,28 +63,10 @@ export alias Transitions a b c = List (Transition a b c)
 export guardedAction = Transition
 export transition = Transition($, $, [], [])
 
-export type State value payload context = State(value, List (Transition value payload context))
+export type State a b c = State(b, Transitions a b c)
 
 // logCreated = say($, "created!", $)
 
-// state :: a -> List (Transition a b c) -> State a b c
-// (v, trans) => log.state("created", State(v, trans))
-
-// this shouldn't barf, but it return Unit
-/*
-export ustate = (x, y) => pipe(
-  State(x),
-  log.ustate("created"),
-)(y)
-*/
-
-// this appears to return unit
-export ustate = (x, y) => {
-  z = State(x, y)
-  // #-{ console.log(z) }-#
-  log.ustate("created", z)
-  return z
-}
 
 export type Machine a p x = Machine(a, List (State a p x), x)
 
@@ -103,17 +85,18 @@ export machineContext = where {
 
 // export type Step a p x = Emit(a, p, x) | Halt
 
-export type Robot a p x = InvalidRobot(String) | Robot(Dictionary a (Transitions a p x), x)
+alias RobotDictionary a b c = Dictionary a (Transitions a b c)
 
-alias RobotContext a p x = {
-  dict :: Dictionary a (Transitions a p x),
-  reason :: String,
+export type Robot a p x = InvalidRobot(String) | Robot(RobotDictionary a p x, x)
+
+alias RobotContext a b c = {
+  dict :: Dictionary a (Transitions a b c),
+  error :: Byte,
   states :: { defined :: Set a, matched :: Set a },
-  valid :: Boolean,
 }
 
-// compiler :: Comparable a => RobotContext a b c -> State a b c -> RobotContext a b c
-compiler = (iter, stx) => if (!iter.valid) {
+// compiler :: RobotContext a b c -> State a b c -> RobotContext a b c
+compiler = (iter, stx) => if (iter.error > 0) {
   iter
 } else {
   where(stx) {
@@ -121,10 +104,9 @@ compiler = (iter, stx) => if (!iter.valid) {
       if (Dict.includes(value, iter.dict)) {
         (
           {
-            valid: false,
-            reason: ERRORS.stateAlreadyDefined(value),
+            error: ERROR_CODES.STATE_ALREADY_DEFINED,
             dict: iter.dict,
-            states: iter.states,
+            states: { matched: iter.states.matched, defined: iter.states.defined },
           }
         )
       } else do {
@@ -134,12 +116,7 @@ compiler = (iter, stx) => if (!iter.valid) {
         )(trans)
         defined = Set.insert(value, iter.states.defined)
         return (
-          {
-            valid: true,
-            dict: Dict.insert(value, trans, iter.dict),
-            reason: "",
-            states: { matched, defined },
-          }
+          { dict: Dict.insert(value, trans, iter.dict), error: 0, states: { matched, defined } }
         )
       }
   }
@@ -148,15 +125,33 @@ compiler = (iter, stx) => if (!iter.valid) {
 ROBOT_INITIAL_STATE :: RobotContext a b c
 ROBOT_INITIAL_STATE = {
   dict: Dict.empty,
-  valid: true,
-  reason: "",
+  error: 0_b,
   states: { matched: Set.empty, defined: Set.empty },
 }
 
-robotContextToEither = where {
-  { dict, valid, reason } =>
-    !valid ? Left(reason) : Right(dict)
+export errorToString = (context) => {
+  code = context.error
+  return if (code == ERROR_CODES.FAILURE) {
+    ERRORS.FAILURE
+  } else if (code == ERROR_CODES.INVALID_STATES) {
+    ERRORS.INVALID_STATES
+  } else if (code == ERROR_CODES.DEV_MODE_ONLY) {
+    ERRORS.DEV_MODE_ONLY
+  } else if (code == ERROR_CODES.STATE_ALREADY_DEFINED) {
+    ERRORS.STATE_ALREADY_DEFINED
+  } else if (code == ERROR_CODES.STATES_NOT_DEFINED) {
+    pipe(
+      Set.toList,
+      String.join(", "),
+      ERRORS.statesNotDefined,
+    )(context.states)
+  } else {
+    ""
+  }
 }
+
+
+import IO from "IO"
 
 
 
@@ -164,27 +159,26 @@ robotContextToEither = where {
 buildContext = (stx) => pipe(
   List.reduce(compiler, ROBOT_INITIAL_STATE),
   where {
-    { dict, valid, reason, states } =>
+    { dict, error, states } =>
       do {
         // we are in the middle of iterating in the prior compiler step
         // so this catches up at the end of all iterations
         missed = Set.diff(states.matched, states.defined)
-        return if (valid && Set.length(missed) > 0) {
-          {
-            dict,
-            valid: false,
-            reason: pipe(
-              show,
-              ERRORS.statesNotDefined,
-            )(missed),
-            states,
-          }
-        } else {
-          { dict, valid, reason, states }
+        valid = error > 0
+        return {
+          dict,
+          error: (valid && Set.length(missed) > 0 ? ERROR_CODES.STATES_NOT_DEFINED : error),
+          states,
         }
       }
   },
 )(stx)
+
+// robotContextToEither :: RobotContext a b c -> Either String (RobotDictionary a b c)
+robotContextToEither = (ctx) => where(ctx) {
+  { dict, error } =>
+    error > 0 ? Left(error) : Right(dict)
+}
 
 // compileStates :: Comparable a => List (State a p x)
 // -> Either String (Dictionary a (Transitions a p x))
@@ -200,7 +194,7 @@ export normalizeRobotContext = pipe(
 )
 export validate = pipe(
   normalizeRobotContext,
-  robotContextToEither,
+  (x) => x.error > 0,
 )
 
 // create :: Machine String p x -> Robot String p x
@@ -212,7 +206,7 @@ export create = where {
         Robot(dict, context)
 
       Left(failureReason) =>
-        InvalidRobot(failureReason)
+        InvalidRobot(show(failureReason))
     }
 }
 

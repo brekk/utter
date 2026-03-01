@@ -2,10 +2,18 @@ export ICON = `🥛`
 
 export moo = (x) => `${ICON} Utter` ++ x
 
-export stateAlreadyDefined = (state) => moo(` confusion: that state (${state}) is already defined!`)
+export STATE_ALREADY_DEFINED = moo(` confusion: state defined more than once!`)
 export statesNotDefined = (states) => moo(` ambiguity: that state (${states}) is not defined yet`)
 export FAILURE = moo(` fail: milk spilled`)
 export INVALID_STATES = moo(`ly invalid states: a whole mood`)
 export DEV_MODE_ONLY = moo(`ly incomprehensible: try using DEV_MODE`)
 
-export ERRORS = { FAILURE, INVALID_STATES, DEV_MODE_ONLY, stateAlreadyDefined, statesNotDefined }
+export ERRORS = { FAILURE, INVALID_STATES, DEV_MODE_ONLY, STATE_ALREADY_DEFINED, statesNotDefined }
+
+export ERROR_CODES = {
+  FAILURE: 1_b,
+  INVALID_STATES: 2_b,
+  DEV_MODE_ONLY: 3_b,
+  STATE_ALREADY_DEFINED: 4_b,
+  STATES_NOT_DEFINED: 5_b,
+}

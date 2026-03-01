@@ -1,6 +1,6 @@
 // import IO from "IO"
 
-import { DEFAULT_CONFIG, bus, tag, tagWithScope } from "PartyBus"
+import { DEFAULT_CONFIG, bus, env, tag, tagWithScope } from "PartyBus"
 
 
 
@@ -13,18 +13,18 @@ BUSCONFIG = {
   check: always,
 }
 */
-env = bus(DEFAULT_CONFIG)
+// env = bus(DEFAULT_CONFIG)
 
 export TAGS = {
-  action: tag("guard"),
-  event: tag("event"),
-  guard: tag("guard"),
-  immediate: tagWithScope("event", ["immediate"]),
-  machine: tag("machine"),
-  robot: tag("robot"),
-  ustate: tag("state"),
-  transition: tag("transition"),
-  trigger: tagWithScope("event", ["trigger"]),
+  action: tagWithScope("utter", ["guard"]),
+  event: tagWithScope("utter", ["event"]),
+  guard: tagWithScope("utter", ["guard"]),
+  immediate: tagWithScope("utter", ["event", "immediate"]),
+  machine: tagWithScope("utter", ["machine"]),
+  robot: tagWithScope("utter", ["robot"]),
+  state: tagWithScope("utter", ["state"]),
+  transition: tagWithScope("utter", ["transition"]),
+  trigger: tagWithScope("utter", ["event", "trigger"]),
   utter: tag("utter"),
 }
 
@@ -35,7 +35,7 @@ export log = {
   immediate: env(TAGS.immediate),
   machine: env(TAGS.machine),
   robot: env(TAGS.robot),
-  ustate: env(TAGS.ustate),
+  state: env(TAGS.state),
   transition: env(TAGS.transition),
   trigger: env(TAGS.trigger),
   utter: env(TAGS.utter),
