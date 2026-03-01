@@ -12,6 +12,7 @@ import {
   event,
   immediate,
   instant,
+  normalizeRobotContext,
   transition,
   trigger,
   validate,
@@ -30,7 +31,7 @@ main = () => {
   badRobot = create(Machine("pen", [extended, extended, contracted], { ink: 100 }))
   checking = validate(Machine("pen", [extended, extended, contracted], { ink: 100 }))
   log.utter("values", #[penRobot, badRobot, checking])
-  checking2 = validate(
+  checking2 = normalizeRobotContext(
     Machine(
       "pen",
       [extended, contracted, State("garbage", [transition(event("throw"), "trash")])],

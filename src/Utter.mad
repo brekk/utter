@@ -92,7 +92,7 @@ export type Robot a p x = InvalidRobot(String) | Robot(RobotDictionary a p x, x)
 alias RobotContext a b c = {
   dict :: Dictionary a (Transitions a b c),
   error :: Byte,
-  states :: { defined :: Set a, matched :: Set a },
+  states :: { defined :: Set a, matched :: Set a, missed :: Set a },
 }
 
 // compiler :: RobotContext a b c -> State a b c -> RobotContext a b c
@@ -102,13 +102,7 @@ compiler = (iter, stx) => if (iter.error > 0) {
   where(stx) {
     State(value, trans) =>
       if (Dict.includes(value, iter.dict)) {
-        (
-          {
-            error: ERROR_CODES.STATE_ALREADY_DEFINED,
-            dict: iter.dict,
-            states: { matched: iter.states.matched, defined: iter.states.defined },
-          }
-        )
+        ({ error: ERROR_CODES.STATE_ALREADY_DEFINED, dict: iter.dict, states: iter.states })
       } else do {
         matched = pipe(
           map(transitionOutput),
@@ -116,7 +110,11 @@ compiler = (iter, stx) => if (iter.error > 0) {
         )(trans)
         defined = Set.insert(value, iter.states.defined)
         return (
-          { dict: Dict.insert(value, trans, iter.dict), error: 0, states: { matched, defined } }
+          {
+            dict: Dict.insert(value, trans, iter.dict),
+            error: 0,
+            states: { matched, defined, missed: iter.states.missed },
+          }
         )
       }
   }
@@ -126,28 +124,7 @@ ROBOT_INITIAL_STATE :: RobotContext a b c
 ROBOT_INITIAL_STATE = {
   dict: Dict.empty,
   error: 0_b,
-  states: { matched: Set.empty, defined: Set.empty },
-}
-
-export errorToString = (context) => {
-  code = context.error
-  return if (code == ERROR_CODES.FAILURE) {
-    ERRORS.FAILURE
-  } else if (code == ERROR_CODES.INVALID_STATES) {
-    ERRORS.INVALID_STATES
-  } else if (code == ERROR_CODES.DEV_MODE_ONLY) {
-    ERRORS.DEV_MODE_ONLY
-  } else if (code == ERROR_CODES.STATE_ALREADY_DEFINED) {
-    ERRORS.STATE_ALREADY_DEFINED
-  } else if (code == ERROR_CODES.STATES_NOT_DEFINED) {
-    pipe(
-      Set.toList,
-      String.join(", "),
-      ERRORS.statesNotDefined,
-    )(context.states)
-  } else {
-    ""
-  }
+  states: { matched: Set.empty, defined: Set.empty, missed: Set.empty },
 }
 
 
@@ -168,16 +145,37 @@ buildContext = (stx) => pipe(
         return {
           dict,
           error: (valid && Set.length(missed) > 0 ? ERROR_CODES.STATES_NOT_DEFINED : error),
-          states,
+          states: { matched: states.matched, defined: states.defined, missed },
         }
       }
   },
 )(stx)
 
+
+/*
+ */
+export errorToString = (missed, code) => if (code == ERROR_CODES.FAILURE) {
+  ERRORS.FAILURE
+} else if (code == ERROR_CODES.INVALID_STATES) {
+  ERRORS.INVALID_STATES
+} else if (code == ERROR_CODES.DEV_MODE_ONLY) {
+  ERRORS.DEV_MODE_ONLY
+} else if (code == ERROR_CODES.STATE_ALREADY_DEFINED) {
+  ERRORS.STATE_ALREADY_DEFINED
+} else if (code == ERROR_CODES.STATES_NOT_DEFINED) {
+  pipe(
+    Set.toList,
+    String.join(", "),
+    ERRORS.statesNotDefined,
+  )(missed)
+} else {
+  ""
+}
+
 // robotContextToEither :: RobotContext a b c -> Either String (RobotDictionary a b c)
-robotContextToEither = (ctx) => where(ctx) {
-  { dict, error } =>
-    error > 0 ? Left(error) : Right(dict)
+robotContextToEither = (roboctx) => where(roboctx) {
+  { dict, error, states } =>
+    error > 0 ? Left(errorToString(states.missed, error)) : Right(dict)
 }
 
 // compileStates :: Comparable a => List (State a p x)
@@ -205,8 +203,8 @@ export create = where {
       Right(dict) =>
         Robot(dict, context)
 
-      Left(failureReason) =>
-        InvalidRobot(show(failureReason))
+      Left(reason) =>
+        InvalidRobot(reason)
     }
 }
 
