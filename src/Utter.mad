@@ -1,3 +1,6 @@
+import type { State } from "@/State"
+import type { Transition } from "@/Transition"
+
 import { Left, Right } from "Either"
 
 import Blueprint from "@/Blueprint"
@@ -5,24 +8,16 @@ import { ERRORS, ERROR_CODES } from "@/Error"
 import Event from "@/Event"
 import { log, say } from "@/Log"
 import Machine from "@/Machine"
-import { State } from "@/State"
+import State from "@/State"
 import Transition from "@/Transition"
 
 
 
-// create :: Machine String p x -> Blueprint String p x
-// create :: Comparable a => Machine a p x -> Blueprint a p x
-export create = where {
-  Machine.Machine(name, states, init, context) =>
-    where(Blueprint.prepare(states)) {
-      Right(dict) =>
-        Blueprint.Blueprint(dict, context)
+transitions :: List #[String, String] -> List (Transition String a b)
+transitions = map(where { #[event, newState] => Transition.create(Event.create(event), newState) })
 
-      Left(reason) =>
-        Blueprint.InvalidBlueprint(reason)
-    }
-}
-
-// when we do mealy stuff later
-// export type Step a p x = Emit(a, p, x) | Halt
-// export type Mealy f i o = Mealy(i -> f (Step ))
+state :: String -> List #[String, String] -> State String String a
+export state = (s, ts) => pipe(
+  transitions,
+  State.withTransitions(s),
+)(ts)

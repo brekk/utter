@@ -1,0 +1,28 @@
+import { caseN2, report } from "Study"
+
+import Event from "@/Event"
+import State from "@/State"
+import Transition from "@/Transition"
+
+
+
+FIXTURE = { CLICK_EXTEND: Transition.Transition(Event.create("click"), "contracted", [], []) }
+
+report(
+  caseN2(Transition.create),
+  "Transition.create",
+  // makes a Transition, but it's not super user friendly.
+  // see Utter.transition for a friendlier form
+  [#[#[Event.create("click"), "contracted"], FIXTURE.CLICK_EXTEND]],
+)
+
+report(
+  pipe(
+    Transition.event,
+    Event.value,
+  ),
+  "Transition.event + (Event.value)",
+  [#[FIXTURE.CLICK_EXTEND, "click"]],
+)
+
+report(Transition.destination, "Transition.destination", [#[FIXTURE.CLICK_EXTEND, "contracted"]])

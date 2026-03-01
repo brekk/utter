@@ -8,13 +8,8 @@ import Event from "@/Event"
 
 
 
-export type Transition value payload context
-  = Transition(
-    Event value payload,
-    value,
-    Guards value payload context,
-    Actions value payload context,
-  )
+export type Transition a payload context
+  = Transition(Event a payload, a, Guards a payload context, Actions a payload context)
 
 event :: Transition a b c -> Event a b
 export event = where {
@@ -22,8 +17,8 @@ export event = where {
     e
 }
 
-output :: Transition a b c -> a
-export output = where {
+destination :: Transition a b c -> a
+export destination = where {
   Transition(_, o, _, _) =>
     o
 }
