@@ -25,12 +25,30 @@ export Blueprint
 
 
 
-
-
+//
+// export fromDraft = (initial, dft) => where(dft) {
+//   Draft(dict, stateSet, eventSet) =>
+//     do {
+//       // log.interpreter("draft info", { dict, initial })
+//       // map(map(Transition.output)),
+//       destinations = pipe(
+//         map(State.id),
+//         chain(Dict.get($, dict)),
+//         fromMaybe([]),
+//       )(initial)
+//
+//       log.interpreter("OUT", destinations)
+//       // isDestination = List.includes($, destinations)
+//       isState = Set.includes($, stateSet)
+//       isEvent = Set.includes($, eventSet)
+//       return Blueprint({ isState, isEvent, destinations })
+//     }
+// }
 
 
 // fromDraft(initial),
 // fromMachine :: Machine a b -> Maybe c -> Blueprint a b c
-export fromMachine = (machine, initial) => pipe(
+export fromMachine = (initial, machine) => pipe(
   D.fromMachine,
+  D.toConcrete(initial),
 )(machine)

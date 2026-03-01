@@ -1,4 +1,5 @@
 import type { Sketch } from "@/Blueprint/Types"
+import type { State } from "@/State"
 
 import Dict from "Dictionary"
 import { Left, Right } from "Either"
@@ -15,6 +16,7 @@ import Route from "@/Transition/Route"
 
 
 
+draw :: Comparable a => Sketch a b -> State a b -> Sketch a b
 draw = (iter, stx) => if (iter.error > 0) {
   iter
 } else {
@@ -67,6 +69,7 @@ BP_INITIAL_STATE = {
 }
 
 
+fromStates :: Comparable a => List (State a b) -> Sketch a b
 export fromStates = (stx) => pipe(
   List.reduce(draw, BP_INITIAL_STATE),
   where {
@@ -111,7 +114,7 @@ export errorToString = (missed, code) => if (code == ERROR_CODES.FAILURE) {
   ""
 }
 
-export sketchToEither = (roboctx) => where(roboctx) {
+export sketchToEither = where {
   { dict, error, states } =>
     error > 0 ? Left(errorToString(states.missed, error)) : Right(dict)
 }

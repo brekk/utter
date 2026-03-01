@@ -38,22 +38,7 @@ import IO from "IO"
 
 export control = where {
   Interpreter(m, init, run) =>
-    where(Blueprint.fromMachine(m, init)) {
-      Blueprint.Blueprint({ destinations, isEvent, isState }) =>
-        do {
-          log.interpreter("OUT", destinations)
-
-          current = m
-          send = (e, payload) => {
-            if (isEvent(e)) do {
-              log.interpreter("valid event", e)
-            }
-          }
-          latest = () => current
-          return Talkback({ send, latest })
-        }
-
-      _ =>
-        Silence
-    }
+    Blueprint.fromMachine(Machine.initial(m), m)
 }
+
+// */

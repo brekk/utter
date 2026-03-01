@@ -45,9 +45,9 @@ export validate = pipe(
   (x) => x.error == 0,
 )
 
-/*
-toConcrete :: Draft a b c -> Maybe (State a b) -> Concrete a b c
-export toConcrete = (dft, initial) => where(dft) {
+// /*
+// toConcrete :: Draft a b c -> Maybe (State a b) -> Concrete a b c
+export toConcrete = (initialState, dft) => where(dft) {
   Draft(dict, stateSet, eventSet) =>
     do {
       // log.interpreter("draft info", { dict, initial })
@@ -56,14 +56,15 @@ export toConcrete = (dft, initial) => where(dft) {
         map(State.id),
         chain(Dict.get($, dict)),
         fromMaybe([]),
-      )(initial)
+      )(initialState)
 
       log.interpreter("OUT", destinations)
       // isDestination = List.includes($, destinations)
       isState = Set.includes($, stateSet)
       isEvent = Set.includes($, eventSet)
-      context = initial
+      context = initialState
       return ({ isState, isEvent, destinations, context })
     }
 }
-*/
+
+// */
