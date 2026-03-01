@@ -30,7 +30,7 @@ draw = (iter, stx) => if (iter.error > 0) {
         )
       } else do {
         matched = pipe(
-          map(Transition.destination),
+          map(Transition.Route.destination),
           List.reduce(Fn.flip(Set.insert), iter.states.matched),
         )(trans)
         events = pipe(
@@ -57,7 +57,7 @@ draw = (iter, stx) => if (iter.error > 0) {
 
 // a Blueprint is an optimized machine
 
-BP_INITIAL_STATE :: Sketch a b c
+BP_INITIAL_STATE :: Sketch a b
 BP_INITIAL_STATE = {
   dict: Dict.empty,
   error: 0_b,

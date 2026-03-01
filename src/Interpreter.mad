@@ -11,18 +11,16 @@ import Machine from "@/Machine"
 
 
 export type Interpreter a pay ctx
-  = Interpreter(Machine a pay ctx, Interpreter a pay ctx -> {}, Maybe ctx)
+  = Interpreter(Machine a pay, Interpreter a pay ctx -> {}, Maybe ctx)
 
-export create = (machine, run) => where(machine) {
-  Machine.Machine(_, _, _, ctx) =>
-    Interpreter(machine, run, Just(ctx))
-}
+export create = Interpreter
+export contextless = Interpreter($, $, Nothing)
 
-export alias TalkbackStructure a b c = {
-  latest :: {} -> Machine a b c,
+export alias TalkbackStructure a b = {
+  latest :: {} -> Machine a b,
   send :: String -> Maybe b -> {},
 }
-export type Talkback a b c = Silence | Talkback(TalkbackStructure a b c)
+export type Talkback a b = Silence | Talkback(TalkbackStructure a b)
 
 export control = where {
   Interpreter(machine, run, init) =>

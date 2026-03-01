@@ -13,24 +13,20 @@ import { log, say } from "@/Log"
 // logCreated = say($, "created!", $)
 
 
-export type Machine a pay ctx = Machine(a, List (State a pay ctx), Maybe (State a pay ctx), ctx)
+export type Machine a pay = Machine(a, List (State a pay), Maybe (State a pay))
 
-export create = (a, sts, x) => Machine(a, sts, List.first(sts), x)
+export create = (a, sts) => Machine(a, sts, List.first(sts))
 export createWithInit = Machine
 
 export value = where {
-  Machine(a, _, _, _) =>
+  Machine(a, _, _) =>
     a
 }
 export states = where {
-  Machine(_, s, _, _) =>
+  Machine(_, s, _) =>
     s
 }
 export initial = where {
-  Machine(_, _, i, _) =>
+  Machine(_, _, i) =>
     i
-}
-export context = where {
-  Machine(_, _, _, c) =>
-    c
 }

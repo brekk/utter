@@ -1,8 +1,8 @@
-import type { Transitions } from "@/Transition"
+import type { Routes, Transitions } from "@/Transition"
 
 
 
-export type State a b c = State(b, Transitions a b c)
+export type State a pay = State(a, Routes a pay)
 
 export id = where {
   State(i, _) =>
@@ -13,9 +13,9 @@ export transitions = where {
     t
 }
 
-create :: b -> Transitions a b c -> State a b c
+create :: a -> Routes a b -> State a b
 export create = State
 
 // final is a reserved word?
-terminal :: b -> State a b c
+terminal :: a -> State a b
 export terminal = create($, [])

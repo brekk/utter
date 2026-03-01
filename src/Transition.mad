@@ -1,15 +1,31 @@
 import type { Actions } from "@/Action"
 import type { Event } from "@/Event"
 import type { Guards } from "@/Guard"
+import type { Route, Routes } from "@/Transition/Route"
 
 import List from "List"
 
 import Event from "@/Event"
+import R from "@/Transition/Route"
 
 
+
+export fromRoute = where {
+  R.Route(a, b) =>
+    Transition(a, b, [], [])
+}
+
+export type Route
+export type Routes
+export Route = { destination: R.destination, toTransition: fromRoute }
+
+
+// transitions are routes with context
 
 export type Transition a payload context
   = Transition(Event a payload, a, Guards a payload context, Actions a payload context)
+
+export alias Transitions a b c = List (Transition a b c)
 
 event :: Transition a b c -> Event a b
 export event = where {
@@ -23,6 +39,5 @@ export destination = where {
     o
 }
 
-export alias Transitions a b c = List (Transition a b c)
 
 export create = Transition($, $, [], [])
