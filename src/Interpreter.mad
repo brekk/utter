@@ -2,55 +2,46 @@ import type { Maybe } from "Maybe"
 
 import type { Machine } from "@/Machine"
 
-import Dict from "Dictionary"
-import List from "List"
 import { Just, Nothing, fromMaybe } from "Maybe"
-import Set from "Set"
 
 import Blueprint from "@/Blueprint"
 import { log } from "@/Log"
 import Machine from "@/Machine"
-import State from "@/State"
-import Transition from "@/Transition"
 
 
 
-export type Interpreter a b c = Interpreter(Machine a b c, Interpreter a b c -> {}, Maybe c)
+export type Interpreter a pay ctx
+  = Interpreter(Machine a pay ctx, Interpreter a pay ctx -> {}, Maybe ctx)
 
-export createFromContext = Interpreter
-export create = Interpreter($, $, Nothing)
+export create = (machine, run) => where(machine) {
+  Machine.Machine(_, _, _, ctx) =>
+    Interpreter(machine, run, Just(ctx))
+}
 
-export alias Talkback a b c = { latest :: {} -> Machine a b c, send :: String -> Maybe b -> {} }
+export alias TalkbackStructure a b c = {
+  latest :: {} -> Machine a b c,
+  send :: String -> Maybe b -> {},
+}
+export type Talkback a b c = Silence | Talkback(TalkbackStructure a b c)
 
-// control :: Interpreter String String String -> Talkback String String String
 export control = where {
   Interpreter(machine, run, init) =>
-    where(machine) {
-      Machine.Machine(a, states, initial, context) =>
-        where(Blueprint.buildDraft(states)) {
-          Blueprint.Draft(dict, stateSet, eventSet) =>
-            do {
-              // log.interpreter("draft info", { dict, initial })
-              // map(map(Transition.output)),
-              // fromMaybe([]),
-              destinations = pipe(
-                map(State.id),
-                chain(Dict.get($, dict)),
-              )(initial)
+    where(Blueprint.fromMachine(machine, init)) {
+      Blueprint.Blueprint({ destinations, isEvent, isState }) =>
+        do {
+          log.interpreter("OUT", destinations)
 
-              log.interpreter("OUT", destinations)
-              // isDestination = List.includes($, destinations)
-              isState = Set.includes($, stateSet)
-              isEvent = Set.includes($, eventSet)
-              current = machine
-              send = (e, payload) => {
-                if (isEvent(e)) do {
-                  log.interpreter("valid event", e)
-                }
-              }
-              latest = () => current
-              return { send, latest }
+          current = machine
+          send = (e, payload) => {
+            if (isEvent(e)) do {
+              log.interpreter("valid event", e)
             }
+          }
+          latest = () => current
+          return Talkback({ send, latest })
         }
+
+      _ =>
+        Silence
     }
 }

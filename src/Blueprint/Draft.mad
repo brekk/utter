@@ -12,7 +12,7 @@ export build = (stx) => pipe(
   },
 )(stx)
 
-export draftFromMachine = pipe(
+export fromMachine = pipe(
   Machine.states,
   build,
 )

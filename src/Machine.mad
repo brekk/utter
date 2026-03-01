@@ -13,7 +13,7 @@ import { log, say } from "@/Log"
 // logCreated = say($, "created!", $)
 
 
-export type Machine a p x = Machine(a, List (State a p x), Maybe (State a p x), x)
+export type Machine a pay ctx = Machine(a, List (State a pay ctx), Maybe (State a pay ctx), ctx)
 
 export create = (a, sts, x) => Machine(a, sts, List.first(sts), x)
 export createWithInit = Machine

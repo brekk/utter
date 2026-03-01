@@ -1,9 +1,15 @@
-import type { BlueprintDict, Draft } from "@/Blueprint/Types"
+import type { BlueprintDict, Concrete, Draft } from "@/Blueprint/Types"
 
+import Dict from "Dictionary"
+import { fromMaybe } from "Maybe"
+import Set from "Set"
 import String from "String"
 
 import D from "@/Blueprint/Draft"
 import { Draft } from "@/Blueprint/Types"
+import { log } from "@/Log"
+import Machine from "@/Machine"
+import State from "@/State"
 
 
 
@@ -12,4 +18,33 @@ export Draft
 export draft = Draft
 export buildDraft = D.build
 
-export type Blueprint a p x = InvalidBlueprint(String) | Blueprint(BlueprintDict a p x, x)
+
+
+export type Blueprint a pay ctx = InvalidBlueprint(String) | Blueprint(Concrete a pay ctx)
+
+
+// Blueprint.buildDraft(states)
+export fromDraft = (initial, dft) => where(dft) {
+  Draft(dict, stateSet, eventSet) =>
+    do {
+      // log.interpreter("draft info", { dict, initial })
+      // map(map(Transition.output)),
+      destinations = pipe(
+        map(State.id),
+        chain(Dict.get($, dict)),
+        fromMaybe([]),
+      )(initial)
+
+      log.interpreter("OUT", destinations)
+      // isDestination = List.includes($, destinations)
+      isState = Set.includes($, stateSet)
+      isEvent = Set.includes($, eventSet)
+      return Blueprint({ isState, isEvent, destinations })
+    }
+}
+
+
+export fromMachine = (machine, initial) => pipe(
+  D.fromMachine,
+  fromDraft(initial),
+)(machine)

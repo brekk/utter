@@ -6,14 +6,14 @@ import Transition from "@/Transition"
 
 
 
-report(State.create, "State.create", [#["pen", State.State("pen", [])]])
-report(State.id, "State.id", [#[State.create("pen"), "pen"]])
+report(State.terminal, "State.terminal", [#["pen", State.State("pen", [])]])
+report(State.id, "State.id", [#[State.terminal("pen"), "pen"]])
 report(
   State.transitions,
   "State.transitions",
   [
     #[
-      State.withTransitions("pen", [Transition.create(Event.create("click"), "extended")]),
+      State.create("pen", [Transition.create(Event.create("click"), "extended")]),
       [Transition.create(Event.create("click"), "extended")],
     ],
   ],

@@ -51,21 +51,26 @@ STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
         */
 
 main = () => {
-  extended = State.withTransitions(
+  extended = State.create(
     STATES.EXTENDED,
     [Transition.create(Event.create("click"), STATES.CONTRACTED)],
   )
   // v = log.state("TEST", extended)
   // IO.pTrace("V better not be unit", v)
   // log.state("state:extended", extended)
-  contracted = State.withTransitions(
+  contracted = State.create(
     STATES.CONTRACTED,
     [Transition.create(Event.create("click"), STATES.EXTENDED)],
   )
   // log.state("state:contracted", contracted)
   penMachine = Machine.create("pen", [extended, contracted], { ink: 100 })
 
-  penController = Interpreter.control(Interpreter.create(penMachine, (inter) => {}))
-  // log.interpreter("pen!", penController.latest())
-  penController.send("click", Nothing)
+  pipe(
+    Interpreter.create(penMachine),
+    Interpreter.control,
+    (penController) => {
+      log.interpreter("pen!", penController.latest())
+      penController.send("click", Nothing)
+    },
+  )((inter) => {})
 }

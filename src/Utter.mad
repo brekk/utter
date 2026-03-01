@@ -1,13 +1,7 @@
 import type { State } from "@/State"
 import type { Transition } from "@/Transition"
 
-import { Left, Right } from "Either"
-
-import Blueprint from "@/Blueprint"
-import { ERRORS, ERROR_CODES } from "@/Error"
 import Event from "@/Event"
-import { log, say } from "@/Log"
-import Machine from "@/Machine"
 import State from "@/State"
 import Transition from "@/Transition"
 
@@ -19,5 +13,5 @@ transitions = map(where { #[event, newState] => Transition.create(Event.create(e
 state :: String -> List #[String, String] -> State String String a
 export state = (s, ts) => pipe(
   transitions,
-  State.withTransitions(s),
+  State.create(s),
 )(ts)

@@ -22,3 +22,9 @@ export type Draft a b c
     // events
     Set a,
   )
+
+export alias Concrete a pay ctx = {
+  destinations :: List a,
+  isEvent :: String -> Boolean,
+  isState :: String -> Boolean,
+}

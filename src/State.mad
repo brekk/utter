@@ -1,8 +1,5 @@
 import type { Transitions } from "@/Transition"
 
-import { ERRORS, ERROR_CODES } from "@/Error"
-import { log, say } from "@/Log"
-
 
 
 export type State a b c = State(b, Transitions a b c)
@@ -16,8 +13,9 @@ export transitions = where {
     t
 }
 
-withTransitions :: b -> Transitions a b c -> State a b c
-export withTransitions = State
+create :: b -> Transitions a b c -> State a b c
+export create = State
 
-create :: b -> State a b c
-export create = withTransitions($, [])
+// final is a reserved word?
+terminal :: b -> State a b c
+export terminal = create($, [])
