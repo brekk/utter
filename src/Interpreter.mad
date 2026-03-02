@@ -29,7 +29,7 @@ export context = where {
 }
 
 export alias Talkback a b = {
-  latest :: {} -> a,
+  get :: {} -> a,
   send :: String -> {},
   sendWithPayload :: String -> Maybe b -> {},
 }
@@ -60,7 +60,7 @@ export control = where {
             }
           }
           send = sendWithPayload($, Nothing)
-          return Just({ send, latest, sendWithPayload })
+          return Just({ send, get: latest, sendWithPayload })
         }
 
       _ =>

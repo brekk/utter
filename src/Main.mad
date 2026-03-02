@@ -34,9 +34,9 @@ main = () => {
   where(penController) {
     Just(ctrl) =>
       do {
-        log.interpreter("LATEST", ctrl.latest())
+        log.interpreter("get", ctrl.get())
         ctrl.send("click")
-        log.interpreter("LATEST POST CLICK", ctrl.latest())
+        log.interpreter("get POST CLICK", ctrl.get())
       }
 
     _ =>
