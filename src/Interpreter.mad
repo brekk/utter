@@ -10,7 +10,7 @@ import { Just, Nothing, fromMaybe } from "Maybe"
 import Blueprint from "@/Blueprint"
 import { log } from "@/Log"
 import Machine from "@/Machine"
-import { State } from "@/State"
+import State from "@/State"
 
 
 
@@ -40,21 +40,39 @@ import IO from "IO"
 
 
 
+/*
+findByName = (n) => pipe(
+  Dict.get($, states),
+  where {
+    Just(s) =>
+      set(s)
+
+    _ =>
+      {}
+  },
+)(n)
+*/
+
 // control :: Interpreter String pay ctx -> Talkback String pay
 export control = where {
   Interpreter(m, initialContext, run) =>
     where(#[Blueprint.fromMachine(m), Machine.initial(m)]) {
-      #[Right(Blueprint.Blueprint({ destinations, isEvent, isState })), Just(State(init, _))] =>
+      #[Right(Blueprint.Blueprint({ states, destinations, isEvent, isState })), Just(initState)] =>
         do {
-          current = init
+          current = initState
           latest = () => current
           set = (y) => {
             current := y
           }
 
+
           sendWithPayload = (e, payload) => {
             if (isEvent(e)) do {
               log.interpreter("valid event", e)
+              log.interpreter("yo", current)
+              found = State.findRouteDestination(e, current)
+              log.state("gotcha", found)
+              // findByName(e)
               // set(e)
             } else do {
               // TODO: add debug mode

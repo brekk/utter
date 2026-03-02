@@ -40,7 +40,7 @@ draw = (iter, stx) => if (iter.error > 0) {
           map(
             pipe(
               Route.event,
-              Event.value,
+              Event.name,
             ),
           ),
           Set.fromList,

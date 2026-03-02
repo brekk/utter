@@ -19,7 +19,7 @@ report(
 report(
   pipe(
     Transition.event,
-    Event.value,
+    Event.name,
   ),
   "Transition.event + (Event.value)",
   [#[FIXTURE.CLICK_EXTEND, "click"]],

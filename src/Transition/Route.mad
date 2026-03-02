@@ -1,5 +1,6 @@
 import type { Event } from "@/Event"
 
+import Fn from "Function"
 import List from "List"
 
 import Event from "@/Event"
@@ -21,3 +22,14 @@ export event = where {
   Route(e, _) =>
     e
 }
+
+name :: Route a b -> a
+export name = pipe(
+  event,
+  Event.name,
+)
+
+export hasEventName = (n, r) => pipe(
+  name,
+  Fn.equals(n),
+)(r)

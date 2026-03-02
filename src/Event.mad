@@ -23,9 +23,9 @@ export kind = where {
   Event(t, _, _) =>
     t
 }
-export value = where {
-  Event(_, v, _) =>
-    v
+export name = where {
+  Event(_, n, _) =>
+    n
 }
 export payload = where {
   Event(_, _, p) =>

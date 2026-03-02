@@ -9,16 +9,14 @@ import Transition from "@/Transition"
 report(State.terminal, "State.terminal", [#["pen", State.State("pen", [])]])
 report(State.id, "State.id", [#[State.terminal("pen"), "pen"]])
 
-/*
 
 report(
-  State.transitions,
-  "State.transitions",
+  State.routes,
+  "State.routes",
   [
     #[
       State.create("pen", [Transition.Route.create(Event.create("click"), "extended")]),
-      [Transition.create(Event.create("click"), "extended")],
+      [Transition.Route.create(Event.create("click"), "extended")],
     ],
   ],
 )
-*/

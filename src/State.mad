@@ -1,5 +1,9 @@
 import type { Routes, Transitions } from "@/Transition"
 
+import List from "List"
+
+import Route from "@/Transition/Route"
+
 
 
 export type State a pay = State(a, Routes a pay)
@@ -8,10 +12,15 @@ export id = where {
   State(i, _) =>
     i
 }
-export transitions = where {
+export routes = where {
   State(_, t) =>
     t
 }
+export findRouteDestination = (n, r) => pipe(
+  routes,
+  List.find(Route.hasEventName(n)),
+  map(Route.destination),
+)(r)
 
 create :: a -> Routes a b -> State a b
 export create = State
