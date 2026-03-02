@@ -1,17 +1,9 @@
-import type { Maybe } from "Maybe"
-
 import type { Blueprint, Concrete, Draft, SketchDict } from "@/Blueprint/Types"
-
-import Dict from "Dictionary"
-import { fromMaybe } from "Maybe"
-import Set from "Set"
-import String from "String"
 
 import D from "@/Blueprint/Draft"
 import { Blueprint, Draft } from "@/Blueprint/Types"
 import { log } from "@/Log"
 import Machine from "@/Machine"
-import State from "@/State"
 
 
 
@@ -24,31 +16,7 @@ export type Blueprint
 export Blueprint
 
 
-
-//
-// export fromDraft = (initial, dft) => where(dft) {
-//   Draft(dict, stateSet, eventSet) =>
-//     do {
-//       // log.interpreter("draft info", { dict, initial })
-//       // map(map(Transition.output)),
-//       destinations = pipe(
-//         map(State.id),
-//         chain(Dict.get($, dict)),
-//         fromMaybe([]),
-//       )(initial)
-//
-//       log.interpreter("OUT", destinations)
-//       // isDestination = List.includes($, destinations)
-//       isState = Set.includes($, stateSet)
-//       isEvent = Set.includes($, eventSet)
-//       return Blueprint({ isState, isEvent, destinations })
-//     }
-// }
-
-
-// fromDraft(initial),
-// fromMachine :: Machine a b -> Maybe c -> Blueprint a b c
 export fromMachine = (machine) => pipe(
   D.fromMachine,
-  D.toConcrete(Machine.initial(machine)),
+  D.toBlueprint(Machine.initial(machine)),
 )(machine)

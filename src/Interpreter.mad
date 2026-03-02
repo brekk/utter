@@ -3,11 +3,13 @@ import type { Maybe } from "Maybe"
 import type { Machine } from "@/Machine"
 import type { State } from "@/State"
 
+import { Right } from "Either"
 import { Just, Nothing, fromMaybe } from "Maybe"
 
 import Blueprint from "@/Blueprint"
 import { log } from "@/Log"
 import Machine from "@/Machine"
+import { State } from "@/State"
 
 
 
@@ -26,19 +28,42 @@ export context = where {
     c
 }
 
-export alias TalkbackStructure a b = {
-  latest :: {} -> Machine a b,
-  send :: String -> Maybe b -> {},
+export alias Talkback a b = {
+  latest :: {} -> a,
+  send :: String -> {},
+  sendWithPayload :: String -> Maybe b -> {},
 }
-export type Talkback a b = Silence | Talkback(TalkbackStructure a b)
+// export type Talkback a b = Talkback(TalkbackStructure a b)
 
 import IO from "IO"
 
 
 
+// control :: Interpreter String pay ctx -> Talkback String pay
 export control = where {
-  Interpreter(m, init, run) =>
-    Blueprint.fromMachine(m)
-}
+  Interpreter(m, initialContext, run) =>
+    where(#[Blueprint.fromMachine(m), Machine.initial(m)]) {
+      #[Right(Blueprint.Blueprint({ destinations, isEvent, isState })), Just(State(current, _))] =>
+        do {
+          latest = () => current
+          set = (y) => {
+            current := y
+          }
+          sendWithPayload = (e, payload) => {
+            if (isEvent(e)) do {
+              log.interpreter("valid event", e)
+              set(e)
+            } else do {
+              // TODO: add debug mode
+              // if debug mode
+              log.interpreter("invalid event", e)
+            }
+          }
+          send = sendWithPayload($, Nothing)
+          return Just({ send, latest, sendWithPayload })
+        }
 
-// */
+      _ =>
+        Nothing
+    }
+}

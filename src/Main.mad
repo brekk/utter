@@ -15,65 +15,34 @@ import Transition from "@/Transition"
 
 STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
 
-/*
-        penBlueprint = Utter.create(penMachine)
-        badBlueprint = Utter.create(Machine.create("pen", [extended, extended, contracted], { ink: 100 }))
-        checking = Blueprint.validate(
-          Machine.create("pen", [extended, extended, contracted], { ink: 100 }),
-        )
-        log.utter("values", #[penBlueprint, badBlueprint, checking])
-        checking2 = Blueprint.validate(
-          Machine.create(
-            "pen",
-            [
-              extended,
-              contracted,
-              State.withTransitions("garbage", [Transition.create(Event.create("throw"), "trash")]),
-            ],
-            { ink: 100 },
-          ),
-        )
-        log.utter("Missing State?", checking2)
-        IO.pTrace(
-          "invalid!",
-          Utter.create(
-            Machine.create(
-              "pen",
-              [
-                extended,
-                contracted,
-                State.withTransitions("garbage", [Transition.create(Event.create("throw"), "trash")]),
-              ],
-              { ink: 100 },
-            ),
-          ),
-        )
-        */
-// Blueprint.fromMachine($, Nothing),
-// IO.pTrace("hohohoh"),
-// IO.pTrace("hohohoh"),
-// (penController) => {
-//   log.interpreter("pen!", penController.latest())
-//   penController.send("click", Nothing)
-// },
 main = () => {
   extended = State.create(
     STATES.EXTENDED,
     [Transition.Route.create(Event.create("click"), STATES.CONTRACTED)],
   )
-  // v = log.state("TEST", extended)
-  // IO.pTrace("V better not be unit", v)
-  // log.state("state:extended", extended)
+
   contracted = State.create(
     STATES.CONTRACTED,
     [Transition.Route.create(Event.create("click"), STATES.EXTENDED)],
   )
-  // log.state("state:contracted", contracted)
   penMachine = Machine.create("pen", [extended, contracted])
-  pipe(
+  penController = pipe(
     Interpreter.create($, Just({ ink: true }), (inter) => {}),
-    IO.pTrace("interpurty?"),
     Interpreter.control,
-    IO.pTrace("hooray"),
   )(penMachine)
+
+  where(penController) {
+    Just(ctrl) =>
+      do {
+        log.interpreter("LATEST", ctrl.latest())
+        ctrl.send("click")
+        log.interpreter("LATEST POST CLICK", ctrl.latest())
+      }
+
+    _ =>
+      do {
+        log.interpreter("barf", "barf")
+      }
+  }
+  // penController.send("click")
 }

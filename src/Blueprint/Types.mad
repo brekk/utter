@@ -18,7 +18,8 @@ export alias Sketch a b = {
 
 // Drafts handle transitions
 export type Draft a b c
-  = Draft(
+  = InvalidDraft(String)
+  | Draft(
     // Dictionary States Transitions
     DraftDict a b c,
     // states 
@@ -27,12 +28,12 @@ export type Draft a b c
     Set a,
   )
 
-export alias Concrete a pay ctx = {
-  context :: Maybe ctx,
+export alias Foundation a = {
   destinations :: List a,
   isEvent :: String -> Boolean,
   isState :: String -> Boolean,
 }
 
+export type Concrete e a = Concrete(Foundation a) | BadFoundation(e)
 
-export type Blueprint a pay ctx = Blueprint(Concrete a pay (Maybe ctx))
+export type Blueprint a pay ctx = Blueprint(Foundation a)

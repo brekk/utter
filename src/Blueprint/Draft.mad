@@ -1,14 +1,15 @@
 import type { Maybe } from "Maybe"
 
-import type { Concrete, Draft, DraftDict, Sketch, SketchDict } from "@/Blueprint/Types"
+import type { Blueprint, Concrete, Draft, DraftDict, Sketch, SketchDict } from "@/Blueprint/Types"
 import type { Transitions } from "@/Transition"
 
 import Dict from "Dictionary"
+import { Left, Right } from "Either"
 import { fromMaybe } from "Maybe"
 import Set from "Set"
 
 import Sketch from "@/Blueprint/Sketch"
-import { Draft } from "@/Blueprint/Types"
+import { BadFoundation, Blueprint, Concrete, Draft, InvalidDraft } from "@/Blueprint/Types"
 import { log } from "@/Log"
 import Machine from "@/Machine"
 import State from "@/State"
@@ -45,26 +46,32 @@ export validate = pipe(
   (x) => x.error == 0,
 )
 
-// /*
-// toConcrete :: Draft a b c -> Maybe (State a b) -> Concrete a b c
+// toConcrete :: Maybe (State String a) -> Draft String a b -> Concrete (Transition String a b) c d
 export toConcrete = (initialState, dft) => where(dft) {
   Draft(dict, stateSet, eventSet) =>
     do {
-      // log.interpreter("draft info", { dict, initial })
-      // map(map(Transition.output)),
       destinations = pipe(
         map(State.id),
         chain(Dict.get($, dict)),
         fromMaybe([]),
       )(initialState)
 
-      log.interpreter("OUT", destinations)
-      // isDestination = List.includes($, destinations)
       isState = Set.includes($, stateSet)
       isEvent = Set.includes($, eventSet)
-      context = initialState
-      return ({ isState, isEvent, destinations, context })
+      return Concrete({ isState, isEvent, destinations })
     }
+
+  InvalidDraft(reason) =>
+    BadFoundation(reason)
 }
 
-// */
+export toBlueprint = (initialState, dft) => pipe(
+  toConcrete(initialState),
+  where {
+    BadFoundation(reason) =>
+      Left(reason)
+
+    Concrete(foundation) =>
+      Right(Blueprint(foundation))
+  },
+)(dft)
