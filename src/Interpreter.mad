@@ -3,6 +3,7 @@ import type { Maybe } from "Maybe"
 import type { Machine } from "@/Machine"
 import type { State } from "@/State"
 
+import Dict from "Dictionary"
 import { Right } from "Either"
 import { Just, Nothing, fromMaybe } from "Maybe"
 
@@ -43,16 +44,18 @@ import IO from "IO"
 export control = where {
   Interpreter(m, initialContext, run) =>
     where(#[Blueprint.fromMachine(m), Machine.initial(m)]) {
-      #[Right(Blueprint.Blueprint({ destinations, isEvent, isState })), Just(State(current, _))] =>
+      #[Right(Blueprint.Blueprint({ destinations, isEvent, isState })), Just(State(init, _))] =>
         do {
+          current = init
           latest = () => current
           set = (y) => {
             current := y
           }
+
           sendWithPayload = (e, payload) => {
             if (isEvent(e)) do {
               log.interpreter("valid event", e)
-              set(e)
+              // set(e)
             } else do {
               // TODO: add debug mode
               // if debug mode

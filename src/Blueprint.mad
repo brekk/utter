@@ -1,7 +1,14 @@
-import type { Blueprint, Concrete, Draft, SketchDict } from "@/Blueprint/Types"
+import type { Either } from "Either"
+import type { Maybe } from "Maybe"
+
+import type { Blueprint, Concrete, Draft, Foundation, SketchDict } from "@/Blueprint/Types"
+import type { State } from "@/State"
+import type { Transition } from "@/Transition"
+
+import { Left, Right } from "Either"
 
 import D from "@/Blueprint/Draft"
-import { Blueprint, Draft } from "@/Blueprint/Types"
+import { BadFoundation, Blueprint, Concrete, Draft } from "@/Blueprint/Types"
 import { log } from "@/Log"
 import Machine from "@/Machine"
 
@@ -15,8 +22,23 @@ export buildDraft = D.fromSketch
 export type Blueprint
 export Blueprint
 
+// make this more generic later
+// fromDraft :: Maybe (State String String)
+//   -> Draft String String String
+//   -> Either String (Blueprint (Transition String String String) String)
+export fromDraft = (initialState, dft) => pipe(
+  D.toConcrete(initialState),
+  where {
+    BadFoundation(reason) =>
+      Left(reason)
+
+    Concrete(foundation) =>
+      Right(Blueprint(foundation))
+  },
+)(dft)
+
 
 export fromMachine = (machine) => pipe(
   D.fromMachine,
-  D.toBlueprint(Machine.initial(machine)),
+  fromDraft(Machine.initial(machine)),
 )(machine)

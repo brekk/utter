@@ -1,7 +1,8 @@
 import type { Maybe } from "Maybe"
 import type { Set } from "Set"
 
-import type { Routes, Transitions } from "@/Transition"
+import type { State } from "@/State"
+import type { Routes, Transition, Transitions } from "@/Transition"
 
 
 
@@ -28,12 +29,16 @@ export type Draft a b c
     Set a,
   )
 
-export alias Foundation a = {
+export alias Foundation a b c = {
   destinations :: List a,
   isEvent :: String -> Boolean,
   isState :: String -> Boolean,
+  states :: DraftDict String b c,
 }
+// stateByName :: String -> Maybe (Transitions a b c),
 
-export type Concrete e a = Concrete(Foundation a) | BadFoundation(e)
 
-export type Blueprint a pay ctx = Blueprint(Foundation a)
+
+export type Concrete e a b c = Concrete(Foundation a b c) | BadFoundation(e)
+
+export type Blueprint a b c = Blueprint(Foundation a b c)

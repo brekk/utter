@@ -44,5 +44,4 @@ export destination = where {
     o
 }
 
-
 export create = Transition($, $, [], [])
