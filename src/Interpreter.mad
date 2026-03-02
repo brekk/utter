@@ -45,7 +45,7 @@ export control = where {
     where(#[Blueprint.fromMachine(m), Machine.initial(m)]) {
       #[Right(Blueprint.Blueprint({ destinations, isEvent, isState })), Just(State(current, _))] =>
         do {
-          get = () => current
+          latest = () => current
           set = (y) => {
             current := y
           }
@@ -60,7 +60,7 @@ export control = where {
             }
           }
           send = sendWithPayload($, Nothing)
-          return Just({ send, get, sendWithPayload })
+          return Just({ send, get: latest, sendWithPayload })
         }
 
       _ =>
