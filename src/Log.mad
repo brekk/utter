@@ -27,6 +27,9 @@ export TAGS = {
   trigger: tagWithScope("utter", ["event", "trigger"]),
   utter: tag("utter"),
   interpreter: tagWithScope("utter", ["interpreter"]),
+  blueprint: tagWithScope("utter", ["blueprint"]),
+  draft: tagWithScope("utter", ["blueprint", "draft"]),
+  sketch: tagWithScope("utter", ["blueprint", "sketch"]),
 }
 
 export log = {
@@ -41,6 +44,9 @@ export log = {
   trigger: env(TAGS.trigger),
   utter: env(TAGS.utter),
   interpreter: env(TAGS.interpreter),
+  draft: env(TAGS.draft),
+  sketch: env(TAGS.sketch),
+  blueprint: env(TAGS.blueprint),
 }
 
 

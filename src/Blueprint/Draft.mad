@@ -19,7 +19,7 @@ import Transition from "@/Transition"
 
 
 
-fromSketch :: Comparable a => List (State a b) -> Draft a b c
+// fromSketch :: Comparable a => List (State a b) -> Draft a b c
 export fromSketch = (stx) => pipe(
   Sketch.fromStates,
   where {
@@ -31,34 +31,39 @@ export fromSketch = (stx) => pipe(
   },
 )(stx)
 
-fromMachine :: Comparable a => Machine a b -> Draft a b c
+// fromMachine :: Comparable a => Machine a b -> Draft a b c
 export fromMachine = pipe(
   Machine.states,
   fromSketch,
 )
 
-normalize :: Comparable a => Machine a b -> Sketch a b
+// normalize :: Comparable a => Machine a b -> Sketch a b
 export normalize = pipe(
   Machine.states,
   Sketch.fromStates,
 )
-validate :: Comparable a => Machine a b -> Boolean
+// validate :: Comparable a => Machine a b -> Boolean
 export validate = pipe(
   normalize,
   (x) => x.error == 0,
 )
+import IO from "IO"
+
+
 
 // toConcrete :: Maybe (State String a) -> Draft String a b -> Concrete (Transition String a b) c d
 export toConcrete = (initialState, dft) => where(dft) {
   Draft(states, stateSet, eventSet) =>
     do {
+      IO.pTrace("STATES", states)
       destinations = pipe(
         map(State.id),
         chain(Dict.get($, states)),
         fromMaybe([]),
       )(initialState)
-
+      log.draft("states", states)
       isState = Set.includes($, stateSet)
+      isEvent :: String -> Boolean
       isEvent = Set.includes($, eventSet)
       return Concrete({ isState, isEvent, destinations, states })
     }

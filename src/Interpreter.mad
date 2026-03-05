@@ -5,7 +5,8 @@ import type { State } from "@/State"
 
 import Dict from "Dictionary"
 import { Right } from "Either"
-import { Just, Nothing, fromMaybe } from "Maybe"
+import Fn from "Function"
+import { Just, Nothing, fromMaybe, isJust } from "Maybe"
 
 import Blueprint from "@/Blueprint"
 import { log } from "@/Log"
@@ -63,6 +64,7 @@ export control = where {
           latest = () => current
           set = (y) => {
             current := y
+            return y
           }
 
 
@@ -70,8 +72,22 @@ export control = where {
             if (isEvent(e)) do {
               log.interpreter("valid event", e)
               log.interpreter("yo", current)
-              found = State.findRouteDestination(e, current)
-              log.state("gotcha", found)
+              // so we have a state, it has a string in it
+              // we need to set the State as a local current value
+              // and then when we are looking up the route, we need something that 
+              /*
+                                                        found = pipe(
+                                                          State.findRouteDestination(e),
+                                                          where {
+                                                            Just(newState) =>
+                                                              set(newState)
+
+                                                            _ =>
+                                                              current
+                                                          },
+                                                        )(current)
+                                                        */
+              // log.state("gotcha", found)
               // findByName(e)
               // set(e)
             } else do {

@@ -16,13 +16,13 @@ import Route from "@/Transition/Route"
 
 
 
-draw :: Comparable a => Sketch a b -> State a b -> Sketch a b
+// draw :: Comparable a => Sketch a b -> State a b -> Sketch a b
 draw = (iter, stx) => if (iter.error > 0) {
   iter
 } else {
   where(stx) {
     State(value, trans) =>
-      if (Dict.includes(value, iter.dict)) {
+      if (Dict.includes(stx, iter.dict)) {
         (
           {
             error: ERROR_CODES.STATE_ALREADY_DEFINED,
@@ -49,7 +49,7 @@ draw = (iter, stx) => if (iter.error > 0) {
         return (
           {
             events: Set.merge(iter.events, events),
-            dict: Dict.insert(value, trans, iter.dict),
+            dict: Dict.insert(stx, trans, iter.dict),
             error: 0,
             states: { matched, defined, missed: iter.states.missed },
           }
@@ -68,8 +68,11 @@ BP_INITIAL_STATE = {
   events: Set.empty,
 }
 
+import IO from "IO"
 
-fromStates :: Comparable a => List (State a b) -> Sketch a b
+
+
+fromStates :: (Show a, Comparable a) => List (State a b) -> Sketch a b
 export fromStates = (stx) => pipe(
   List.reduce(draw, BP_INITIAL_STATE),
   where {
@@ -83,6 +86,7 @@ export fromStates = (stx) => pipe(
           { dict, error, states, events }
         } else do {
           missed = Set.diff(states.matched, states.defined)
+          IO.pTrace("states", states)
           return {
             dict,
             error: Set.length(missed) > 0 ? ERROR_CODES.STATES_NOT_DEFINED : error,

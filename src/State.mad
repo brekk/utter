@@ -1,5 +1,9 @@
+import type { Comparison } from "Compare"
+import type { Maybe } from "Maybe"
+
 import type { Routes, Transitions } from "@/Transition"
 
+import { EQ, GT, LT } from "Compare"
 import List from "List"
 
 import Route from "@/Transition/Route"
@@ -7,6 +11,17 @@ import Route from "@/Transition/Route"
 
 
 export type State a pay = State(a, Routes a pay)
+// derive Comparable State
+
+instance Comparable a => Comparable (State a b) {
+  compare = compareStates
+}
+
+
+compareStates = (a, b) => where(#[a, b]) {
+  #[State(a1, _), State(b1, _)] =>
+    a1 < b1 ? LT : a1 == b1 ? EQ : GT
+}
 
 export id = where {
   State(i, _) =>
@@ -16,6 +31,7 @@ export routes = where {
   State(_, t) =>
     t
 }
+// findRouteDestination :: String -> State String a -> Maybe a
 export findRouteDestination = (n, r) => pipe(
   routes,
   List.find(Route.hasEventName(n)),
