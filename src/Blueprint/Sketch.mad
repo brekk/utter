@@ -25,10 +25,10 @@ draw = (iter, stx) => if (iter.error > 0) {
       if (Dict.includes(stx, iter.dict)) {
         (
           {
-            error: ERROR_CODES.STATE_ALREADY_DEFINED,
             dict: iter.dict,
-            states: iter.states,
+            error: ERROR_CODES.STATE_ALREADY_DEFINED,
             events: iter.events,
+            states: iter.states,
           }
         )
       } else do {
@@ -48,9 +48,9 @@ draw = (iter, stx) => if (iter.error > 0) {
         defined = Set.insert(value, iter.states.defined)
         return (
           {
-            events: Set.merge(iter.events, events),
             dict: Dict.insert(stx, trans, iter.dict),
             error: 0,
+            events: Set.merge(iter.events, events),
             states: { matched, defined, missed: iter.states.missed },
           }
         )
@@ -64,8 +64,8 @@ BP_INITIAL_STATE :: Sketch a b
 BP_INITIAL_STATE = {
   dict: Dict.empty,
   error: 0_b,
-  states: { matched: Set.empty, defined: Set.empty, missed: Set.empty },
   events: Set.empty,
+  states: { matched: Set.empty, defined: Set.empty, missed: Set.empty },
 }
 
 import IO from "IO"
