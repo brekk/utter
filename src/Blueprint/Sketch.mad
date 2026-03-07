@@ -1,20 +1,31 @@
-import type { Sketch } from "@/Blueprint/Types"
 import type { State } from "@/State"
+import type { Routes } from "@/Transition/Route"
 
 import Dict from "Dictionary"
 import { Left, Right } from "Either"
 import Fn from "Function"
+import IO from "IO"
 import List from "List"
 import Set from "Set"
 import String from "String"
 
-import { ERRORS, ERROR_CODES } from "@/Error"
+import { ERRORS, ERROR_CODES, errorToString } from "@/Error"
 import Event from "@/Event"
 import { State } from "@/State"
 import Transition from "@/Transition"
 import Route from "@/Transition/Route"
 
 
+
+export alias SketchDict b = Dictionary (State String) (Routes b)
+
+// Sketches handle routes, which are like transition primitives
+export alias Sketch a b = {
+  dict :: SketchDict b,
+  error :: Byte,
+  events :: Set a,
+  states :: { defined :: Set a, matched :: Set a, missed :: Set a },
+}
 
 // draw :: Comparable a => Sketch a b -> State a b -> Sketch a b
 draw = (iter, stx) => if (iter.error > 0) {
@@ -33,7 +44,7 @@ draw = (iter, stx) => if (iter.error > 0) {
         )
       } else do {
         matched = pipe(
-          map(Transition.Route.destination),
+          map(Route.destination),
           List.reduce(Fn.flip(Set.insert), iter.states.matched),
         )(trans)
         events = pipe(
@@ -68,11 +79,7 @@ BP_INITIAL_STATE = {
   states: { matched: Set.empty, defined: Set.empty, missed: Set.empty },
 }
 
-import IO from "IO"
-
-
-
-fromStates :: (Show a, Comparable a) => List (State a b) -> Sketch a b
+fromStates :: List (State String) -> Sketch String String
 export fromStates = (stx) => pipe(
   List.reduce(draw, BP_INITIAL_STATE),
   where {
@@ -98,32 +105,12 @@ export fromStates = (stx) => pipe(
   },
 )(stx)
 
-
-
-export errorToString = (missed, code) => if (code == ERROR_CODES.FAILURE) {
-  ERRORS.FAILURE
-} else if (code == ERROR_CODES.INVALID_STATES) {
-  ERRORS.INVALID_STATES
-} else if (code == ERROR_CODES.DEV_MODE_ONLY) {
-  ERRORS.DEV_MODE_ONLY
-} else if (code == ERROR_CODES.STATE_ALREADY_DEFINED) {
-  ERRORS.STATE_ALREADY_DEFINED
-} else if (code == ERROR_CODES.STATES_NOT_DEFINED) {
-  pipe(
-    Set.toList,
-    String.join(", "),
-    ERRORS.statesNotDefined,
-  )(missed)
-} else {
-  ""
+handleFailure = (raw) => where(raw) {
+  { dict, error, states, events } =>
+    error > 0 ? Left(errorToString(states.missed, error)) : Right({ dict, states, events })
 }
 
-export sketchToEither = where {
-  { dict, error, states } =>
-    error > 0 ? Left(errorToString(states.missed, error)) : Right(dict)
-}
-
-export prepare = (states) => pipe(
+export toEither = pipe(
   fromStates,
-  sketchToEither,
-)(states)
+  handleFailure,
+)

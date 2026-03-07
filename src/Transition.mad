@@ -1,7 +1,6 @@
 import type { Actions } from "@/Action"
 import type { Event } from "@/Event"
 import type { Guards } from "@/Guard"
-import type { Route, Routes } from "@/Transition/Route"
 
 import List from "List"
 
@@ -14,16 +13,6 @@ export fromRoute = (r, guards, actions) => where(r) {
   R.Route(a, b) =>
     Transition(a, b, guards, actions)
 }
-
-export type Route
-export type Routes
-export Route = {
-  create: R.Route,
-  event: R.event,
-  destination: R.destination,
-  toTransition: fromRoute,
-}
-
 
 // transitions are routes with context
 

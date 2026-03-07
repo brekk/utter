@@ -1,3 +1,8 @@
+import Set from "Set"
+import String from "String"
+
+
+
 export ICON = `🥛`
 
 export moo = (x) => `${ICON} Utter` ++ x
@@ -16,4 +21,22 @@ export ERROR_CODES = {
   DEV_MODE_ONLY: 3_b,
   STATE_ALREADY_DEFINED: 4_b,
   STATES_NOT_DEFINED: 5_b,
+}
+
+export errorToString = (missed, code) => if (code == ERROR_CODES.FAILURE) {
+  ERRORS.FAILURE
+} else if (code == ERROR_CODES.INVALID_STATES) {
+  ERRORS.INVALID_STATES
+} else if (code == ERROR_CODES.DEV_MODE_ONLY) {
+  ERRORS.DEV_MODE_ONLY
+} else if (code == ERROR_CODES.STATE_ALREADY_DEFINED) {
+  ERRORS.STATE_ALREADY_DEFINED
+} else if (code == ERROR_CODES.STATES_NOT_DEFINED) {
+  pipe(
+    Set.toList,
+    String.join(", "),
+    ERRORS.statesNotDefined,
+  )(missed)
+} else {
+  ""
 }

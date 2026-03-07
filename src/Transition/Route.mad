@@ -7,23 +7,23 @@ import Event from "@/Event"
 
 
 
-export type Route a payload = Route(Event a payload, a)
-export alias Routes a payload = List (Route a payload)
+export type Route payload = Route(Event String payload, String)
+export alias Routes payload = List (Route payload)
 
 
-destination :: Route a b -> a
+// destination :: Route a -> a
 export destination = where {
   Route(_, o) =>
     o
 }
 
-event :: Route a b -> Event a b
+// event :: Route a -> Event a b
 export event = where {
   Route(e, _) =>
     e
 }
 
-name :: Route a b -> a
+// name :: Route a -> a
 export name = pipe(
   event,
   Event.name,

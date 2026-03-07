@@ -1,44 +1,30 @@
 import type { Either } from "Either"
 import type { Maybe } from "Maybe"
 
-import type { Blueprint, Concrete, Draft, Foundation, SketchDict } from "@/Blueprint/Types"
+import type { Machine } from "@/Machine"
 import type { State } from "@/State"
-import type { Transition } from "@/Transition"
+import type { Transition, Transitions } from "@/Transition"
 
 import { Left, Right } from "Either"
 
-import D from "@/Blueprint/Draft"
-import { BadFoundation, Blueprint, Concrete, Draft } from "@/Blueprint/Types"
+import { Draft, InvalidDraft } from "@/Blueprint/Draft"
 import { log } from "@/Log"
 import Machine from "@/Machine"
 
 
 
-export type Draft
-export Draft
-export draft = Draft
-export buildDraft = D.fromSketch
+export type Blueprint a b c
+  = Blueprint(
+    List String,
+    String -> Boolean,
+    String -> Boolean,
+    Dictionary (State String) (Transitions String b c),
+  )
 
-export type Blueprint
-export Blueprint
-
-// make this more generic later
-// fromDraft :: Maybe (State String String)
-//   -> Draft String String String
-//   -> Either String (Blueprint (Transition String String String) String)
-export fromDraft = (initialState, dft) => pipe(
-  D.toConcrete(initialState),
-  where {
-    BadFoundation(reason) =>
-      Left(reason)
-
-    Concrete(foundation) =>
-      Right(Blueprint(foundation))
-  },
-)(dft)
-
-
-export fromMachine = (machine) => pipe(
-  D.fromMachine,
-  fromDraft(Machine.initial(machine)),
-)(machine)
+/*
+fromMachine :: Machine String a -> Blueprint a b c
+export fromMachine = (m) => pipe(
+  Draft.fromMachine,
+  fromDraft(Machine.initial(m)),
+)(m)
+*/

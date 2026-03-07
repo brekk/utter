@@ -4,45 +4,55 @@ import List from "List"
 import { Just, Nothing, fromMaybe } from "Maybe"
 
 import Blueprint from "@/Blueprint"
+import Sketch from "@/Blueprint/Sketch"
 import Event from "@/Event"
 import Interpreter from "@/Interpreter"
 import { log } from "@/Log"
 import Machine from "@/Machine"
 import State from "@/State"
 import Transition from "@/Transition"
+import { Route } from "@/Transition/Route"
 
 
 
 STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
 
 main = () => {
-  extended = State.create(
-    STATES.EXTENDED,
-    [Transition.Route.create(Event.create("click"), STATES.CONTRACTED)],
-  )
+  extended = State.create(STATES.EXTENDED, [Route(Event.create("click"), STATES.CONTRACTED)])
 
-  contracted = State.create(
-    STATES.CONTRACTED,
-    [Transition.Route.create(Event.create("click"), STATES.EXTENDED)],
-  )
+  contracted = State.create(STATES.CONTRACTED, [Route(Event.create("click"), STATES.EXTENDED)])
+  IO.pTrace("STATES?", #[extended, contracted])
   penMachine = Machine.create("pen", [extended, contracted])
-  penController = pipe(
-    Interpreter.create($, Just({ ink: true }), (inter) => {}),
-    Interpreter.control,
+  // (x) => Blueprint.fromDraft(Machine.initial(x), x)
+  pipe(
+    IO.pTrace("PEN MACHINE?"),
+    Machine.states,
+    IO.pTrace("PEN MACHINE STATES?"),
+    Sketch.fromStates,
+    IO.pTrace("STATO STATUS"),
   )(penMachine)
-
-  where(penController) {
-    Just(ctrl) =>
-      do {
-        log.interpreter("get", ctrl.get())
-        ctrl.send("click")
-        log.interpreter("get POST CLICK", ctrl.get())
-      }
-
-    _ =>
-      do {
-        log.interpreter("barf", "barf")
-      }
-  }
-  // penController.send("click")
 }
+
+/*
+penMachine = Machine.create("pen", [extended, contracted])
+
+penController = pipe(
+  Interpreter.create($, Just({ ink: true }), (inter) => {}),
+  Interpreter.control,
+)(penMachine)
+
+where(penController) {
+  Just(ctrl) =>
+    do {
+      log.interpreter("get", ctrl.get())
+      ctrl.send("click")
+      log.interpreter("get POST CLICK", ctrl.get())
+    }
+
+  _ =>
+    do {
+      log.interpreter("barf", "barf")
+    }
+}
+// penController.send("click")
+*/

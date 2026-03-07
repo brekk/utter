@@ -1,7 +1,8 @@
 import type { Comparison } from "Compare"
 import type { Maybe } from "Maybe"
 
-import type { Routes, Transitions } from "@/Transition"
+import type { Transitions } from "@/Transition"
+import type { Routes } from "@/Transition/Route"
 
 import { EQ, GT, LT } from "Compare"
 import List from "List"
@@ -10,10 +11,10 @@ import Route from "@/Transition/Route"
 
 
 
-export type State a pay = State(a, Routes a pay)
+export type State pay = State(String, Routes pay)
 // derive Comparable State
 
-instance Comparable a => Comparable (State a b) {
+instance Comparable a => Comparable (State a) {
   compare = compareStates
 }
 
@@ -38,9 +39,8 @@ export findRouteDestination = (n, r) => pipe(
   map(Route.destination),
 )(r)
 
-create :: a -> Routes a b -> State a b
 export create = State
 
 // final is a reserved word?
-terminal :: a -> State a b
+terminal :: String -> State String
 export terminal = create($, [])

@@ -10,15 +10,11 @@ import { log, say } from "@/Log"
 
 
 
-// logCreated = say($, "created!", $)
+export type Machine pay = Machine(String, List (State pay), Maybe (State pay))
 
+export create = (n, sts) => Machine(n, sts, List.first(sts))
 
-export type Machine a pay = Machine(a, List (State a pay), Maybe (State a pay))
-
-export create = (a, sts) => Machine(a, sts, List.first(sts))
-export createWithInit = Machine
-
-export value = where {
+export name = where {
   Machine(a, _, _) =>
     a
 }

@@ -15,8 +15,8 @@ import State from "@/State"
 
 
 
-export type Interpreter a pay ctx
-  = Interpreter(Machine a pay, Maybe ctx, Interpreter a pay (Maybe ctx) -> {})
+export type Interpreter pay ctx
+  = Interpreter(Machine pay, Maybe ctx, Interpreter pay (Maybe ctx) -> {})
 
 export create = Interpreter
 export contextless = Interpreter($, Nothing, $)
@@ -41,6 +41,7 @@ import IO from "IO"
 
 
 
+
 /*
 findByName = (n) => pipe(
   Dict.get($, states),
@@ -53,8 +54,8 @@ findByName = (n) => pipe(
   },
 )(n)
 */
-
 // control :: Interpreter String pay ctx -> Talkback String pay
+/*
 export control = where {
   Interpreter(m, initialContext, run) =>
     where(#[Blueprint.fromMachine(m), Machine.initial(m)]) {
@@ -75,18 +76,16 @@ export control = where {
               // so we have a state, it has a string in it
               // we need to set the State as a local current value
               // and then when we are looking up the route, we need something that 
-              /*
-                                                        found = pipe(
-                                                          State.findRouteDestination(e),
-                                                          where {
-                                                            Just(newState) =>
-                                                              set(newState)
-
-                                                            _ =>
-                                                              current
-                                                          },
-                                                        )(current)
-                                                        */
+              // found = pipe(
+              //   State.findRouteDestination(e),
+              //   where {
+              //     Just(newState) =>
+              //       set(newState)
+              //
+              //     _ =>
+              //       current
+              //   },
+              // )(current)
               // log.state("gotcha", found)
               // findByName(e)
               // set(e)
@@ -104,3 +103,4 @@ export control = where {
         Nothing
     }
 }
+*/
