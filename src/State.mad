@@ -2,21 +2,18 @@ import type { Comparison } from "Compare"
 import type { Maybe } from "Maybe"
 
 import type { Transitions } from "@/Transition"
-import type { Routes } from "@/Transition/Route"
 
 import { EQ, GT, LT } from "Compare"
 import Dict from "Dictionary"
 import List from "List"
 
-import Route from "@/Transition/Route"
+import Transition from "@/Transition"
 
 
 
-export type State pay context
-  = State(String, Routes pay)
-  | MachineState(String, Transitions pay context)
+export type State payload context = State(String, Transitions payload context)
 
-instance Comparable a => Comparable (State a) {
+instance Comparable a => Comparable (State a b) {
   compare = compareStates
 }
 
@@ -37,30 +34,30 @@ export routes = where {
 // findRouteDestination :: String -> State String a -> Maybe a
 export findRouteDestination = (n, r) => pipe(
   routes,
-  List.find(Route.hasEventName(n)),
-  map(Route.destination),
+  List.find(Transition.hasEventName(n)),
+  map(Transition.destination),
 )(r)
 
 export create = State
 
 // final is a reserved word?
-terminal :: String -> State String
+terminal :: String -> State String a
 export terminal = create($, [])
 
-toTuple :: State String -> #[String, Routes String]
+toTuple :: State String a -> #[String, Transitions String a]
 export toTuple = where {
   State(k, v) =>
     #[k, v]
 }
 
-statesToDict :: List (State String) -> Dictionary String (Routes String)
+statesToDict :: List (State String a) -> Dictionary String (Transitions String a)
 export statesToDict = pipe(
   map(toTuple),
   Dict.fromList,
 )
 
 // technically "states plural from dictionary"
-fromDict :: Dictionary String (Routes String) -> List (State String)
+fromDict :: Dictionary String (Transitions String a) -> List (State String a)
 export fromDict = pipe(
   Dict.toList,
   map(where { #[k, v] => State(k, v) }),

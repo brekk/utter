@@ -11,7 +11,8 @@ import { log, say } from "@/Log"
 
 
 
-export type Machine pay = Machine(String, List (State pay), Maybe (State pay))
+export type Machine pay context
+  = Machine(String, List (State pay context), Maybe (State pay context))
 
 export create = (n, sts) => Machine(n, sts, List.first(sts))
 

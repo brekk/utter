@@ -24,7 +24,7 @@ export type Draft b c
   = InvalidDraft(String)
   | Draft(
     // Dictionary States Transitions
-    Dictionary String (Transitions String b c),
+    Dictionary String (Transitions b c),
     // states 
     Set String,
     // events
@@ -33,7 +33,7 @@ export type Draft b c
 
 // convert a sketch into a draft
 // fromSketch :: List (State a) -> Draft String a b
-fromSketch :: Show b => List (State String) -> Draft String b
+fromSketch :: List (State String String) -> Draft String String
 export fromSketch = (stx) => pipe(
   Sketch.fromStates,
   where {
@@ -43,7 +43,7 @@ export fromSketch = (stx) => pipe(
         update = map(
           (s) => pipe(
             IO.pTrace("hoy"),
-            map((t) => Transition.fromRoute(t, [], [])),
+            map(Transition.routeToTransition([], [])),
             IO.pTrace("yoy"),
           )(s),
           dict,

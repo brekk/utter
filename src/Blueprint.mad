@@ -17,12 +17,7 @@ import State from "@/State"
 
 
 export type Blueprint a b c
-  = Blueprint(
-    List String,
-    String -> Boolean,
-    String -> Boolean,
-    Dictionary (State String) (Transitions String b c),
-  )
+  = Blueprint(List String, Dictionary (State String) (Transitions String b c))
 
 import IO from "IO"
 

@@ -11,16 +11,21 @@ import { log } from "@/Log"
 import Machine from "@/Machine"
 import State from "@/State"
 import Transition from "@/Transition"
-import { Route } from "@/Transition/Route"
 
 
 
 STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
 
 main = () => {
-  extended = State.create(STATES.EXTENDED, [Route(Event.create("click"), STATES.CONTRACTED)])
+  extended = State.create(
+    STATES.EXTENDED,
+    [Transition.Route(Event.create("click"), STATES.CONTRACTED)],
+  )
 
-  contracted = State.create(STATES.CONTRACTED, [Route(Event.create("click"), STATES.EXTENDED)])
+  contracted = State.create(
+    STATES.CONTRACTED,
+    [Transition.Route(Event.create("click"), STATES.EXTENDED)],
+  )
   IO.pTrace("STATES?", #[extended, contracted])
   penMachine = Machine.create("pen", [extended, contracted])
   // (x) => Blueprint.fromDraft(Machine.initial(x), x)

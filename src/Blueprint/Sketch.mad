@@ -1,5 +1,5 @@
 import type { State } from "@/State"
-import type { Routes } from "@/Transition/Route"
+import type { Transitions } from "@/Transition"
 
 import Dict from "Dictionary"
 import { Left, Right } from "Either"
@@ -13,15 +13,14 @@ import { ERRORS, ERROR_CODES, errorToString } from "@/Error"
 import Event from "@/Event"
 import { State } from "@/State"
 import Transition from "@/Transition"
-import Route from "@/Transition/Route"
 
 
 
-export alias SketchDict b = Dictionary String (Routes b)
+export alias SketchDict payload context = Dictionary String (Transitions payload context)
 
 // Sketches handle routes, which are like transition primitives
 export alias Sketch a b = {
-  dict :: SketchDict b,
+  dict :: SketchDict a b,
   error :: Byte,
   events :: Set a,
   states :: { defined :: Set a, matched :: Set a, missed :: Set a },
@@ -44,16 +43,11 @@ draw = (iter, stx) => if (iter.error > 0) {
         )
       } else do {
         matched = pipe(
-          map(Route.destination),
+          map(Transition.destination),
           List.reduce(Fn.flip(Set.insert), iter.states.matched),
         )(trans)
         events = pipe(
-          map(
-            pipe(
-              Route.event,
-              Event.name,
-            ),
-          ),
+          map(Transition.name),
           Set.fromList,
         )(trans)
         defined = Set.insert(value, iter.states.defined)
@@ -79,7 +73,7 @@ BP_INITIAL_STATE = {
   states: { matched: Set.empty, defined: Set.empty, missed: Set.empty },
 }
 
-fromStates :: List (State String) -> Sketch String String
+fromStates :: List (State String String) -> Sketch String String
 export fromStates = (stx) => pipe(
   List.reduce(draw, BP_INITIAL_STATE),
   where {

@@ -2,34 +2,49 @@ import type { Actions } from "@/Action"
 import type { Event } from "@/Event"
 import type { Guards } from "@/Guard"
 
+import Fn from "Function"
 import List from "List"
 
 import Event from "@/Event"
-import R from "@/Transition/Route"
 
 
 
-export fromRoute = (r, guards, actions) => where(r) {
-  R.Route(a, b) =>
-    Transition(a, b, guards, actions)
-}
-
+// routes represent machine state without context
 // transitions are routes with context
-
 export type Transition payload context
-  = Transition(
+  = Route(Event String payload, String)
+  | Transition(
     Event String payload,
     String,
     Guards String payload context,
     Actions String payload context,
   )
 
+export alias Transitions payload context = List (Transition payload context)
 
-export alias Transitions a b = List (Transition a b)
+export routeToTransition = (guards, actions, r) => where(r) {
+  Route(a, b) =>
+    Transition(a, b, guards, actions)
+
+  t =>
+    t
+}
+
+export transitionToRoute = where {
+  Transition(a, b, _, _) =>
+    Route(a, b)
+
+  r =>
+    r
+}
+
 
 event :: Transition String String -> Event String String
 export event = where {
   Transition(e, _, _, _) =>
+    e
+
+  Route(e, _) =>
     e
 }
 
@@ -37,6 +52,18 @@ destination :: Transition String a -> String
 export destination = where {
   Transition(_, o, _, _) =>
     o
+
+  Route(_, o) =>
+    o
 }
 
-export create = Transition($, $, [], [])
+// name :: Route a -> a
+export name = pipe(
+  event,
+  Event.name,
+)
+
+export hasEventName = (n, r) => pipe(
+  name,
+  Fn.equals(n),
+)(r)
