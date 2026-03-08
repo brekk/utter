@@ -16,8 +16,7 @@ import State from "@/State"
 
 
 
-export type Blueprint a b c
-  = Blueprint(List String, Dictionary (State String) (Transitions String b c))
+export type Blueprint a b c = Blueprint(List String, Dictionary (State b c) (Transitions b c))
 
 import IO from "IO"
 
@@ -27,7 +26,7 @@ import IO from "IO"
 // IO.pTrace(""),
 // fromMaybe([]),
 // Blueprint a b c
-fromMachine :: Machine String -> Either String String
+fromMachine :: Machine String String -> Either String String
 export fromMachine = (m) => pipe(
   Draft.fromMachine,
   where {

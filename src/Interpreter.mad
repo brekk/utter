@@ -16,7 +16,7 @@ import State from "@/State"
 
 
 export type Interpreter pay ctx
-  = Interpreter(Machine pay, Maybe ctx, Interpreter pay (Maybe ctx) -> {})
+  = Interpreter(Machine pay ctx, Maybe ctx, Interpreter pay (Maybe ctx) -> {})
 
 export create = Interpreter
 export contextless = Interpreter($, Nothing, $)
