@@ -36,7 +36,8 @@ alias Talkback a b = {
 }
 // type Controller a b = Controller(Talkback a b)
 
-interpret :: Maybe a -> Machine a -> Either String (Talkback a a)
+// interpret :: Maybe a -> Machine a -> Either String (Talkback a a)
+interpret :: Maybe a -> Machine a -> Talkback a a
 export interpret = (context, mch) => {
   name = Machine.name(mch)
   states = Machine.states(mch)
@@ -59,6 +60,7 @@ export interpret = (context, mch) => {
           IO.pTrace("HUH", stateName)
           IO.pTrace("evn", eventMap)
           IO.pTrace("<><>", Dict.toList(eventMap))
+          IO.pTrace("FUN", Dict.get(stateName, eventMap))
           // TODO: this fails?
           // IO.pTrace("MAP", Dict.get(stateName, eventMap))
           return {}
@@ -76,6 +78,6 @@ export interpret = (context, mch) => {
       {}
   }
   send = sendWithPayload($, Nothing)
-  return Right({ name, details, send, sendWithPayload, get })
+  return ({ name, details, send, sendWithPayload, get })
   // return Controller({ name, details, send, sendWithPayload, get })
 }

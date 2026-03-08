@@ -23,19 +23,13 @@ main = () => {
   IO.pTrace("PEN", pen)
   IO.pTrace("Machine.events", Machine.events(pen))
   IO.pTrace("Machine.eventMap", Machine.eventMap(pen))
-  pipe(
-    interpret(Nothing),
-    where {
-      Right(cmd) =>
-        do {
-          IO.pTrace("INTERPRET", cmd)
-          // IO.pTrace("GET", cmd.get())
-          IO.pTrace("SENDO", cmd.send("click"))
-          return {}
-        }
-
-      _ =>
-        {}
-    },
-  )(pen)
+  // pipe(
+  //   interpret(Nothing),
+  //   where {
+  //     Right(cmd) =>
+  //       do {
+  cmd = interpret(Nothing, pen)
+  IO.pTrace("INTERPRET", cmd)
+  // IO.pTrace("GET", cmd.get())
+  IO.pTrace("SENDO", cmd.send("click"))
 }
