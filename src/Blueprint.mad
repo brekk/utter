@@ -13,6 +13,7 @@ import Draft from "@/Blueprint/Draft"
 import { log } from "@/Log"
 import Machine from "@/Machine"
 import State from "@/State"
+import Transition from "@/Transition"
 
 
 
@@ -22,25 +23,34 @@ import IO from "IO"
 
 
 
-// chain(Dict.get($, states)),
+destinations = (t) => pipe(
+  State.fromDict,
+  chain(
+    pipe(
+      State.id,
+      Dict.get($, t),
+      fromMaybe([]),
+      map(Transition.destination),
+    ),
+  ),
+)(t)
+
 // IO.pTrace(""),
 // fromMaybe([]),
 // Blueprint a b c
-fromMachine :: Machine String String -> Either String String
+fromMachine :: Machine String String -> Either String (Blueprint a pay ctx)
 export fromMachine = (m) => pipe(
   Draft.fromMachine,
   where {
-    Draft.Draft(states, stateSet, eventSet) =>
+    Draft.Draft(transitions, stateSet, eventSet) =>
       do {
-        IO.pTrace("STATES?!?", states)
-        destinations = pipe(
-          State.fromDict,
-          map(State.id),
-        )
+        IO.pTrace("STATES?!?", transitions)
 
-        IO.pTrace("HUH", destinations(states))
 
-        return Left("temp")
+        IO.pTrace("HUH", destinations(transitions))
+
+        return Right(Blueprint(destinations(transitions), stateSet, eventSet))
+        // return Left("shit")
       }
 
     Draft.InvalidDraft(why) =>
