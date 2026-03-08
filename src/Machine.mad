@@ -1,0 +1,88 @@
+import type { Maybe } from "Maybe"
+import type { Set } from "Set"
+
+import type { State } from "@/State"
+
+import Dict from "Dictionary"
+import List from "List"
+import Set from "Set"
+import String from "String"
+
+import Event from "@/Event"
+import State from "@/State"
+import Transition from "@/Transition"
+
+
+
+export type Machine a = Machine(String, List (State a), Maybe (State a))
+
+// machine: "pen"
+//   ↳ state: "extended"
+//       ↳ event: "click" → "contracted"
+//   ↳ state: "contracted"
+//       ↳ event: "click" → "extended"
+
+export create = (s, x) => Machine(s, x, List.first(x))
+
+name :: Machine a -> String
+export name = where {
+  Machine(n, _, _) =>
+    n
+}
+
+states :: Machine a -> Set String
+export states = where {
+  Machine(_, sts, _) =>
+    pipe(
+      map(State.name),
+      Set.fromList,
+    )(sts)
+}
+
+initialState :: Machine a -> Maybe (State a)
+export initialState = where {
+  Machine(_, _, m) =>
+    m
+}
+
+
+// unique events that this machine responds to
+events :: Machine a -> Set String
+export events = where {
+  Machine(_, sts, _) =>
+    pipe(
+      chain(
+        pipe(
+          State.transitions,
+          map(Transition.event),
+          map(Event.name),
+        ),
+      ),
+      Set.fromList,
+    )(sts)
+}
+
+eventMap :: Machine a -> Dictionary String (Dictionary String String)
+export eventMap = where {
+  Machine(_, sts, _) =>
+    pipe(
+      map(
+        where {
+          State.State(stateName, stateTransitions) =>
+            #[
+              stateName,
+              pipe(
+                map(
+                  where {
+                    Transition.Transition(Event.Event(eventName, payload), dest, _) =>
+                      #[eventName, dest]
+                  },
+                ),
+                Dict.fromList,
+              )(stateTransitions),
+            ]
+        },
+      ),
+      Dict.fromList,
+    )(sts)
+}

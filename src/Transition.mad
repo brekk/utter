@@ -1,0 +1,47 @@
+import type { Maybe } from "Maybe"
+
+import type { Event } from "@/Event"
+
+import List from "List"
+import { Just, Nothing, fromMaybe } from "Maybe"
+import String from "String"
+
+import Event from "@/Event"
+
+
+
+// we're defining these incompletely for now (as boolean lists),
+// but all of these fields should be more complex lists
+export alias TransitionModifier = {
+  actions :: List Boolean,
+  guards :: List Boolean,
+  reducers :: List Boolean,
+}
+
+// event(origin) -> destination
+export type Transition a = Transition(Event a, String, Maybe TransitionModifier)
+
+// TODO: deal with payloads in the future
+export withContext = (fromEventName, toDestination, mods) => pipe(
+  Event.create,
+  Transition($, toDestination, mods),
+)(fromEventName)
+
+export create = withContext($, $, Nothing)
+
+event :: Transition a -> Event a
+export event = where {
+  Transition(e, _, _) =>
+    e
+}
+target :: Transition a -> String
+export target = where {
+  Transition(_, d, _) =>
+    d
+}
+
+modifiers :: Transition a -> Maybe TransitionModifier
+export modifiers = where {
+  Transition(_, _, m) =>
+    m
+}

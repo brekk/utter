@@ -1,67 +1,17 @@
 import type { Maybe } from "Maybe"
 
+import type { Event } from "@/Event"
+import type { Transition } from "@/Transition"
+
 import Dict from "Dictionary"
 import { Left, Right } from "Either"
 import List from "List"
 import { Just, Nothing, fromMaybe } from "Maybe"
 import String from "String"
 
+import Event from "@/Event"
 
 
-export type EventKind = ImmediateEvent | UserEvent | AsyncEvent
-
-export type Event a = Event(String, Maybe a)
-
-export event = Event($, Nothing)
-export eventWithPayload = Event
-
-eventName :: Event a -> String
-export eventName = where {
-  Event(n, _) =>
-    n
-}
-
-eventPayload :: Event a -> Maybe a
-export eventPayload = where {
-  Event(_, p) =>
-    p
-}
-
-// we're defining these incompletely for now (as boolean lists),
-// but all of these fields should be more complex lists
-export alias TransitionModifier = {
-  actions :: List Boolean,
-  guards :: List Boolean,
-  reducers :: List Boolean,
-}
-
-// event(origin) -> destination
-export type Transition a = Transition(Event a, String, Maybe TransitionModifier)
-
-// TODO: deal with payloads in the future
-export transitionWithContext = (fromEventName, toDestination, mods) => pipe(
-  event,
-  Transition($, toDestination, mods),
-)(fromEventName)
-
-export transition = transitionWithContext($, $, Nothing)
-
-transitionEvent :: Transition a -> Event a
-export transitionEvent = where {
-  Transition(e, _, _) =>
-    e
-}
-transitionTarget :: Transition a -> String
-export transitionTarget = where {
-  Transition(_, d, _) =>
-    d
-}
-
-transitionModifiers :: Transition a -> Maybe TransitionModifier
-export transitionModifiers = where {
-  Transition(_, _, m) =>
-    m
-}
 
 export type MachineState a = MachineState(String, List (Transition a))
 

@@ -1,10 +1,14 @@
 import Dict from "Dictionary"
+import { Left, Right } from "Either"
 import IO from "IO"
 import List from "List"
 import { Just, Nothing, fromMaybe } from "Maybe"
 
-import { machine, state, transition } from "@/Idea"
+import { interpret } from "@/Interpreter"
 import { log } from "@/Log"
+import Machine from "@/Machine"
+import State from "@/State"
+import Transition from "@/Transition"
 
 
 
@@ -12,9 +16,26 @@ STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
 
 
 main = () => {
-  contracted = state(STATES.CONTRACTED, [transition("click", STATES.EXTENDED)])
-  extended = state(STATES.EXTENDED, [transition("click", STATES.CONTRACTED)])
+  contracted = State.create(STATES.CONTRACTED, [Transition.create("click", STATES.EXTENDED)])
+  extended = State.create(STATES.EXTENDED, [Transition.create("click", STATES.CONTRACTED)])
   // IO.pTrace("transitions", #[contracted, extended])
-  pen = machine("pen", [contracted, extended])
+  pen = Machine.create("pen", [contracted, extended])
   IO.pTrace("PEN", pen)
+  IO.pTrace("Machine.events", Machine.events(pen))
+  IO.pTrace("Machine.eventMap", Machine.eventMap(pen))
+  pipe(
+    interpret(Nothing),
+    where {
+      Right(cmd) =>
+        do {
+          IO.pTrace("INTERPRET", cmd)
+          // IO.pTrace("GET", cmd.get())
+          IO.pTrace("SENDO", cmd.send("click"))
+          return {}
+        }
+
+      _ =>
+        {}
+    },
+  )(pen)
 }
