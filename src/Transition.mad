@@ -16,18 +16,24 @@ export fromRoute = (r, guards, actions) => where(r) {
 
 // transitions are routes with context
 
-export type Transition a payload context
-  = Transition(Event a payload, a, Guards a payload context, Actions a payload context)
+export type Transition payload context
+  = Transition(
+    Event String payload,
+    String,
+    Guards String payload context,
+    Actions String payload context,
+  )
 
-export alias Transitions a b c = List (Transition a b c)
 
-event :: Transition a b c -> Event a b
+export alias Transitions a b = List (Transition a b)
+
+event :: Transition String String -> Event String String
 export event = where {
   Transition(e, _, _, _) =>
     e
 }
 
-destination :: Transition a b c -> a
+destination :: Transition String a -> String
 export destination = where {
   Transition(_, o, _, _) =>
     o

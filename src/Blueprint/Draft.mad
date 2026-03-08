@@ -24,7 +24,7 @@ export type Draft b c
   = InvalidDraft(String)
   | Draft(
     // Dictionary States Transitions
-    Dictionary (State String) (Transitions String b c),
+    Dictionary String (Transitions String b c),
     // states 
     Set String,
     // events

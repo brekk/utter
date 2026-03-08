@@ -2,8 +2,9 @@ import type { Maybe } from "Maybe"
 
 import type { State } from "@/State"
 
+import Dict from "Dictionary"
 import List from "List"
-import { Just, Nothing } from "Maybe"
+import { Just, Nothing, fromMaybe } from "Maybe"
 
 import { ERRORS, ERROR_CODES } from "@/Error"
 import { log, say } from "@/Log"

@@ -24,12 +24,14 @@ main = () => {
   IO.pTrace("STATES?", #[extended, contracted])
   penMachine = Machine.create("pen", [extended, contracted])
   // (x) => Blueprint.fromDraft(Machine.initial(x), x)
+  // Machine.states,
+  // IO.pTrace("PEN MACHINE STATES?"),
+  // Sketch.fromStates,
+  // IO.pTrace("STATO STATUS"),
   pipe(
     IO.pTrace("PEN MACHINE?"),
-    Machine.states,
-    IO.pTrace("PEN MACHINE STATES?"),
-    Sketch.fromStates,
-    IO.pTrace("STATO STATUS"),
+    Blueprint.fromMachine,
+    IO.pTrace("THE MACHINE"),
   )(penMachine)
 }
 

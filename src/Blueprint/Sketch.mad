@@ -17,7 +17,7 @@ import Route from "@/Transition/Route"
 
 
 
-export alias SketchDict b = Dictionary (State String) (Routes b)
+export alias SketchDict b = Dictionary String (Routes b)
 
 // Sketches handle routes, which are like transition primitives
 export alias Sketch a b = {
@@ -33,7 +33,7 @@ draw = (iter, stx) => if (iter.error > 0) {
 } else {
   where(stx) {
     State(value, trans) =>
-      if (Dict.includes(stx, iter.dict)) {
+      if (Dict.includes(value, iter.dict)) {
         (
           {
             dict: iter.dict,
@@ -59,7 +59,7 @@ draw = (iter, stx) => if (iter.error > 0) {
         defined = Set.insert(value, iter.states.defined)
         return (
           {
-            dict: Dict.insert(stx, trans, iter.dict),
+            dict: Dict.insert(value, trans, iter.dict),
             error: 0,
             events: Set.merge(iter.events, events),
             states: { matched, defined, missed: iter.states.missed },

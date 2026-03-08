@@ -5,24 +5,26 @@ import type { Transitions } from "@/Transition"
 import type { Routes } from "@/Transition/Route"
 
 import { EQ, GT, LT } from "Compare"
+import Dict from "Dictionary"
 import List from "List"
 
 import Route from "@/Transition/Route"
 
 
 
-export type State pay = State(String, Routes pay)
-// derive Comparable State
+export type State pay context
+  = State(String, Routes pay)
+  | MachineState(String, Transitions pay context)
 
 instance Comparable a => Comparable (State a) {
   compare = compareStates
 }
 
-
 compareStates = (a, b) => where(#[a, b]) {
   #[State(a1, _), State(b1, _)] =>
     a1 < b1 ? LT : a1 == b1 ? EQ : GT
 }
+
 
 export id = where {
   State(i, _) =>
@@ -44,3 +46,22 @@ export create = State
 // final is a reserved word?
 terminal :: String -> State String
 export terminal = create($, [])
+
+toTuple :: State String -> #[String, Routes String]
+export toTuple = where {
+  State(k, v) =>
+    #[k, v]
+}
+
+statesToDict :: List (State String) -> Dictionary String (Routes String)
+export statesToDict = pipe(
+  map(toTuple),
+  Dict.fromList,
+)
+
+// technically "states plural from dictionary"
+fromDict :: Dictionary String (Routes String) -> List (State String)
+export fromDict = pipe(
+  Dict.toList,
+  map(where { #[k, v] => State(k, v) }),
+)

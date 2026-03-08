@@ -53,9 +53,8 @@ findByName = (n) => pipe(
       {}
   },
 )(n)
-*/
-// control :: Interpreter String pay ctx -> Talkback String pay
-/*
+// * /
+control :: Interpreter pay ctx -> Talkback String pay
 export control = where {
   Interpreter(m, initialContext, run) =>
     where(#[Blueprint.fromMachine(m), Machine.initial(m)]) {
