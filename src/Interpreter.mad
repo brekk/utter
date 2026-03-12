@@ -68,6 +68,7 @@ export interpret = (context, mch) => {
           List.first,
         )(mch),
     )
+    // if this is named `get`, things barf hard
     getCurrent = () => current
     set = (x) => {
       current := x
