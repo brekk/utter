@@ -1,5 +1,6 @@
 import type { Transition } from "@/Transition"
 
+import Fn from "Function"
 import List from "List"
 import String from "String"
 
@@ -21,3 +22,9 @@ export transitions = where {
   State(_, t) =>
     t
 }
+
+nameMatches :: String -> State String -> Boolean
+export nameMatches = (x, s) => pipe(
+  name,
+  Fn.equals(x),
+)(s)

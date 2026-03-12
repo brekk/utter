@@ -8,10 +8,12 @@ import type { State } from "@/State"
 import Dict from "Dictionary"
 import { Left, Right } from "Either"
 import IO from "IO"
-import { Just, Nothing } from "Maybe"
+import List from "List"
+import { Just, Nothing, isJust } from "Maybe"
 import Set from "Set"
 
 import { Event } from "@/Event"
+import { log } from "@/Log"
 import Machine from "@/Machine"
 import State from "@/State"
 import { Transition } from "@/Transition"
@@ -36,48 +38,67 @@ alias Talkback a b = {
 }
 // type Controller a b = Controller(Talkback a b)
 
-// interpret :: Maybe a -> Machine a -> Either String (Talkback a a)
-interpret :: Maybe a -> Machine a -> Talkback a a
+stateFromEvent = (eventMap, states, stateName, ev) => pipe(
+  Dict.get(stateName),
+  // Matching transition found: Machine finds a transition with that event name
+  chain(Dict.get(ev)),
+  chain((k) => List.find(State.nameMatches(k), states)),
+)(eventMap)
+
+// interpret :: Show a => Maybe a -> Machine a -> Talkback a a
+// interpret :: Show a => Maybe a -> Machine a -> Either String (Talkback a a)
 export interpret = (context, mch) => {
   name = Machine.name(mch)
-  states = Machine.states(mch)
-  events = Machine.events(mch)
-  eventMap = Machine.eventMap(mch)
-  details = { states, events, eventMap, context }
-  current = Machine.initialState(mch)
-  get = () => current
-  set = (x) => {
-    current := x
-  }
-  sendWithPayload = (ev, p) => where(current) {
-    Just(State.State(stateName, trans)) =>
-      do {
-        //     Event sent: service.send('eventName') is called
-        //     Current state checked: Machine looks at transitions in the current state
-        if (Set.includes(ev, events)) do {
-          IO.pTrace("VALID EVENT", ev)
-          // IO.pTrace("curr", #[nameFromCurrent(current), stateName])
-          IO.pTrace("HUH", stateName)
-          IO.pTrace("evn", eventMap)
-          IO.pTrace("<><>", Dict.toList(eventMap))
-          IO.pTrace("FUN", Dict.get(stateName, eventMap))
-          // TODO: this fails?
-          // IO.pTrace("MAP", Dict.get(stateName, eventMap))
+  states = Machine.stateSet(mch)
+  return if (Set.length(states) == 0) do {
+    log.interpreterVerbose("No states provided!")
+    return Left("No states")
+  } else do {
+    events = Machine.events(mch)
+    eventMap = Machine.eventMap(mch)
+    details = { states, events, eventMap, context }
+    ref = Machine.initialState(mch)
+    // CURRENT IS A MAYBE
+    current = log.interpreterVerbose(
+      "default state!",
+      isJust(ref)
+        ? ref
+        : pipe(
+          Machine.states,
+          List.first,
+        )(mch),
+    )
+    getCurrent = () => current
+    set = (x) => {
+      current := x
+      return x
+    }
+    // Event sent: service.send('eventName') is called
+    sendWithPayload = (ev, p) => where(current) {
+      Just(State.State(stateName, trans)) =>
+        do {
+          // Current state checked: Machine looks at transitions in the current state
+          if (Set.includes(ev, events)) do {
+            pipe(
+              stateFromEvent(eventMap, Machine.states(mch), stateName),
+              // Guards evaluated: If guards exist, they check if transition can proceed
+              // Actions executed: If guards pass, actions/reducers run
+              // State changes: Machine transitions to target state
+              // Listeners notified: Any change listeners are called
+              log.interpreter("Setting new state!"),
+              set,
+            )(ev)
+            return {}
+          }
           return {}
-          // eventMap.get(State.name(current))
         }
-        return {}
-        //     Matching transition found: Machine finds a transition with that event name
-        //     Guards evaluated: If guards exist, they check if transition can proceed
-        //     Actions executed: If guards pass, actions/reducers run
-        //     State changes: Machine transitions to target state
-        //     Listeners notified: Any change listeners are called
-      }
 
-    _ =>
-      {}
+      _ =>
+        {}
+    }
+    send = sendWithPayload($, Nothing)
+    return Right({ name, details, send, sendWithPayload, get: getCurrent })
+    // return Left("shit")
   }
-  send = sendWithPayload($, Nothing)
-  return ({ name, details, send, sendWithPayload, get })
   // return Controller({ name, details, send, sendWithPayload, get })
 }

@@ -30,14 +30,18 @@ export name = where {
     n
 }
 
-states :: Machine a -> Set String
+states :: Machine a -> List (State a)
 export states = where {
   Machine(_, sts, _) =>
-    pipe(
-      map(State.name),
-      Set.fromList,
-    )(sts)
+    sts
 }
+
+stateSet :: Machine a -> Set String
+export stateSet = pipe(
+  states,
+  map(State.name),
+  Set.fromList,
+)
 
 initialState :: Machine a -> Maybe (State a)
 export initialState = where {

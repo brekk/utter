@@ -20,16 +20,22 @@ main = () => {
   extended = State.create(STATES.EXTENDED, [Transition.create("click", STATES.CONTRACTED)])
   // IO.pTrace("transitions", #[contracted, extended])
   pen = Machine.create("pen", [contracted, extended])
-  IO.pTrace("PEN", pen)
-  IO.pTrace("Machine.events", Machine.events(pen))
-  IO.pTrace("Machine.eventMap", Machine.eventMap(pen))
-  // pipe(
-  //   interpret(Nothing),
-  //   where {
-  //     Right(cmd) =>
-  //       do {
-  cmd = interpret(Nothing, pen)
-  IO.pTrace("INTERPRET", cmd)
-  // IO.pTrace("GET", cmd.get())
-  IO.pTrace("SENDO", cmd.send("click"))
+  // IO.pTrace("PEN", pen)
+  // IO.pTrace("Machine.events", Machine.events(pen))
+  // IO.pTrace("Machine.eventMap", Machine.eventMap(pen))
+  pipe(
+    interpret(Nothing),
+    where {
+      Right(cmd) =>
+        do {
+          cmd.send("click")
+          return {}
+        }
+
+      Left(why) =>
+        do {
+          IO.pTrace("FAILED", why)
+        }
+    },
+  )(pen)
 }
