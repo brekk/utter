@@ -14,7 +14,7 @@ import Transition from "@/Transition"
 
 
 
-export type Machine a = Machine(String, List (State a), Maybe (State a))
+export type Machine a b = Machine(String, List (State a b), Maybe (State a b))
 
 // machine: "pen"
 //   ↳ state: "extended"
@@ -24,26 +24,26 @@ export type Machine a = Machine(String, List (State a), Maybe (State a))
 
 export create = (s, x) => Machine(s, x, List.first(x))
 
-name :: Machine a -> String
+name :: Machine a b -> String
 export name = where {
   Machine(n, _, _) =>
     n
 }
 
-states :: Machine a -> List (State a)
+states :: Machine a b -> List (State a b)
 export states = where {
   Machine(_, sts, _) =>
     sts
 }
 
-stateSet :: Machine a -> Set String
+stateSet :: Machine a b -> Set String
 export stateSet = pipe(
   states,
   map(State.name),
   Set.fromList,
 )
 
-initialState :: Machine a -> Maybe (State a)
+initialState :: Machine a b -> Maybe (State a b)
 export initialState = where {
   Machine(_, _, m) =>
     m
@@ -51,7 +51,7 @@ export initialState = where {
 
 
 // unique events that this machine responds to
-events :: Machine a -> Set String
+events :: Machine a b -> Set String
 export events = where {
   Machine(_, sts, _) =>
     pipe(
@@ -66,7 +66,7 @@ export events = where {
     )(sts)
 }
 
-eventMap :: Machine a -> Dictionary String (Dictionary String String)
+eventMap :: Machine a b -> Dictionary String (Dictionary String String)
 export eventMap = where {
   Machine(_, sts, _) =>
     pipe(

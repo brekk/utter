@@ -6,24 +6,26 @@ import String from "String"
 
 
 
-export type State a = State(String, List (Transition a))
+// a = event payload
+// b = machine context
+export type State a b = State(String, List (Transition a b))
 
 export createFinal = State($, [])
 export create = State
 
-name :: State a -> String
+name :: State a b -> String
 export name = where {
   State(n, _) =>
     n
 }
 
-transitions :: State a -> List (Transition a)
+transitions :: State a b -> List (Transition a b)
 export transitions = where {
   State(_, t) =>
     t
 }
 
-nameMatches :: String -> State String -> Boolean
+nameMatches :: String -> State String b -> Boolean
 export nameMatches = (x, s) => pipe(
   name,
   Fn.equals(x),

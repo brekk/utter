@@ -1,9 +1,12 @@
+import type { Guard } from "@/Transition"
+
 import Dict from "Dictionary"
 import { Left, Right } from "Either"
 import IO from "IO"
 import List from "List"
 import { Just, Nothing, fromMaybe } from "Maybe"
 
+import { Event } from "@/Event"
 import { interpret } from "@/Interpreter"
 import { log } from "@/Log"
 import Machine from "@/Machine"
@@ -16,13 +19,24 @@ STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
 
 
 main = () => {
-  contracted = State.create(STATES.CONTRACTED, [Transition.create("click", STATES.EXTENDED)])
+  isClick = Transition.guard((ctx, ev) => where(ev) { Event(name, payload) => name == "click" })
+  contracted = State.create(
+    STATES.CONTRACTED,
+    [
+      Transition.withContext(
+        "click",
+        STATES.EXTENDED,
+        Just({ guards: [isClick], actions: [], reducers: [] }),
+      ),
+    ],
+  )
   extended = State.create(STATES.EXTENDED, [Transition.create("click", STATES.CONTRACTED)])
   // IO.pTrace("transitions", #[contracted, extended])
   pen = Machine.create("pen", [contracted, extended])
   // IO.pTrace("PEN", pen)
   // IO.pTrace("Machine.events", Machine.events(pen))
   // IO.pTrace("Machine.eventMap", Machine.eventMap(pen))
+
   pipe(
     interpret(Nothing),
     where {

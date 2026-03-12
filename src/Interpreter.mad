@@ -31,7 +31,7 @@ alias Details a b = {
 }
 alias Talkback a b = {
   details :: Details a b,
-  get :: {} -> Maybe (State a),
+  get :: {} -> Maybe (State a b),
   name :: String,
   send :: String -> {},
   sendWithPayload :: String -> b -> {},
