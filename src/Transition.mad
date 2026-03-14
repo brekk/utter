@@ -53,6 +53,7 @@ export modifiers = where {
     m
 }
 
+checkGuard :: Event -> Maybe a -> b -> Transition a b -> Boolean
 export checkGuard = (ev, pay, ctx, tr) => pipe(
   modifiers,
   map(.guards),

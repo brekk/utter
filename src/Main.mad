@@ -48,13 +48,15 @@ main = () => {
     where {
       Right(cmd) =>
         do {
-          cmd.send("click")
+          IO.pTrace("SEND?!?", cmd)
+          // cmd.send("click")
           return {}
         }
 
       Left(why) =>
         do {
           IO.pTrace("FAILED", why)
+          return {}
         }
     },
   )(pen)

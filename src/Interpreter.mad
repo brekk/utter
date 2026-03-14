@@ -66,77 +66,83 @@ checkTransitions = (lx, ev, context, payload) => List.reduce(
   lx,
 )
 
+findEvent :: String -> List Event -> Event
+export findEvent = (e, evs) => pipe(
+  List.find(
+    pipe(
+      Event.name,
+      Fn.equals(e),
+    ),
+  ),
+  fromMaybe(Event.NullEvent),
+)(evs)
+
 // Guards evaluated: If guards exist, they check if transition can proceed
 // Actions executed: If guards pass, actions/reducers run
 // State changes: Machine transitions to target state
 // Listeners notified: Any change listeners are called
 
+// consumeMachine :: Maybe a -> Set String -> Machine a b -> Talkback a a
+consumeMachine = (context, states, mch) => {
+  name = Machine.name(mch)
+  events = Machine.events(mch)
+  eventNames = Machine.eventNames(mch)
+  eventMap = Machine.eventMap(mch)
+  details = { states, events, eventMap, context }
+  ref = Machine.initialState(mch)
+  // CURRENT IS A MAYBE
+  current = log.interpreterVerbose(
+    "default state!",
+    isJust(ref)
+      ? ref
+      : pipe(
+        Machine.states,
+        List.first,
+      )(mch),
+  )
+  // if this is named `get`, things barf hard
+  getCurrent = () => current
+  set = (x) => {
+    current := x
+    return x
+  }
+  /*
+        // Event sent: service.send('eventName') is called
+        sendWithPayload = (ev, payload) => where(current) {
+          Just(State.State(stateName, transitions)) =>
+            do {
+              fullEvent = findEvent(ev, events)
+              passing = checkTransitions(transitions, fullEvent, context, payload)
+              IO.pTrace("PASS?", passing)
+              // Current state checked: Machine looks at transitions in the current state
+              if (Set.includes(ev, eventNames)) do {
+                // log.interpreter("PASSO?", passing)
+                pipe(
+                  stateFromEvent(eventMap, Machine.states(mch), stateName),
+                  log.interpreter("Setting new state!"),
+                  set,
+                )(ev)
+                return {}
+              }
+              return {}
+            }
+
+          _ =>
+            {}
+        }
+        send = sendWithPayload($, Nothing)
+      */
+  // , send, sendWithPayload }
+  return { name, details, get: getCurrent }
+}
 
 // interpret :: Show a => Maybe a -> Machine a -> Talkback a a
-// interpret :: Show a => Maybe a -> Machine a -> Either String (Talkback a a)
+// interpret :: Show a => Maybe a -> Machine a b -> Either String (Talkback a a)
 export interpret = (context, mch) => {
-  name = Machine.name(mch)
   states = Machine.stateSet(mch)
-  return if (Set.length(states) == 0) do {
-    log.interpreterVerbose("No states provided!")
-    return Left("No states")
-  } else do {
-    events = Machine.events(mch)
-    eventNames = Machine.eventNames(mch)
-    eventMap = Machine.eventMap(mch)
-    details = { states, events, eventMap, context }
-    ref = Machine.initialState(mch)
-    // CURRENT IS A MAYBE
-    current = log.interpreterVerbose(
-      "default state!",
-      isJust(ref)
-        ? ref
-        : pipe(
-          Machine.states,
-          List.first,
-        )(mch),
-    )
-    // if this is named `get`, things barf hard
-    getCurrent = () => current
-    set = (x) => {
-      current := x
-      return x
-    }
-    findEvent :: List Event -> String -> Event
-    findEvent = (evs, e) => pipe(
-      List.find(
-        pipe(
-          Event.name,
-          Fn.equals(e),
-        ),
-      ),
-      fromMaybe(Event.NullEvent),
-    )(evs)
-    // Event sent: service.send('eventName') is called
-    sendWithPayload = (ev, payload) => where(current) {
-      Just(State.State(stateName, transitions)) =>
-        do {
-          // Current state checked: Machine looks at transitions in the current state
-          if (Set.includes(ev, eventNames)) do {
-            // fullEvent = findEvent(events, ev)
-            // passing = checkTransitions(transitions, fullEvent, context, payload)
-            // log.interpreter("PASSO?", passing)
-            pipe(
-              stateFromEvent(eventMap, Machine.states(mch), stateName),
-              log.interpreter("Setting new state!"),
-              set,
-            )(ev)
-            return {}
-          }
-          return {}
-        }
-
-      _ =>
-        {}
-    }
-    send = sendWithPayload($, Nothing)
-    return Right({ name, details, send, sendWithPayload, get: getCurrent })
-    // return Left("shit")
+  return if (Set.length(states) == 0) {
+    Left("No states")
+  } else {
+    Right(consumeMachine(context, states, mch))
   }
-  // return Controller({ name, details, send, sendWithPayload, get })
 }
