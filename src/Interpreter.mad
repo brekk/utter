@@ -2,21 +2,24 @@ import type { Either } from "Either"
 import type { Maybe } from "Maybe"
 import type { Set } from "Set"
 
+import type { Event } from "@/Event"
 import type { Machine } from "@/Machine"
 import type { State } from "@/State"
+import type { Transition } from "@/Transition"
 
 import Dict from "Dictionary"
 import { Left, Right } from "Either"
+import Fn from "Function"
 import IO from "IO"
 import List from "List"
-import { Just, Nothing, isJust } from "Maybe"
+import { Just, Nothing, fromMaybe, isJust } from "Maybe"
 import Set from "Set"
 
-import { Event } from "@/Event"
+import Event from "@/Event"
 import { log } from "@/Log"
 import Machine from "@/Machine"
 import State from "@/State"
-import { Transition } from "@/Transition"
+import Transition from "@/Transition"
 
 
 
@@ -37,13 +40,37 @@ alias Talkback a b = {
   sendWithPayload :: String -> b -> {},
 }
 // type Controller a b = Controller(Talkback a b)
-
-stateFromEvent = (eventMap, states, stateName, ev) => pipe(
+/*
+stateFromEvent :: Dictionary String (Dictionary String String)
+  -> List (State String a)
+  -> String
+  -> String
+  -> List (Transition a b)
+  -> Maybe b
+  -> Maybe (State String a)
+*/
+stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
   Dict.get(stateName),
-  // Matching transition found: Machine finds a transition with that event name
-  chain(Dict.get(ev)),
+  chain(Dict.get(eventName)),
   chain((k) => List.find(State.nameMatches(k), states)),
 )(eventMap)
+
+// checkTransitions :: List (Transition a b) -> Event a -> Maybe b -> b -> Boolean
+checkTransitions = (lx, ev, context, payload) => List.reduce(
+  (pass, tr) => if (pass) {
+    Transition.checkGuard(ev, payload, context, tr)
+  } else {
+    false
+  },
+  true,
+  lx,
+)
+
+// Guards evaluated: If guards exist, they check if transition can proceed
+// Actions executed: If guards pass, actions/reducers run
+// State changes: Machine transitions to target state
+// Listeners notified: Any change listeners are called
+
 
 // interpret :: Show a => Maybe a -> Machine a -> Talkback a a
 // interpret :: Show a => Maybe a -> Machine a -> Either String (Talkback a a)
@@ -55,6 +82,7 @@ export interpret = (context, mch) => {
     return Left("No states")
   } else do {
     events = Machine.events(mch)
+    eventNames = Machine.eventNames(mch)
     eventMap = Machine.eventMap(mch)
     details = { states, events, eventMap, context }
     ref = Machine.initialState(mch)
@@ -74,18 +102,27 @@ export interpret = (context, mch) => {
       current := x
       return x
     }
+    findEvent :: List Event -> String -> Event
+    findEvent = (evs, e) => pipe(
+      List.find(
+        pipe(
+          Event.name,
+          Fn.equals(e),
+        ),
+      ),
+      fromMaybe(Event.NullEvent),
+    )(evs)
     // Event sent: service.send('eventName') is called
-    sendWithPayload = (ev, p) => where(current) {
-      Just(State.State(stateName, trans)) =>
+    sendWithPayload = (ev, payload) => where(current) {
+      Just(State.State(stateName, transitions)) =>
         do {
           // Current state checked: Machine looks at transitions in the current state
-          if (Set.includes(ev, events)) do {
+          if (Set.includes(ev, eventNames)) do {
+            // fullEvent = findEvent(events, ev)
+            // passing = checkTransitions(transitions, fullEvent, context, payload)
+            // log.interpreter("PASSO?", passing)
             pipe(
               stateFromEvent(eventMap, Machine.states(mch), stateName),
-              // Guards evaluated: If guards exist, they check if transition can proceed
-              // Actions executed: If guards pass, actions/reducers run
-              // State changes: Machine transitions to target state
-              // Listeners notified: Any change listeners are called
               log.interpreter("Setting new state!"),
               set,
             )(ev)

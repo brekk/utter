@@ -19,7 +19,13 @@ STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
 
 
 main = () => {
-  isClick = Transition.guard((ctx, ev) => where(ev) { Event(name, payload) => name == "click" })
+  isClick = (ctx, ev, payload) => where(ev) {
+    Event(name) =>
+      name == "click"
+
+    _ =>
+      false
+  }
   contracted = State.create(
     STATES.CONTRACTED,
     [

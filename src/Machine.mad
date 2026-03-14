@@ -51,7 +51,7 @@ export initialState = where {
 
 
 // unique events that this machine responds to
-events :: Machine a b -> Set String
+events :: Machine a b -> List Event
 export events = where {
   Machine(_, sts, _) =>
     pipe(
@@ -59,12 +59,17 @@ export events = where {
         pipe(
           State.transitions,
           map(Transition.event),
-          map(Event.name),
         ),
       ),
-      Set.fromList,
     )(sts)
 }
+
+eventNames :: Machine a b -> Set String
+export eventNames = pipe(
+  events,
+  map(Event.name),
+  Set.fromList,
+)
 
 eventMap :: Machine a b -> Dictionary String (Dictionary String String)
 export eventMap = where {
@@ -76,12 +81,7 @@ export eventMap = where {
             #[
               stateName,
               pipe(
-                map(
-                  where {
-                    Transition.Transition(Event.Event(eventName, payload), dest, _) =>
-                      #[eventName, dest]
-                  },
-                ),
+                map(where { Transition.Transition(ev, dest, _) => #[Event.name(ev), dest] }),
                 Dict.fromList,
               )(stateTransitions),
             ]

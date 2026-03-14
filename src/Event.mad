@@ -7,19 +7,15 @@ import String from "String"
 
 export type EventKind = ImmediateEvent | UserEvent | AsyncEvent
 
-export type Event a = Event(String, Maybe a)
+export type Event = NullEvent | Event(String)
 
-export create = Event($, Nothing)
-export withPayload = Event
+export create = Event
 
-name :: Event a -> String
+name :: Event -> String
 export name = where {
-  Event(n, _) =>
+  Event(n) =>
     n
-}
 
-payload :: Event a -> Maybe a
-export payload = where {
-  Event(_, p) =>
-    p
+  NullEvent =>
+    "__NULLEVENT__"
 }
