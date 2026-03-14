@@ -1,0 +1,18 @@
+export quiet = (fn, x) => {
+  fn(x)
+  return {}
+}
+
+export ifElse = (pred, good, bad, x) => if (pred(x)) {
+  quiet(good, x)
+} else {
+  quiet(bad, x)
+}
+
+export when = ifElse($, $, () => {})
+export unless = ifElse($, () => {}, $)
+
+export and = (a, b, x) => {
+  quiet(a, x)
+  quiet(b, x)
+}

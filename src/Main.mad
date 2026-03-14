@@ -38,7 +38,7 @@ main = () => {
   )
   extended = State.create(STATES.EXTENDED, [Transition.create("click", STATES.CONTRACTED)])
   // IO.pTrace("transitions", #[contracted, extended])
-  pen = Machine.create("pen", [contracted, extended])
+  pen = Machine.Machine("pen", [contracted, extended], Just(contracted))
   // IO.pTrace("PEN", pen)
   // IO.pTrace("Machine.events", Machine.events(pen))
   // IO.pTrace("Machine.eventMap", Machine.eventMap(pen))
@@ -48,8 +48,8 @@ main = () => {
     where {
       Right(cmd) =>
         do {
-          IO.pTrace("SEND?!?", cmd)
-          // cmd.send("click")
+          // IO.pTrace("SEND?!?", cmd)
+          cmd.send("click")
           return {}
         }
 
