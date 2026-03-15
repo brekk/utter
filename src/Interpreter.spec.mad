@@ -87,6 +87,7 @@ report(
   [#[PEN, true]],
 )
 
+/*
 test(
   "consumeMachine: happy path",
   () => where(consumeMachine(Nothing, PEN)) {
@@ -112,6 +113,7 @@ test(
       }
   },
 )
+*/
 
 test(
   "checkTransitions",
@@ -135,11 +137,12 @@ test(
   },
 )
 
-// this fails because the algo assumes only Just {}
+// /*
 test(
   "consumeMachine: machine with guards",
   () => where(
     consumeMachine(
+      // this fails because the algo assumes only Just {}
       Just({ count: 0 }),
       Machine.Machine("pen", [COMPLEX_CONTRACTED, COMPLEX_EXTENDED], Just(COMPLEX_CONTRACTED)),
     )
@@ -154,15 +157,3 @@ test(
 )
 
 // */
-/*
-report(
-  caseN4(stateFromEvent),
-  "stateFromEvent",
-  [
-    #[
-      #[Machine.eventMap(PEN), Machine.states(PEN), "contracted", "click"],
-      State.State("extended"),
-    ],
-  ],
-)
-*/

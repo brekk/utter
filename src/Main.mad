@@ -59,14 +59,14 @@ main = () => {
   pipe(
     Interpreter.interpret(Just({ count: 0 })),
     where {
-      Right(cmd) =>
+      Right(Interpreter.Controller(get, sendWithPayload)) =>
         do {
           // IO.pTrace("SEND?!?", cmd)
           pipe(
             map(State.transitions),
             IO.pTrace("transitions"),
-          )(cmd.get())
-          cmd.send("click")
+          )(get())
+          sendWithPayload("click", Nothing)
           // IO.pTrace("smippppp", cmd.smipsmap("click", Nothing))
           return {}
         }

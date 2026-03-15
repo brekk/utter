@@ -83,13 +83,13 @@ export invoke = (secret, ev, stateName, mch) => if (Set.includes(ev, Machine.eve
     log.interpreter("Setting new state!"),
     secret.set,
   )
-  return ev
+  return true
 } else {
-  ev
+  false
 }
 
 export type Controller pay ctx
-  = Controller({} -> Maybe (State pay ctx), String -> Maybe pay -> String)
+  = Controller({} -> Maybe (State pay ctx), String -> Maybe pay -> Boolean)
 
 // consumeMachine :: Maybe a -> Machine a b -> Controller a b
 export consumeMachine = (ctx, mch) => {
@@ -123,16 +123,24 @@ export consumeMachine = (ctx, mch) => {
           invoke(secret, ev, stateName, mch)
 
         _ =>
-          ev
+          false
       }
     } else {
-      ev
+      false
     }
   }
 
   // send = sendWithPayload($, Nothing)
   return Controller(secret.get, sendWithPayload)
 }
+
+_consumeMachine = (ctx, mch) => Controller(
+  () => Nothing,
+  (a, b) => do {
+    IO.pTrace("CONTROLLER?", #[a, b])
+    return true
+  },
+)
 
 
 // interpret :: Maybe a -> Machine a b -> Either String (Controller a b)
