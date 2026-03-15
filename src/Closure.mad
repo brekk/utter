@@ -1,0 +1,48 @@
+alias Controller a = { get :: {} -> a, set :: a -> a }
+
+
+closure :: a -> Controller a
+export closure = (initial) => {
+  current :: a
+  current = initial
+
+  get :: {} -> a
+  get = () => current
+
+  set :: a -> a
+  set = (x) => {
+    current := x
+    return x
+  }
+  return { get, set }
+}
+
+
+type Closed a = Closed(a)
+
+open :: Closed a -> a
+open = where {
+  Closed(x) =>
+    x
+}
+
+enclose :: a -> Closed a -> Closed a
+enclose = (x, c) => where(c) {
+  Closed(_) =>
+    Closed(x)
+}
+
+export alias Secret a = { get :: {} -> a, set :: a -> a }
+
+closed :: a -> Secret a
+export closed = (initial) => {
+  current = Closed(initial)
+  return {
+    get: () => open(current),
+    set: (k) => {
+      updated = enclose(k, current)
+      current := updated
+      return open(current)
+    },
+  }
+}

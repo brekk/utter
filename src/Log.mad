@@ -16,39 +16,23 @@ BUSCONFIG = {
 // env = bus(DEFAULT_CONFIG)
 
 export TAGS = {
-  action: tagWithScope("utter", ["guard"]),
   event: tagWithScope("utter", ["event"]),
   guard: tagWithScope("utter", ["guard"]),
-  immediate: tagWithScope("utter", ["event", "immediate"]),
   machine: tagWithScope("utter", ["machine"]),
-  robot: tagWithScope("utter", ["robot"]),
   state: tagWithScope("utter", ["state"]),
   transition: tagWithScope("utter", ["transition"]),
-  trigger: tagWithScope("utter", ["event", "trigger"]),
   utter: tag("utter"),
   interpreter: tagWithScope("utter", ["interpreter"]),
-  interpreterVerbose: tagWithScope("utter", ["interpreter", "verbose"]),
-  blueprint: tagWithScope("utter", ["blueprint"]),
-  draft: tagWithScope("utter", ["blueprint", "draft"]),
-  sketch: tagWithScope("utter", ["blueprint", "sketch"]),
 }
 
 export log = {
-  action: env(TAGS.action),
   event: env(TAGS.event),
   guard: env(TAGS.guard),
-  immediate: env(TAGS.immediate),
   machine: env(TAGS.machine),
-  robot: env(TAGS.robot),
   state: env(TAGS.state),
   transition: env(TAGS.transition),
-  trigger: env(TAGS.trigger),
   utter: env(TAGS.utter),
   interpreter: env(TAGS.interpreter),
-  interpreterVerbose: env(TAGS.interpreterVerbose),
-  draft: env(TAGS.draft),
-  sketch: env(TAGS.sketch),
-  blueprint: env(TAGS.blueprint),
 }
 
 

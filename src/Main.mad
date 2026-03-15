@@ -6,8 +6,9 @@ import IO from "IO"
 import List from "List"
 import { Just, Nothing, fromMaybe } from "Maybe"
 
+import Closure from "@/Closure"
 import { Event } from "@/Event"
-import { interpret } from "@/Interpreter"
+import Interpreter from "@/Interpreter"
 import { log } from "@/Log"
 import Machine from "@/Machine"
 import State from "@/State"
@@ -43,12 +44,25 @@ main = () => {
   // IO.pTrace("Machine.events", Machine.events(pen))
   // IO.pTrace("Machine.eventMap", Machine.eventMap(pen))
 
+  // map(
+  //   (t) => Interpreter.checkTransitions(
+  //     t,
+  //     Interpreter.findEvent("click", Machine.events(pen)),
+  //     Nothing,
+  //     Nothing,
+  //   ),
+  // ),
+
   pipe(
-    interpret(Nothing),
+    Interpreter.interpret(Nothing),
     where {
       Right(cmd) =>
         do {
           // IO.pTrace("SEND?!?", cmd)
+          pipe(
+            map(State.transitions),
+            IO.pTrace("transitions"),
+          )(cmd.get())
           cmd.send("click")
           return {}
         }
@@ -60,4 +74,8 @@ main = () => {
         }
     },
   )(pen)
+  ctrl = Closure.closed("secret")
+  IO.pTrace("GET", ctrl.get())
+  ctrl.set("smipsmap")
+  IO.pTrace("POST SET", ctrl.get())
 }

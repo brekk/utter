@@ -15,6 +15,7 @@ import List from "List"
 import { Just, Nothing, fromMaybe, isJust } from "Maybe"
 import Set from "Set"
 
+import { closure } from "@/Closure"
 import Event from "@/Event"
 import { log } from "@/Log"
 import Machine from "@/Machine"
@@ -96,17 +97,6 @@ export findEvent = (e, evs) => pipe(
 // IO.pTrace("PASS?", passing)
 // Current state checked: Machine looks at transitions in the current state
 
-closure = (initial) => {
-  current = initial
-
-  // if this is named `get`, things barf hard
-  get = () => current
-  set = (x) => {
-    current := x
-    return x
-  }
-  return { get, set }
-}
 
 eat = (ctrl, ev, stateName, mch) => SideEffect.when(
   Set.includes($, Machine.eventNames(mch)),
