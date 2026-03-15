@@ -14,7 +14,7 @@ import Transition from "@/Transition"
 
 
 
-export type Machine a b = Machine(String, List (State a b), Maybe (State a b))
+export type Machine pay ctx = Machine(String, List (State pay ctx), Maybe (State pay ctx))
 
 // machine: "pen"
 //   ↳ state: "extended"
@@ -24,34 +24,33 @@ export type Machine a b = Machine(String, List (State a b), Maybe (State a b))
 
 export create = (s, x) => Machine(s, x, List.first(x))
 
-name :: Machine a b -> String
+name :: Machine pay ctx -> String
 export name = where {
   Machine(n, _, _) =>
     n
 }
 
-states :: Machine a b -> List (State a b)
+states :: Machine pay ctx -> List (State pay ctx)
 export states = where {
   Machine(_, sts, _) =>
     sts
 }
 
-stateSet :: Machine a b -> Set String
+stateSet :: Machine pay ctx -> Set String
 export stateSet = pipe(
   states,
   map(State.name),
   Set.fromList,
 )
 
-initialState :: Machine a b -> Maybe (State a b)
+initialState :: Machine pay ctx -> Maybe (State pay ctx)
 export initialState = where {
   Machine(_, _, m) =>
     m
 }
 
 
-// unique events that this machine responds to
-events :: Machine a b -> List Event
+events :: Machine pay ctx -> Set Event
 export events = where {
   Machine(_, sts, _) =>
     pipe(
@@ -61,17 +60,18 @@ export events = where {
           map(Transition.event),
         ),
       ),
+      Set.fromList,
     )(sts)
 }
 
-eventNames :: Machine a b -> Set String
+// unique events that this machine responds to
+eventNames :: Machine pay ctx -> Set String
 export eventNames = pipe(
   events,
   map(Event.name),
-  Set.fromList,
 )
 
-eventMap :: Machine a b -> Dictionary String (Dictionary String String)
+eventMap :: Machine pay ctx -> Dictionary String (Dictionary String String)
 export eventMap = where {
   Machine(_, sts, _) =>
     pipe(

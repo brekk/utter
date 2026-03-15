@@ -1,0 +1,7 @@
+import { caseN2, report } from "Study"
+
+import { Event, NullEvent, create, name } from "@/Event"
+
+
+
+report(name, "name", [#[create("shit"), "shit"], #[NullEvent, "__NULLEVENT__"]])

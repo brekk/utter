@@ -1,0 +1,35 @@
+import { assertEquals, test } from "Test"
+
+import { closed, closure } from "@/Closure"
+
+
+
+test(
+  "closure returns a value with scoped access",
+  () => pipe(
+    closure,
+    where {
+      { get, set } =>
+        do {
+          assertEquals(get(), "initial")
+          set("barf")
+          return assertEquals(get(), "barf")
+        }
+    },
+  )("initial"),
+)
+
+test(
+  "closed returns a value with scoped access",
+  () => pipe(
+    closed,
+    where {
+      { get, set } =>
+        do {
+          assertEquals(get(), "initial")
+          set("barf")
+          return assertEquals(get(), "barf")
+        }
+    },
+  )("initial"),
+)

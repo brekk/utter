@@ -8,6 +8,7 @@ import String from "String"
 export type EventKind = ImmediateEvent | UserEvent | AsyncEvent
 
 export type Event = NullEvent | Event(String)
+derive Comparable Event
 
 export create = Event
 
