@@ -1,0 +1,15 @@
+import { caseN2, report } from "Study"
+
+import { State, create, createFinal, name, nameMatches, transitions } from "@/State"
+
+
+
+report(createFinal, "createFinal", [#["butts", State("butts", [])]])
+
+report(caseN2(create), "create", [#[#["butts", []], State("butts", [])]])
+
+report(
+  caseN2(nameMatches),
+  "nameMatches",
+  [#[#["hello", create("hello", [])], true], #[#["hello", create("goodbye", [])], false]],
+)

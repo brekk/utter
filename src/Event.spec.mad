@@ -1,7 +1,13 @@
+import List from "List"
+
 import { caseN2, report } from "Study"
 
 import { Event, NullEvent, create, name } from "@/Event"
 
 
 
-report(name, "name", [#[create("shit"), "shit"], #[NullEvent, "__NULLEVENT__"]])
+eventList = [#[create("shit"), "shit"], #[NullEvent, "__NULLEVENT__"]]
+
+report(name, "name", eventList)
+
+report(List.sort, "derive Comparable", [#[eventList, eventList]])

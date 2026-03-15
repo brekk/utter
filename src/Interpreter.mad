@@ -40,7 +40,7 @@ stateFromEvent :: Dictionary String (Dictionary String String)
   -> Maybe b
   -> Maybe (State String a)
 */
-stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
+export stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
   Dict.get(stateName),
   chain(Dict.get(eventName)),
   chain((k) => List.find(State.nameMatches(k), states)),
@@ -113,7 +113,7 @@ S E N M #[
 */
 
 // invoke :: Secret a -> String -> String -> Machine a b -> Maybe (State a b)
-invoke = (secret, ev, stateName, mch) => {
+export invoke = (secret, ev, stateName, mch) => {
   IO.pTrace("S E N M", #[secret, ev, stateName, mch])
   SideEffect.when(
     Set.includes($, Machine.eventNames(mch)),
@@ -142,7 +142,7 @@ alias Talkback a b = {
 }
 
 // consumeMachine :: Maybe a -> Machine a b -> Talkback a b
-consumeMachine = (ctx, mch) => {
+export consumeMachine = (ctx, mch) => {
   ref = Machine.initialState(mch)
   secret = closed(
     // CURRENT IS A MAYBE
@@ -159,7 +159,7 @@ consumeMachine = (ctx, mch) => {
 
   shouldRun = (ev, raw, payload) => where(raw) {
     Just(State.State(stateName, transitions)) =>
-      checkTransitions(transitions, findEvent(ev, Machine.events(mch)), ctx, payload)
+      checkTransitions(transitions, findEvent(ev, Set.toList(Machine.events(mch))), ctx, payload)
 
     Nothing =>
       false
@@ -183,7 +183,7 @@ consumeMachine = (ctx, mch) => {
 }
 
 
-interpret :: Maybe a -> Machine a b -> Either String (Talkback a b)
+// interpret :: Maybe a -> Machine a b -> Either String (Talkback a b)
 export interpret = (ctx, mch) => {
   states = Machine.stateSet(mch)
   return if (Set.length(states) == 0) {

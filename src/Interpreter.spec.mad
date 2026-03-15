@@ -1,0 +1,99 @@
+import { Left, Right, isLeft, isRight } from "Either"
+import { Just, Nothing } from "Maybe"
+import { assertEquals, test } from "Test"
+
+import { caseN2, caseN3, caseN4, report } from "Study"
+
+import { Event } from "@/Event"
+import {
+  checkTransitions,
+  consumeMachine,
+  findEvent,
+  interpret,
+  invoke,
+  stateFromEvent,
+} from "@/Interpreter"
+import Machine from "@/Machine"
+import State from "@/State"
+import Transition from "@/Transition"
+
+
+
+STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
+isClickNoContext = Transition.Guard(
+  (_, ev, _) => where(ev) {
+    Event(name) =>
+      name == "click"
+
+    _ =>
+      false
+  },
+)
+isClickUnderTen = Transition.Guard(
+  (mCtx, ev, mPay) => where(#[mCtx, ev, mPay]) {
+    #[Just(ctx), Event(name), Just(pay)] =>
+      name == "click" && ctx.count <= 10
+
+    _ =>
+      false
+  },
+)
+CONTRACTED = State.create(
+  STATES.CONTRACTED,
+  [
+    Transition.withContext(
+      "click",
+      STATES.EXTENDED,
+      Just({ guards: [isClickNoContext], actions: [], reducers: [] }),
+    ),
+  ],
+)
+EXTENDED = State.create(STATES.EXTENDED, [Transition.create("click", STATES.CONTRACTED)])
+
+PEN = Machine.Machine("pen", [CONTRACTED, EXTENDED], Just(CONTRACTED))
+
+
+report(
+  findEvent("click"),
+  "findEvent (click)",
+  [#[[Event("not a click"), Event("click")], Event("click")]],
+)
+
+report(
+  interpret(Nothing),
+  "interpret: bad path",
+  [#[Machine.Machine("fail", [], Nothing), Left("No states")]],
+)
+
+report(
+  pipe(
+    interpret(Nothing),
+    isRight,
+  ),
+  "interpret: happy, simple path",
+  [#[PEN, true]],
+)
+
+test(
+  "consumeMachine",
+  () => {
+    raw = consumeMachine(Nothing, PEN)
+
+    assertEquals(raw.get(), Just(CONTRACTED))
+    raw.send("click")
+    return assertEquals(raw.get(), Just(EXTENDED))
+  },
+)
+
+/*
+report(
+  caseN4(stateFromEvent),
+  "stateFromEvent",
+  [
+    #[
+      #[Machine.eventMap(PEN), Machine.states(PEN), "contracted", "click"],
+      State.State("extended"),
+    ],
+  ],
+)
+*/

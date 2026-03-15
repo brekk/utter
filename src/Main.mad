@@ -20,13 +20,15 @@ STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
 
 // v.count < 10 &&
 main = () => {
-  isClick = (ctx, ev, payload) => where(#[ctx, ev]) {
-    #[Just(v), Event(name)] =>
-      name == "click" && v.count <= 10
+  isClick = Transition.Guard(
+    (ctx, ev, payload) => where(#[ctx, ev]) {
+      #[Just(v), Event(name)] =>
+        name == "click" && v.count <= 10
 
-    _ =>
-      false
-  }
+      _ =>
+        false
+    },
+  )
   contracted = State.create(
     STATES.CONTRACTED,
     [

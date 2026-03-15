@@ -1,0 +1,15 @@
+import { caseN2, report } from "Study"
+
+import { and, ifElse, quiet, unless, when } from "@/SideEffect"
+
+
+
+report(caseN2(quiet), "quiet", [#[#[(x) => x * 2, 4], {}]])
+
+report(ifElse((x) => x % 2 == 0, (x) => x * 2, (x) => x / 2), "ifElse", [#[100, {}], #[21, {}]])
+
+report(when((x) => x % 2 == 0, (x) => x * 2), "when", [#[100, {}], #[21, {}]])
+
+report(unless((x) => x % 2 == 0, (x) => x * 2), "unless", [#[100, {}], #[21, {}]])
+
+report(and((x) => x * 2, (x) => x + 100), "and", [#[1, {}], #[2, {}]])
