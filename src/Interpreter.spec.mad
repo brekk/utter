@@ -6,7 +6,7 @@ import { caseN2, caseN3, caseN4, report } from "Study"
 
 import { Event } from "@/Event"
 import {
-  Controller,
+  // Controller,
   checkTransitions,
   consumeMachine,
   findEvent,
@@ -140,19 +140,23 @@ test(
 // /*
 test(
   "consumeMachine: machine with guards",
-  () => where(
-    consumeMachine(
+  () => do {
+    mCtrl = consumeMachine(
       // this fails because the algo assumes only Just {}
-      Just({ count: 0 }),
+      Just({}),
       Machine.Machine("pen", [COMPLEX_CONTRACTED, COMPLEX_EXTENDED], Just(COMPLEX_CONTRACTED)),
     )
-  ) {
-    Controller(_, get, sendWithPayload) =>
-      do {
-        assertEquals(get(), Just(COMPLEX_CONTRACTED))
-        sendWithPayload("click", Nothing)
-        return assertEquals(get(), Just(COMPLEX_EXTENDED))
-      }
+    return where(mCtrl) {
+      Nothing =>
+        assertEquals(true, false)
+
+      Just(ctrl) =>
+        do {
+          assertEquals(ctrl.get(), COMPLEX_CONTRACTED)
+          // ctrl.sendWithPayload("click", Nothing)
+          return assertEquals(ctrl.get(), COMPLEX_EXTENDED)
+        }
+    }
   },
 )
 

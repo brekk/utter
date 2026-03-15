@@ -1,3 +1,5 @@
+import type { Maybe } from "Maybe"
+
 import type { Transition } from "@/Transition"
 
 import Fn from "Function"
@@ -8,7 +10,7 @@ import String from "String"
 
 // a = event payload
 // b = machine context
-export type State pay ctx = State(String, List (Transition pay ctx))
+export type State pay ctx = State(String, List (Transition (Maybe pay) (Maybe ctx)))
 
 export createFinal = State($, [])
 export create = State
@@ -19,7 +21,7 @@ export name = where {
     n
 }
 
-transitions :: State pay ctx -> List (Transition pay ctx)
+transitions :: State pay ctx -> List (Transition (Maybe pay) (Maybe ctx))
 export transitions = where {
   State(_, t) =>
     t

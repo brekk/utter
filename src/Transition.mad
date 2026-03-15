@@ -25,10 +25,11 @@ export alias TransitionModifier pay ctx = {
   reducers :: List Boolean,
 }
 
-// event(origin) -> destination
-export type Transition pay ctx = Transition(Event, String, Maybe (TransitionModifier pay ctx))
+alias MaybeMod pay ctx = Maybe (TransitionModifier pay ctx)
 
-// TODO: deal with payloads in the future
+// event(origin) -> destination
+export type Transition pay ctx = Transition(Event, String, MaybeMod pay ctx)
+
 export withContext = (fromEventName, toDestination, mods) => pipe(
   Event.create,
   Transition($, toDestination, mods),
@@ -47,7 +48,7 @@ export target = where {
     d
 }
 
-modifiers :: Transition a b -> Maybe (TransitionModifier a b)
+modifiers :: Transition pay ctx -> MaybeMod pay ctx
 export modifiers = where {
   Transition(_, _, m) =>
     m
@@ -56,7 +57,7 @@ import IO from "IO"
 
 
 
-checkGuard :: Event -> Maybe a -> Maybe b -> Transition a b -> Boolean
+// checkGuard :: Event -> Maybe a -> Maybe b -> Transition a b -> Boolean
 export checkGuard = (ev, pay, ctx, tr) => pipe(
   modifiers,
   map(.guards),
