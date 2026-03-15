@@ -38,19 +38,31 @@ isClickUnderTen = Transition.Guard(
       false
   },
 )
-CONTRACTED = State.create(
-  STATES.CONTRACTED,
-  [
-    Transition.withContext(
-      "click",
-      STATES.EXTENDED,
-      Just({ guards: [isClickNoContext], actions: [], reducers: [] }),
-    ),
-  ],
-)
-EXTENDED = State.create(STATES.EXTENDED, [Transition.create("click", STATES.CONTRACTED)])
 
-PEN = Machine.Machine("pen", [CONTRACTED, EXTENDED], Just(CONTRACTED))
+SIMPLE_EXTENDED = State.create(STATES.EXTENDED, [Transition.create("click", STATES.CONTRACTED)])
+SIMPLE_CONTRACTED = State.create(STATES.CONTRACTED, [Transition.create("click", STATES.EXTENDED)])
+
+TRANSITION_TO_EXTENDED = Transition.withContext(
+  "click",
+  STATES.EXTENDED,
+  Just({ guards: [isClickUnderTen], actions: [], reducers: [] }),
+)
+
+TRANSITION_TO_CONTRACTED = Transition.withContext(
+  "click",
+  STATES.CONTRACTED,
+  Just({ guards: [isClickUnderTen], actions: [], reducers: [] }),
+)
+
+COMPLEX_EXTENDED = State.create(STATES.CONTRACTED, [TRANSITION_TO_EXTENDED])
+COMPLEX_CONTRACTED = State.create(STATES.EXTENDED, [TRANSITION_TO_CONTRACTED])
+
+PEN = Machine.Machine("pen", [SIMPLE_CONTRACTED, SIMPLE_EXTENDED], Just(SIMPLE_CONTRACTED))
+COMPLEX_PEN = Machine.Machine(
+  "pen",
+  [COMPLEX_CONTRACTED, COMPLEX_EXTENDED],
+  Just(COMPLEX_CONTRACTED),
+)
 
 
 report(
@@ -75,16 +87,65 @@ report(
 )
 
 test(
-  "consumeMachine",
+  "consumeMachine: happy path",
   () => {
     raw = consumeMachine(Nothing, PEN)
-
-    assertEquals(raw.get(), Just(CONTRACTED))
+    assertEquals(raw.get(), Just(SIMPLE_CONTRACTED))
     raw.send("click")
-    return assertEquals(raw.get(), Just(EXTENDED))
+    return assertEquals(raw.get(), Just(SIMPLE_EXTENDED))
   },
 )
 
+test(
+  "consumeMachine: machine has no default",
+  () => {
+    raw = consumeMachine(
+      Nothing,
+      Machine.Machine("pen", [SIMPLE_CONTRACTED, SIMPLE_EXTENDED], Nothing),
+    )
+    assertEquals(raw.get(), Just(SIMPLE_CONTRACTED))
+    raw.send("click")
+    return assertEquals(raw.get(), Just(SIMPLE_EXTENDED))
+  },
+)
+
+test(
+  "checkTransitions",
+  () => {
+    // happy path
+    out = checkTransitions(
+      [TRANSITION_TO_EXTENDED],
+      Event("click"),
+      Just({ count: 0 }),
+      Just({ message: "hey" }),
+    )
+    assertEquals(out, true)
+    // guard should fail
+    shouldFail = checkTransitions(
+      [TRANSITION_TO_EXTENDED],
+      Event("click"),
+      Just({ count: 100 }),
+      Just({ message: "hey" }),
+    )
+    return assertEquals(shouldFail, false)
+  },
+)
+
+/*
+// this fails because the algo assumes only Just {}
+test(
+  "consumeMachine: machine with guards",
+  () => {
+    raw = consumeMachine(
+      Just({ count: 0 }),
+      Machine.Machine("pen", [COMPLEX_CONTRACTED, COMPLEX_EXTENDED], Nothing),
+    )
+    assertEquals(raw.get(), Just(COMPLEX_CONTRACTED))
+    raw.send("click")
+    return assertEquals(raw.get(), Just(COMPLEX_EXTENDED))
+  },
+)
+*/
 /*
 report(
   caseN4(stateFromEvent),

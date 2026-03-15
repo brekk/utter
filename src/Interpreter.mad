@@ -114,7 +114,6 @@ S E N M #[
 
 // invoke :: Secret a -> String -> String -> Machine a b -> Maybe (State a b)
 export invoke = (secret, ev, stateName, mch) => {
-  IO.pTrace("S E N M", #[secret, ev, stateName, mch])
   SideEffect.when(
     Set.includes($, Machine.eventNames(mch)),
     pipe(
@@ -170,12 +169,16 @@ export consumeMachine = (ctx, mch) => {
     if (shouldRun(ev, current, payload)) do {
       where(current) {
         Just(State.State(stateName, transitions)) =>
-          invoke(secret, ev, stateName, mch)
+          do {
+            invoke(secret, ev, stateName, mch)
+            return ev
+          }
 
         _ =>
-          {}
+          ev
       }
     }
+    return ev
   }
 
   send = sendWithPayload($, Nothing)
