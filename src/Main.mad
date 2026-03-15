@@ -64,6 +64,7 @@ main = () => {
             IO.pTrace("transitions"),
           )(cmd.get())
           cmd.send("click")
+          // IO.pTrace("smippppp", cmd.smipsmap("click", Nothing))
           return {}
         }
 

@@ -15,7 +15,7 @@ import List from "List"
 import { Just, Nothing, fromMaybe, isJust } from "Maybe"
 import Set from "Set"
 
-import { closure } from "@/Closure"
+import { closed } from "@/Closure"
 import Event from "@/Event"
 import { log } from "@/Log"
 import Machine from "@/Machine"
@@ -29,7 +29,7 @@ import Transition from "@/Transition"
 // 
 // Here’s how events flow through a state machine:
 alias Details a b = {
-  context :: Maybe a,
+  ctx :: Maybe a,
   eventMap :: Dictionary String (Dictionary String String),
   eventNames :: Set String,
   events :: List Event,
@@ -59,9 +59,13 @@ stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
 )(eventMap)
 
 // checkTransitions :: List (Transition a b) -> Event a -> Maybe b -> b -> Boolean
-export checkTransitions = (lx, ev, context, payload) => List.reduce(
+// a [Transition(Event("click"), "contracted", Nothing)]
+// b Event("click")
+// c {}
+// d Nothing
+export checkTransitions = (lx, ev, ctx, payload) => List.reduce(
   (pass, tr) => if (pass) {
-    Transition.checkGuard(ev, payload, context, tr)
+    Transition.checkGuard(ev, payload, ctx, tr)
   } else {
     false
   },
@@ -75,7 +79,7 @@ checkTransitions = (a, b, c, d) => {
   IO.pTrace("c", c)
   IO.pTrace("d", d)
 }
-*/
+// */
 
 findEvent :: String -> List Event -> Event
 export findEvent = (e, evs) => pipe(
@@ -93,12 +97,12 @@ export findEvent = (e, evs) => pipe(
 // State changes: Machine transitions to target state
 // Listeners notified: Any change listeners are called
 
-// passing = checkTransitions(transitions, findEvent(ev, events), context, payload)
+// passing = checkTransitions(transitions, findEvent(ev, events), ctx, payload)
 // IO.pTrace("PASS?", passing)
 // Current state checked: Machine looks at transitions in the current state
 
 
-eat = (ctrl, ev, stateName, mch) => SideEffect.when(
+invoke = (ctrl, ev, stateName, mch) => SideEffect.when(
   Set.includes($, Machine.eventNames(mch)),
   pipe(
     stateFromEvent(Machine.eventMap(mch), Machine.states(mch), stateName),
@@ -111,9 +115,9 @@ eat = (ctrl, ev, stateName, mch) => SideEffect.when(
 // consumeMachine :: Maybe a -> Set String -> Machine a b -> Talkback a a
 consumeMachine = (ctx, mch) => {
   ref = Machine.initialState(mch)
-  ctrl = closure(
+  ctrl = closed(
     // CURRENT IS A MAYBE
-    log.interpreterVerbose(
+    log.interpreter(
       "default state!",
       isJust(ref)
         ? ref
@@ -124,17 +128,27 @@ consumeMachine = (ctx, mch) => {
     ),
   )
 
-  sendWithPayload = (ev, payload) => where(ctrl.get()) {
+  shouldRun = (ev, raw, payload) => where(raw) {
     Just(State.State(stateName, transitions)) =>
-      do {
-        //checkTransitions(transitions, findEvent(ev, Machine.events(mch)), ctx, payload)
-        out = eat(ctrl, ev, stateName, mch)
-        return out
-      }
+      checkTransitions(transitions, findEvent(ev, Machine.events(mch)), ctx, payload)
 
-    _ =>
-      {}
+    Nothing =>
+      false
   }
+
+  sendWithPayload = (ev, payload) => {
+    current = ctrl.get()
+    if (shouldRun(ev, current, payload)) do {
+      where(current) {
+        Just(State.State(stateName, transitions)) =>
+          invoke(ctrl, ev, stateName, mch)
+
+        _ =>
+          {}
+      }
+    }
+  }
+
   send = sendWithPayload($, Nothing)
   return { get: ctrl.get, send, sendWithPayload }
 }
