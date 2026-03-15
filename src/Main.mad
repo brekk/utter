@@ -21,9 +21,9 @@ STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
 // v.count < 10 &&
 main = () => {
   isClick = Transition.Guard(
-    (ctx, ev, payload) => where(#[ctx, ev, payload]) {
-      #[Just(v), Event(name), Just(pay)] =>
-        name == "click" && v.count <= 10
+    (ctx, ev, payload) => where(#[ctx, ev]) {
+      #[Just(v), Event(name)] =>
+        name == "click"
 
       _ =>
         false
@@ -55,9 +55,9 @@ main = () => {
   //   ),
   // ),
 
-  // Interpreter.interpret(Nothing),
+  // Interpreter.interpret(Just({ count: 0 })),
   pipe(
-    Interpreter.interpret(Just({ count: 0 })),
+    Interpreter.interpret(Nothing),
     where {
       Right(Interpreter.Controller(get, sendWithPayload)) =>
         do {
