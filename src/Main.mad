@@ -18,11 +18,11 @@ import Transition from "@/Transition"
 
 STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
 
-
+// v.count < 10 &&
 main = () => {
-  isClick = (ctx, ev, payload) => where(ev) {
-    Event(name) =>
-      name == "click"
+  isClick = (ctx, ev, payload) => where(#[ctx, ev]) {
+    #[Just(v), Event(name)] =>
+      name == "click" && v.count <= 10
 
     _ =>
       false
@@ -53,8 +53,9 @@ main = () => {
   //   ),
   // ),
 
+  // Interpreter.interpret(Nothing),
   pipe(
-    Interpreter.interpret(Nothing),
+    Interpreter.interpret(Just({ count: 0 })),
     where {
       Right(cmd) =>
         do {

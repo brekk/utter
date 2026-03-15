@@ -12,21 +12,21 @@ import Event from "@/Event"
 
 // b = context
 // a = event
-export alias Guard a b = Maybe b -> Event -> Maybe a -> Boolean
+export alias Guard pay ctx = Maybe ctx -> Event -> Maybe pay -> Boolean
 
 // guard :: (b -> Event a -> Boolean) -> Guard a b
 // export guard = Guard
 
 // we're defining these incompletely for now (as boolean lists),
 // but all of these fields should be more complex lists
-export alias TransitionModifier a b = {
+export alias TransitionModifier pay ctx = {
   actions :: List Boolean,
-  guards :: List (Guard a b),
+  guards :: List (Guard pay ctx),
   reducers :: List Boolean,
 }
 
 // event(origin) -> destination
-export type Transition a b = Transition(Event, String, Maybe (TransitionModifier a b))
+export type Transition pay ctx = Transition(Event, String, Maybe (TransitionModifier pay ctx))
 
 // TODO: deal with payloads in the future
 export withContext = (fromEventName, toDestination, mods) => pipe(

@@ -2,6 +2,7 @@ import type { Either } from "Either"
 import type { Maybe } from "Maybe"
 import type { Set } from "Set"
 
+import type { Secret } from "@/Closure"
 import type { Event } from "@/Event"
 import type { Machine } from "@/Machine"
 import type { State } from "@/State"
@@ -28,20 +29,7 @@ import Transition from "@/Transition"
 // Event Flow
 // 
 // Here’s how events flow through a state machine:
-alias Details a b = {
-  ctx :: Maybe a,
-  eventMap :: Dictionary String (Dictionary String String),
-  eventNames :: Set String,
-  events :: List Event,
-  states :: Set String,
-}
-alias Talkback a b = {
-  details :: Details a b,
-  get :: {} -> Maybe (State a b),
-  name :: String,
-  send :: String -> {},
-  sendWithPayload :: String -> b -> {},
-}
+
 // type Controller a b = Controller(Talkback a b)
 /*
 stateFromEvent :: Dictionary String (Dictionary String String)
@@ -58,28 +46,16 @@ stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
   chain((k) => List.find(State.nameMatches(k), states)),
 )(eventMap)
 
-// checkTransitions :: List (Transition a b) -> Event a -> Maybe b -> b -> Boolean
-// a [Transition(Event("click"), "contracted", Nothing)]
-// b Event("click")
-// c {}
-// d Nothing
-export checkTransitions = (lx, ev, ctx, payload) => List.reduce(
+checkTransitions :: List (Transition a b) -> Event -> Maybe b -> Maybe a -> Boolean
+export checkTransitions = (trx, ev, ctx, payload) => List.reduce(
   (pass, tr) => if (pass) {
     Transition.checkGuard(ev, payload, ctx, tr)
   } else {
     false
   },
   true,
-  lx,
+  trx,
 )
-/*
-checkTransitions = (a, b, c, d) => {
-  IO.pTrace("a", a)
-  IO.pTrace("b", b)
-  IO.pTrace("c", c)
-  IO.pTrace("d", d)
-}
-// */
 
 findEvent :: String -> List Event -> Event
 export findEvent = (e, evs) => pipe(
@@ -100,22 +76,75 @@ export findEvent = (e, evs) => pipe(
 // passing = checkTransitions(transitions, findEvent(ev, events), ctx, payload)
 // IO.pTrace("PASS?", passing)
 // Current state checked: Machine looks at transitions in the current state
+/*
+S E N M #[
+  { get: [Function], set: [Function] },
+  "click",
+  "contracted",
+  Machine(
+    "pen",
+    [
+      State(
+        "contracted",
+        [
+          Transition(
+            Event("click"),
+            "extended",
+            Just({ actions: [], guards: [[Function]], reducers: [] })
+          )
+        ]
+      ),
+      State("extended", [Transition(Event("click"), "contracted", Nothing)])
+    ],
+    Just(
+      State(
+        "contracted",
+        [
+          Transition(
+            Event("click"),
+            "extended",
+            Just({ actions: [], guards: [[Function]], reducers: [] })
+          )
+        ]
+      )
+    )
+  )
+]
+*/
+
+// invoke :: Secret a -> String -> String -> Machine a b -> Maybe (State a b)
+invoke = (secret, ev, stateName, mch) => {
+  IO.pTrace("S E N M", #[secret, ev, stateName, mch])
+  SideEffect.when(
+    Set.includes($, Machine.eventNames(mch)),
+    pipe(
+      stateFromEvent(Machine.eventMap(mch), Machine.states(mch), stateName),
+      log.interpreter("Setting new state!"),
+      secret.set,
+    ),
+    ev,
+  )
+}
 
 
-invoke = (ctrl, ev, stateName, mch) => SideEffect.when(
-  Set.includes($, Machine.eventNames(mch)),
-  pipe(
-    stateFromEvent(Machine.eventMap(mch), Machine.states(mch), stateName),
-    log.interpreter("Setting new state!"),
-    ctrl.set,
-  ),
-  ev,
-)
+alias Details a b = {
+  ctx :: Maybe a,
+  eventMap :: Dictionary String (Dictionary String String),
+  eventNames :: Set String,
+  events :: List Event,
+  states :: Set String,
+}
+alias Talkback a b = {
+  // details :: Details a b,
+  get :: {} -> Maybe (State a b),
+  send :: String -> {},
+  sendWithPayload :: String -> Maybe b -> {},
+}
 
-// consumeMachine :: Maybe a -> Set String -> Machine a b -> Talkback a a
+// consumeMachine :: Maybe a -> Machine a b -> Talkback a b
 consumeMachine = (ctx, mch) => {
   ref = Machine.initialState(mch)
-  ctrl = closed(
+  secret = closed(
     // CURRENT IS A MAYBE
     log.interpreter(
       "default state!",
@@ -137,11 +166,11 @@ consumeMachine = (ctx, mch) => {
   }
 
   sendWithPayload = (ev, payload) => {
-    current = ctrl.get()
+    current = secret.get()
     if (shouldRun(ev, current, payload)) do {
       where(current) {
         Just(State.State(stateName, transitions)) =>
-          invoke(ctrl, ev, stateName, mch)
+          invoke(secret, ev, stateName, mch)
 
         _ =>
           {}
@@ -150,11 +179,11 @@ consumeMachine = (ctx, mch) => {
   }
 
   send = sendWithPayload($, Nothing)
-  return { get: ctrl.get, send, sendWithPayload }
+  return { get: secret.get, send, sendWithPayload }
 }
 
-// interpret :: Show a => Maybe a -> Machine a -> Talkback a a
-// interpret :: Maybe a -> Machine a b -> Either String (Talkback a a)
+
+interpret :: Maybe a -> Machine a b -> Either String (Talkback a b)
 export interpret = (ctx, mch) => {
   states = Machine.stateSet(mch)
   return if (Set.length(states) == 0) {
