@@ -6,6 +6,7 @@ import { caseN2, caseN3, caseN4, report } from "Study"
 
 import { Event } from "@/Event"
 import {
+  Controller,
   checkTransitions,
   consumeMachine,
   findEvent,
@@ -32,7 +33,7 @@ isClickNoContext = Transition.Guard(
 isClickUnderTen = Transition.Guard(
   (mCtx, ev, mPay) => where(#[mCtx, ev, mPay]) {
     #[Just(ctx), Event(name), Just(pay)] =>
-      name == "click" && ctx.count <= 10
+      name == "click" && ctx.count <= 10 && pay.message != ""
 
     _ =>
       false
@@ -88,24 +89,27 @@ report(
 
 test(
   "consumeMachine: happy path",
-  () => {
-    raw = consumeMachine(Nothing, PEN)
-    assertEquals(raw.get(), Just(SIMPLE_CONTRACTED))
-    raw.send("click")
-    return assertEquals(raw.get(), Just(SIMPLE_EXTENDED))
+  () => where(consumeMachine(Nothing, PEN)) {
+    Controller(get, sendWithPayload) =>
+      do {
+        assertEquals(get(), Just(SIMPLE_CONTRACTED))
+        sendWithPayload("click", Nothing)
+        return assertEquals(get(), Just(SIMPLE_EXTENDED))
+      }
   },
 )
 
 test(
   "consumeMachine: machine has no default",
-  () => {
-    raw = consumeMachine(
-      Nothing,
-      Machine.Machine("pen", [SIMPLE_CONTRACTED, SIMPLE_EXTENDED], Nothing),
-    )
-    assertEquals(raw.get(), Just(SIMPLE_CONTRACTED))
-    raw.send("click")
-    return assertEquals(raw.get(), Just(SIMPLE_EXTENDED))
+  () => where(
+    consumeMachine(Nothing, Machine.Machine("pen", [SIMPLE_CONTRACTED, SIMPLE_EXTENDED], Nothing))
+  ) {
+    Controller(get, sendWithPayload) =>
+      do {
+        assertEquals(get(), Just(SIMPLE_CONTRACTED))
+        sendWithPayload("click", Nothing)
+        return assertEquals(get(), Just(SIMPLE_EXTENDED))
+      }
   },
 )
 
@@ -131,21 +135,25 @@ test(
   },
 )
 
-/*
 // this fails because the algo assumes only Just {}
 test(
   "consumeMachine: machine with guards",
-  () => {
-    raw = consumeMachine(
+  () => where(
+    consumeMachine(
       Just({ count: 0 }),
-      Machine.Machine("pen", [COMPLEX_CONTRACTED, COMPLEX_EXTENDED], Nothing),
+      Machine.Machine("pen", [COMPLEX_CONTRACTED, COMPLEX_EXTENDED], Just(COMPLEX_CONTRACTED)),
     )
-    assertEquals(raw.get(), Just(COMPLEX_CONTRACTED))
-    raw.send("click")
-    return assertEquals(raw.get(), Just(COMPLEX_EXTENDED))
+  ) {
+    Controller(_, get, sendWithPayload) =>
+      do {
+        assertEquals(get(), Just(COMPLEX_CONTRACTED))
+        sendWithPayload("click", Nothing)
+        return assertEquals(get(), Just(COMPLEX_EXTENDED))
+      }
   },
 )
-*/
+
+// */
 /*
 report(
   caseN4(stateFromEvent),

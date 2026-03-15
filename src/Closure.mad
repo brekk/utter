@@ -42,7 +42,7 @@ export closed = (initial) => {
     set: (k) => {
       updated = enclose(k, current)
       current := updated
-      return open(current)
+      return k
     },
   }
 }
