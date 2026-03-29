@@ -43,10 +43,15 @@ stateFromEvent :: Dictionary String (Dictionary String String)
 export stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
   Dict.get(stateName),
   chain(Dict.get(eventName)),
-  chain((k) => List.find(State.nameMatches(k), states)),
+  chain(
+    pipe(
+      State.nameMatches,
+      List.find($, states),
+    ),
+  ),
 )(eventMap)
 
-checkTransitions :: List (Transition a b) -> Event -> Maybe b -> Maybe a -> Boolean
+// checkTransitions :: List (Transition a b) -> Event -> Maybe b -> Maybe a -> Boolean
 export checkTransitions = (trx, ev, ctx, payload) => List.reduce(
   (pass, tr) => if (pass) {
     Transition.checkGuard(ev, payload, ctx, tr)
@@ -74,73 +79,66 @@ export findEvent = (e, evs) => pipe(
 // State changes: Machine transitions to target state
 // Listeners notified: Any change listeners are called
 
-
-
 // invoke :: Secret a -> String -> String -> Machine a b -> Maybe (State a b)
-export invoke = (secret, ev, stateName, mch) => if (Set.includes(ev, Machine.eventNames(mch))) do {
+export invoke = (ev, stateName, mch) => if (Set.includes(ev, Machine.eventNames(mch))) do {
   pipe(
     stateFromEvent(Machine.eventMap(mch), Machine.states(mch), stateName),
     log.interpreter("Setting new state!"),
-    secret.set,
-  )
+  )(ev)
   return true
 } else {
   false
 }
 
 export type Controller pay ctx
-  = Controller({} -> Maybe (State pay ctx), String -> Maybe pay -> Boolean)
+  = Controller(Maybe (State pay ctx), Maybe (State pay ctx) -> String -> Maybe pay -> Boolean)
 
-// consumeMachine :: Maybe a -> Machine a b -> Controller a b
-export consumeMachine = (ctx, mch) => {
+// initialControl :: Maybe a -> Machine a b -> Controller a b
+export initialControl = (ctx, mch) => {
   ref = Machine.initialState(mch)
-  // CURRENT IS A MAYBE
-  secret = closed(
-    log.interpreter(
-      "default state!",
-      isJust(ref)
-        ? ref
-        : pipe(
-          Machine.states,
-          List.first,
-        )(mch),
-    ),
+  initial = log.interpreter(
+    "default state!",
+    isJust(ref)
+      ? ref
+      : pipe(
+        Machine.states,
+        List.first,
+      )(mch),
   )
 
-  shouldRun = (ev, raw, payload) => where(raw) {
+  shouldRun = (ev, current, payload) => where(current) {
     Just(State.State(stateName, transitions)) =>
-      checkTransitions(transitions, findEvent(ev, Set.toList(Machine.events(mch))), ctx, payload)
+      do {
+        return checkTransitions(
+          log.interpreter("transitions", transitions),
+          log.interpreter("evev", findEvent(ev, Set.toList(Machine.events(mch)))),
+          log.interpreter("ctx", ctx),
+          payload,
+        )
+      }
 
     _ =>
       false
   }
 
-  sendWithPayload = (ev, payload) => {
-    current = secret.get()
-    return if (shouldRun(ev, current, payload)) {
-      where(current) {
-        Just(State.State(stateName, transitions)) =>
-          invoke(secret, ev, stateName, mch)
+  sendWithPayload = (current, ev, payload) => if (shouldRun(ev, current, payload)) {
+    where(current) {
+      Just(State.State(stateName, transitions)) =>
+        do {
+          IO.pTrace("current", #[current, ev, payload])
+          return invoke(ev, stateName, mch)
+        }
 
-        _ =>
-          false
-      }
-    } else {
-      false
+      _ =>
+        false
     }
+  } else {
+    false
   }
 
   // send = sendWithPayload($, Nothing)
-  return Controller(secret.get, sendWithPayload)
+  return Controller(initial, sendWithPayload)
 }
-
-_consumeMachine = (ctx, mch) => Controller(
-  () => Nothing,
-  (a, b) => do {
-    IO.pTrace("CONTROLLER?", #[a, b])
-    return true
-  },
-)
 
 
 // interpret :: Maybe a -> Machine a b -> Either String (Controller a b)
@@ -149,6 +147,6 @@ export interpret = (ctx, mch) => {
   return if (Set.length(states) == 0) {
     Left("No states")
   } else {
-    Right(consumeMachine(ctx, mch))
+    Right(initialControl(ctx, mch))
   }
 }

@@ -21,12 +21,17 @@ STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
 // v.count < 10 &&
 main = () => {
   isClick = Transition.Guard(
-    (ctx, ev, payload) => where(#[ctx, ev]) {
-      #[Just(v), Event(name)] =>
-        name == "click"
+    (ctx, ev, payload) => {
+      IO.pTrace("<><<>", ctx)
+      IO.pTrace("!>>!>!", ev)
+      IO.pTrace("<>@<@<@@><", payload)
+      return where(#[ctx, ev]) {
+        #[_, Event(name)] =>
+          name == "click"
 
-      _ =>
-        false
+        _ =>
+          false
+      }
     },
   )
   contracted = State.create(
@@ -59,14 +64,10 @@ main = () => {
   pipe(
     Interpreter.interpret(Nothing),
     where {
-      Right(Interpreter.Controller(get, sendWithPayload)) =>
+      Right(Interpreter.Controller(raw, sendWithPayload)) =>
         do {
           // IO.pTrace("SEND?!?", cmd)
-          pipe(
-            map(State.transitions),
-            IO.pTrace("transitions"),
-          )(get())
-          sendWithPayload("click", Nothing)
+          sendWithPayload(raw, "click", Nothing)
           // IO.pTrace("smippppp", cmd.smipsmap("click", Nothing))
           return {}
         }
@@ -78,8 +79,10 @@ main = () => {
         }
     },
   )(pen)
-  ctrl = Closure.closed("secret")
-  IO.pTrace("GET", ctrl.get())
-  ctrl.set("smipsmap")
-  IO.pTrace("POST SET", ctrl.get())
+  /*
+                    ctrl = Closure.closed("secret")
+                    IO.pTrace("GET", ctrl.get())
+                    ctrl.set("smipsmap")
+                    IO.pTrace("POST SET", ctrl.get())
+                    */
 }
