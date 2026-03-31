@@ -21,17 +21,12 @@ STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
 // v.count < 10 &&
 main = () => {
   isClick = Transition.Guard(
-    (ctx, ev, payload) => {
-      IO.pTrace("<><<>", ctx)
-      IO.pTrace("!>>!>!", ev)
-      IO.pTrace("<>@<@<@@><", payload)
-      return where(#[ctx, ev]) {
-        #[_, Event(name)] =>
-          name == "click"
+    (ctx, ev, payload) => where(#[ctx, ev]) {
+      #[_, Event(name)] =>
+        name == "click"
 
-        _ =>
-          false
-      }
+      _ =>
+        false
     },
   )
   contracted = State.create(
@@ -80,9 +75,9 @@ main = () => {
     },
   )(pen)
   /*
-                    ctrl = Closure.closed("secret")
-                    IO.pTrace("GET", ctrl.get())
-                    ctrl.set("smipsmap")
-                    IO.pTrace("POST SET", ctrl.get())
-                    */
+              ctrl = Closure.closed("secret")
+              IO.pTrace("GET", ctrl.get())
+              ctrl.set("smipsmap")
+              IO.pTrace("POST SET", ctrl.get())
+              */
 }

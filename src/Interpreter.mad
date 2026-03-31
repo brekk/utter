@@ -110,9 +110,9 @@ export initialControl = (ctx, mch) => {
     Just(State.State(stateName, transitions)) =>
       do {
         return checkTransitions(
-          log.interpreter("transitions", transitions),
-          log.interpreter("evev", findEvent(ev, Set.toList(Machine.events(mch)))),
-          log.interpreter("ctx", ctx),
+          transitions,
+          findEvent(ev, Set.toList(Machine.events(mch))),
+          ctx,
           payload,
         )
       }
@@ -124,10 +124,7 @@ export initialControl = (ctx, mch) => {
   sendWithPayload = (current, ev, payload) => if (shouldRun(ev, current, payload)) {
     where(current) {
       Just(State.State(stateName, transitions)) =>
-        do {
-          IO.pTrace("current", #[current, ev, payload])
-          return invoke(ev, stateName, mch)
-        }
+        invoke(ev, stateName, mch)
 
       _ =>
         false
