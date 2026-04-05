@@ -56,28 +56,26 @@ main = () => {
   // ),
 
   // Interpreter.interpret(Just({ count: 0 })),
+  // pipe(
+  //   Interpreter.interpret(Nothing),
+  //   where {
+  //     Right(Interpreter.Controller(state, run)) =>
+  //       do {
+  //         // IO.pTrace("SEND?!?", cmd)
+  //         run(state, "click", Nothing)
+  //         // IO.pTrace("smippppp", cmd.smipsmap("click", Nothing))
+  //         return {}
+  //       }
+  //
+  //     Left(why) =>
+  //       do {
+  //         IO.pTrace("FAILED", why)
+  //         return {}
+  //       }
+  //   },
+  // )(pen)
   pipe(
-    Interpreter.interpret(Nothing),
-    where {
-      Right(Interpreter.Controller(raw, sendWithPayload)) =>
-        do {
-          // IO.pTrace("SEND?!?", cmd)
-          sendWithPayload(raw, "click", Nothing)
-          // IO.pTrace("smippppp", cmd.smipsmap("click", Nothing))
-          return {}
-        }
-
-      Left(why) =>
-        do {
-          IO.pTrace("FAILED", why)
-          return {}
-        }
-    },
+    Interpreter.create(Nothing),
+    Interpreter.interpret("click", Nothing),
   )(pen)
-  /*
-              ctrl = Closure.closed("secret")
-              IO.pTrace("GET", ctrl.get())
-              ctrl.set("smipsmap")
-              IO.pTrace("POST SET", ctrl.get())
-              */
 }

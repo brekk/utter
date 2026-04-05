@@ -80,20 +80,52 @@ export findEvent = (e, evs) => pipe(
 // Listeners notified: Any change listeners are called
 
 // invoke :: Secret a -> String -> String -> Machine a b -> Maybe (State a b)
-export invoke = (ev, stateName, mch) => if (Set.includes(ev, Machine.eventNames(mch))) do {
+export step = (ev, stateName, mch) => if (Set.includes(ev, Machine.eventNames(mch))) {
   pipe(
     stateFromEvent(Machine.eventMap(mch), Machine.states(mch), stateName),
     log.interpreter("Setting new state!"),
   )(ev)
-  return true
 } else {
-  false
+  Nothing
 }
 
 export type Controller pay ctx
-  = Controller(Maybe (State pay ctx), Maybe (State pay ctx) -> String -> Maybe pay -> Boolean)
+  = InvalidController(String)
+  | Controller(
+    Maybe (State pay ctx),
+    Maybe (State pay ctx) -> String -> Maybe pay -> Maybe (State pay ctx),
+  )
 
-// initialControl :: Maybe a -> Machine a b -> Controller a b
+shouldRun = (ctx, mch, ev, current, payload) => where(current) {
+  Just(State.State(stateName, transitions)) =>
+    do {
+      return checkTransitions(
+        transitions,
+        findEvent(ev, Set.toList(Machine.events(mch))),
+        ctx,
+        payload,
+      )
+    }
+
+  _ =>
+    false
+}
+
+stepWithPayload = (ctx, mch, current, ev, payload) => if (
+  shouldRun(ctx, mch, ev, current, payload)
+) {
+  where(current) {
+    Just(State.State(stateName, transitions)) =>
+      step(ev, stateName, mch)
+
+    _ =>
+      Nothing
+  }
+} else {
+  Nothing
+}
+
+initialControl :: Maybe a -> Machine a b -> Controller a b
 export initialControl = (ctx, mch) => {
   ref = Machine.initialState(mch)
   initial = log.interpreter(
@@ -106,44 +138,23 @@ export initialControl = (ctx, mch) => {
       )(mch),
   )
 
-  shouldRun = (ev, current, payload) => where(current) {
-    Just(State.State(stateName, transitions)) =>
-      do {
-        return checkTransitions(
-          transitions,
-          findEvent(ev, Set.toList(Machine.events(mch))),
-          ctx,
-          payload,
-        )
-      }
-
-    _ =>
-      false
-  }
-
-  sendWithPayload = (current, ev, payload) => if (shouldRun(ev, current, payload)) {
-    where(current) {
-      Just(State.State(stateName, transitions)) =>
-        invoke(ev, stateName, mch)
-
-      _ =>
-        false
-    }
-  } else {
-    false
-  }
-
-  // send = sendWithPayload($, Nothing)
-  return Controller(initial, sendWithPayload)
+  return Controller(initial, stepWithPayload(ctx, mch))
 }
 
 
-// interpret :: Maybe a -> Machine a b -> Either String (Controller a b)
-export interpret = (ctx, mch) => {
+export create = (ctx, mch) => {
   states = Machine.stateSet(mch)
   return if (Set.length(states) == 0) {
-    Left("No states")
+    InvalidController("No states")
   } else {
-    Right(initialControl(ctx, mch))
+    initialControl(ctx, mch)
   }
+}
+
+export progress = (ev, payload, ctrl) => where(ctrl) {
+  Controller(current, run) =>
+    run(current, ev, payload)
+
+  _ =>
+    Nothing
 }
