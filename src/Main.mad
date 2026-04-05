@@ -1,5 +1,6 @@
 import type { Guard } from "@/Transition"
 
+import Date from "Date"
 import Dict from "Dictionary"
 import { Left, Right } from "Either"
 import IO from "IO"
@@ -17,6 +18,19 @@ import Transition from "@/Transition"
 
 
 STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
+
+ping = (ix) => pipe(
+  Interpreter.state,
+  map(State.name),
+  (v) => where(v) {
+    Just(r) =>
+      log.mainPen(show(Date.now()), r)
+
+    _ =>
+      log.mainPen("invalid state", "check")
+  },
+  (_) => ix,
+)(ix)
 
 // v.count < 10 &&
 main = () => {
@@ -76,9 +90,10 @@ main = () => {
   // )(pen)
   pipe(
     Interpreter.create(Nothing),
+    ping,
     Interpreter.send("click", Nothing),
-    log.main("POST CLICK"),
+    ping,
     Interpreter.send("click", Nothing),
-    log.main("POST CLICK 2"),
+    ping,
   )(pen)
 }

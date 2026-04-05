@@ -90,7 +90,7 @@ export step = (ev, stateName, mch) => if (Set.includes(ev, Machine.eventNames(mc
 }
 
 export type Controller pay ctx
-  = InvalidController(String)
+  = InvalidController(String, Machine pay ctx)
   | Controller(
     Maybe ctx,
     Machine pay ctx,
@@ -98,7 +98,32 @@ export type Controller pay ctx
     Maybe (State pay ctx) -> String -> Maybe pay -> Maybe (State pay ctx),
   )
 
-shouldRun = (ctx, mch, ev, current, payload) => where(current) {
+export context = where {
+  Controller(ctx, _, _, _) =>
+    ctx
+
+  InvalidController(_, _) =>
+    Nothing
+}
+
+export machine = where {
+  InvalidController(_, mch) =>
+    mch
+
+  Controller(_, mch, _, _) =>
+    mch
+}
+
+export state = where {
+  Controller(_, _, st, _) =>
+    st
+
+  _ =>
+    Nothing
+}
+
+shouldRun :: Maybe ctx -> Machine pay ctx -> String -> Maybe (State pay ctx) -> Maybe pay -> Boolean
+export shouldRun = (ctx, mch, ev, current, payload) => where(current) {
   Just(State.State(stateName, transitions)) =>
     do {
       return checkTransitions(
@@ -113,7 +138,7 @@ shouldRun = (ctx, mch, ev, current, payload) => where(current) {
     false
 }
 
-stepWithPayload = (ctx, mch, current, ev, payload) => if (
+export stepWithPayload = (ctx, mch, current, ev, payload) => if (
   shouldRun(ctx, mch, ev, current, payload)
 ) {
   where(current) {
@@ -148,15 +173,15 @@ create :: Maybe ctx -> Machine pay ctx -> Controller pay ctx
 export create = (ctx, mch) => {
   states = Machine.stateSet(mch)
   return if (Set.length(states) == 0) {
-    InvalidController("No states")
+    InvalidController("No states", mch)
   } else {
     initialControl(ctx, mch)
   }
 }
 
 
-inspect :: String -> Maybe pay -> Controller pay ctx -> Maybe (State pay ctx)
-export inspect = (ev, payload, ctrl) => where(ctrl) {
+tick :: String -> Maybe pay -> Controller pay ctx -> Maybe (State pay ctx)
+export tick = (ev, payload, ctrl) => where(ctrl) {
   Controller(ctx, mch, current, run) =>
     run(current, ev, payload)
 

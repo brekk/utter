@@ -24,6 +24,9 @@ export TAGS = {
   utter: tag("utter"),
   interpreter: tagWithScope("utter", ["interpreter"]),
   main: tagWithScope("utter", ["main"]),
+  mainPen: tagWithScope("utter", ["main", "pen"]),
+  mainPenContracted: tagWithScope("utter", ["main", "pen", "contracted"]),
+  mainPenExtended: tagWithScope("utter", ["main", "pen", "extended"]),
 }
 
 export log = {
@@ -35,6 +38,9 @@ export log = {
   utter: env(TAGS.utter),
   interpreter: env(TAGS.interpreter),
   main: env(TAGS.main),
+  mainPen: env(TAGS.mainPen),
+  mainPenContracted: env(TAGS.mainPenContracted),
+  mainPenExtended: env(TAGS.mainPenExtended),
 }
 
 
