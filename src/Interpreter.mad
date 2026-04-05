@@ -92,6 +92,8 @@ export step = (ev, stateName, mch) => if (Set.includes(ev, Machine.eventNames(mc
 export type Controller pay ctx
   = InvalidController(String)
   | Controller(
+    Maybe ctx,
+    Machine pay ctx,
     Maybe (State pay ctx),
     Maybe (State pay ctx) -> String -> Maybe pay -> Maybe (State pay ctx),
   )
@@ -138,10 +140,11 @@ export initialControl = (ctx, mch) => {
       )(mch),
   )
 
-  return Controller(initial, stepWithPayload(ctx, mch))
+  return Controller(ctx, mch, initial, stepWithPayload(ctx, mch))
 }
 
 
+create :: Maybe ctx -> Machine pay ctx -> Controller pay ctx
 export create = (ctx, mch) => {
   states = Machine.stateSet(mch)
   return if (Set.length(states) == 0) {
@@ -151,10 +154,22 @@ export create = (ctx, mch) => {
   }
 }
 
-export progress = (ev, payload, ctrl) => where(ctrl) {
-  Controller(current, run) =>
+
+inspect :: String -> Maybe pay -> Controller pay ctx -> Maybe (State pay ctx)
+export inspect = (ev, payload, ctrl) => where(ctrl) {
+  Controller(ctx, mch, current, run) =>
     run(current, ev, payload)
 
   _ =>
     Nothing
+}
+
+
+send :: String -> Maybe pay -> Controller pay ctx -> Controller pay ctx
+export send = (ev, payload, ctrl) => where(ctrl) {
+  Controller(ctx, mch, current, run) =>
+    Controller(ctx, mch, run(current, ev, payload), stepWithPayload(ctx, mch))
+
+  _ =>
+    ctrl
 }

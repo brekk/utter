@@ -76,6 +76,9 @@ main = () => {
   // )(pen)
   pipe(
     Interpreter.create(Nothing),
-    Interpreter.interpret("click", Nothing),
+    Interpreter.send("click", Nothing),
+    log.main("POST CLICK"),
+    Interpreter.send("click", Nothing),
+    log.main("POST CLICK 2"),
   )(pen)
 }
