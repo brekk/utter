@@ -1,11 +1,13 @@
 import type { Maybe } from "Maybe"
 
+import type { Action } from "@/Action"
 import type { Event } from "@/Event"
 
 import List from "List"
 import { Just, Nothing, fromMaybe } from "Maybe"
 import String from "String"
 
+import { Action, invoke } from "@/Action"
 import Event from "@/Event"
 import { log } from "@/Log"
 
@@ -21,7 +23,7 @@ export type Guard pay ctx = Guard(Maybe ctx -> Event -> Maybe pay -> Boolean)
 // we're defining these incompletely for now (as boolean lists),
 // but all of these fields should be more complex lists
 export alias TransitionModifier pay ctx = {
-  actions :: List Boolean,
+  actions :: List (Action ctx),
   guards :: List (Guard pay ctx),
   reducers :: List Boolean,
 }

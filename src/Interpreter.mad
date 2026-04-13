@@ -26,20 +26,6 @@ import Transition from "@/Transition"
 
 
 
-// Event Flow
-// 
-// Here’s how events flow through a state machine:
-
-// type Controller a b = Controller(Talkback a b)
-/*
-stateFromEvent :: Dictionary String (Dictionary String String)
-  -> List (State String a)
-  -> String
-  -> String
-  -> List (Transition a b)
-  -> Maybe b
-  -> Maybe (State String a)
-*/
 export stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
   Dict.get(stateName),
   chain(Dict.get(eventName)),
@@ -51,7 +37,6 @@ export stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
   ),
 )(eventMap)
 
-// checkTransitions :: List (Transition a b) -> Event -> Maybe b -> Maybe a -> Boolean
 export checkTransitions = (trx, ev, ctx, payload) => List.reduce(
   (pass, tr) => if (pass) {
     Transition.checkGuard(ev, payload, ctx, tr)
@@ -73,13 +58,7 @@ export findEvent = (e, evs) => pipe(
   fromMaybe(Event.NullEvent),
 )(evs)
 
-// Current state checked: Machine looks at transitions in the current state
-// Guards evaluated: If guards exist, they check if transition can proceed
-// Actions executed: If guards pass, actions/reducers run
-// State changes: Machine transitions to target state
-// Listeners notified: Any change listeners are called
 
-// invoke :: Secret a -> String -> String -> Machine a b -> Maybe (State a b)
 export step = (ev, stateName, mch) => if (Set.includes(ev, Machine.eventNames(mch))) {
   pipe(
     stateFromEvent(Machine.eventMap(mch), Machine.states(mch), stateName),
@@ -123,21 +102,20 @@ export state = where {
 }
 
 shouldRun :: Maybe ctx -> Machine pay ctx -> String -> Maybe (State pay ctx) -> Maybe pay -> Boolean
-export shouldRun = (ctx, mch, ev, current, payload) => where(current) {
-  Just(State.State(stateName, transitions)) =>
-    do {
-      return checkTransitions(
-        transitions,
-        findEvent(ev, Set.toList(Machine.events(mch))),
-        ctx,
-        payload,
-      )
-    }
+export shouldRun = (ctx, mch, ev, curr, pay) => where(curr) {
+  Just(State.State(stateName, trx)) =>
+    checkTransitions(trx, findEvent(ev, Set.toList(Machine.events(mch))), ctx, pay)
 
   _ =>
     false
 }
 
+stepWithPayload :: Maybe ctx
+  -> Machine pay ctx
+  -> Maybe (State pay ctx)
+  -> String
+  -> Maybe pay
+  -> Maybe (State pay ctx)
 export stepWithPayload = (ctx, mch, current, ev, payload) => if (
   shouldRun(ctx, mch, ev, current, payload)
 ) {
@@ -168,16 +146,18 @@ export initialControl = (ctx, mch) => {
   return Controller(ctx, mch, initial, stepWithPayload(ctx, mch))
 }
 
+noStates = pipe(
+  Machine.stateSet,
+  Set.length,
+  Fn.equals(0),
+)
 
 create :: Maybe ctx -> Machine pay ctx -> Controller pay ctx
-export create = (ctx, mch) => {
-  states = Machine.stateSet(mch)
-  return if (Set.length(states) == 0) {
-    InvalidController("No states", mch)
-  } else {
-    initialControl(ctx, mch)
-  }
-}
+export create = (ctx, mch) => Fn.ifElse(
+  noStates,
+  InvalidController("No states"),
+  initialControl(ctx),
+)(mch)
 
 
 tick :: String -> Maybe pay -> Controller pay ctx -> Maybe (State pay ctx)
@@ -198,3 +178,9 @@ export send = (ev, payload, ctrl) => where(ctrl) {
   _ =>
     ctrl
 }
+
+// Current state checked: Machine looks at transitions in the current state
+// Guards evaluated: If guards exist, they check if transition can proceed
+// Actions executed: If guards pass, actions/reducers run
+// State changes: Machine transitions to target state
+// Listeners notified: Any change listeners are called

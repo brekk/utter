@@ -1,0 +1,14 @@
+import type { Event } from "@/Event"
+
+import { Event, NullEvent } from "@/Event"
+
+
+
+export type Action ctx = Action(Event -> ctx -> ctx)
+
+export invoke = (ev, ctx, act) => where(act) {
+  Action(call) =>
+    call(ev, ctx)
+}
+
+export noop = invoke(NullEvent)
