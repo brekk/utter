@@ -1,47 +1,38 @@
-// import IO from "IO"
+/* ★★★ utter@0.0.1 ★★★
+ * THIS FILE AUTOMATICALLY GENERATED FROM SOURCE: utter.clown-car
+ */
 
-import { DEFAULT_CONFIG, bus, env, tag, tagWithScope } from "PartyBus"
+import Party from "PartyBus"
 
 
 
-/*
-BUSCONFIG = {
-  seed: "utter",
-  decorate: (base, t, msg, x) => decorateWithStyleAndDate(base, t, msg, x),
-  effect: IO.pTrace,
-  change: (x) => x,
-  check: always,
+export tags = {
+  utter: Party.tag("utter"),
+  event: Party.tagWithScope("utter", ["event"]),
+  guard: Party.tagWithScope("utter", ["guard"]),
+  machine: Party.tagWithScope("utter", ["machine"]),
+  state: Party.tagWithScope("utter", ["state"]),
+  transition: Party.tagWithScope("utter", ["transition"]),
+  interpreter: Party.tagWithScope("utter", ["interpreter"]),
+  main: Party.tagWithScope("utter", ["main"]),
 }
-*/
-// env = bus(DEFAULT_CONFIG)
-
-export TAGS = {
-  event: tagWithScope("utter", ["event"]),
-  guard: tagWithScope("utter", ["guard"]),
-  machine: tagWithScope("utter", ["machine"]),
-  state: tagWithScope("utter", ["state"]),
-  transition: tagWithScope("utter", ["transition"]),
-  utter: tag("utter"),
-  interpreter: tagWithScope("utter", ["interpreter"]),
-  main: tagWithScope("utter", ["main"]),
-  mainPen: tagWithScope("utter", ["main", "pen"]),
-  mainPenContracted: tagWithScope("utter", ["main", "pen", "contracted"]),
-  mainPenExtended: tagWithScope("utter", ["main", "pen", "extended"]),
+export env = {
+  utter: Party.env(tags.utter),
+  event: Party.env(tags.event),
+  guard: Party.env(tags.guard),
+  machine: Party.env(tags.machine),
+  state: Party.env(tags.state),
+  transition: Party.env(tags.transition),
+  interpreter: Party.env(tags.interpreter),
+  main: Party.env(tags.main),
 }
-
-export log = {
-  event: env(TAGS.event),
-  guard: env(TAGS.guard),
-  machine: env(TAGS.machine),
-  state: env(TAGS.state),
-  transition: env(TAGS.transition),
-  utter: env(TAGS.utter),
-  interpreter: env(TAGS.interpreter),
-  main: env(TAGS.main),
-  mainPen: env(TAGS.mainPen),
-  mainPenContracted: env(TAGS.mainPenContracted),
-  mainPenExtended: env(TAGS.mainPenExtended),
+export tapped = {
+  utter: Party.tap(env.utter),
+  event: Party.tap(env.event),
+  guard: Party.tap(env.guard),
+  machine: Party.tap(env.machine),
+  state: Party.tap(env.state),
+  transition: Party.tap(env.transition),
+  interpreter: Party.tap(env.interpreter),
+  main: Party.tap(env.main),
 }
-
-
-export say = (who, says, what) => who(says, what)

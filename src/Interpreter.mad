@@ -75,7 +75,7 @@ export context = where {
   Controller(ctx, _, _, _) =>
     ctx
 
-  InvalidController(_, _) =>
+  _ =>
     Nothing
 }
 export machine = where {

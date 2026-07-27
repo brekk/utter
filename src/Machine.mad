@@ -4,18 +4,20 @@ import type { Set } from "Set"
 import type { State } from "@/State"
 
 import Dict from "Dictionary"
+import Fn from "Function"
 import List from "List"
+import Maybe from "Maybe"
 import Set from "Set"
 import String from "String"
 
 import Event from "@/Event"
+import Log from "@/Log"
 import State from "@/State"
 import Transition from "@/Transition"
 
 
 
 export type Machine pay ctx = Machine(String, List (State pay ctx), Maybe (State pay ctx))
-
 // machine: "pen"
 //   ↳ state: "extended"
 //       ↳ event: "click" → "contracted"
@@ -23,33 +25,27 @@ export type Machine pay ctx = Machine(String, List (State pay ctx), Maybe (State
 //       ↳ event: "click" → "extended"
 
 export create = (s, x) => Machine(s, x, List.first(x))
-
 name :: Machine pay ctx -> String
 export name = where {
   Machine(n, _, _) =>
     n
 }
-
 states :: Machine pay ctx -> List (State pay ctx)
 export states = where {
   Machine(_, sts, _) =>
     sts
 }
-
 stateSet :: Machine pay ctx -> Set String
 export stateSet = pipe(
   states,
   map(State.name),
   Set.fromList,
 )
-
 initialState :: Machine pay ctx -> Maybe (State pay ctx)
 export initialState = where {
   Machine(_, _, m) =>
     m
 }
-
-
 events :: Machine pay ctx -> Set Event
 export events = where {
   Machine(_, sts, _) =>
@@ -61,16 +57,16 @@ export events = where {
         ),
       ),
       Set.fromList,
-    )(sts)
+    )(
+      // unique events that this machine responds to
+      sts,
+    )
 }
-
-// unique events that this machine responds to
 eventNames :: Machine pay ctx -> Set String
 export eventNames = pipe(
   events,
   map(Event.name),
 )
-
 eventMap :: Machine pay ctx -> Dictionary String (Dictionary String String)
 export eventMap = where {
   Machine(_, sts, _) =>
@@ -89,4 +85,75 @@ export eventMap = where {
       ),
       Dict.fromList,
     )(sts)
+}
+findEvent :: String -> List Event -> Event
+export findEvent = (e, evs) => pipe(
+  List.find(
+    pipe(
+      Event.name,
+      Fn.equals(e),
+    ),
+  ),
+  Maybe.fromMaybe(Event.NullEvent),
+)(evs)
+export checkTransitions = (trx, ev, ctx, payload) => List.reduce(
+  (pass, tr) => if (pass) {
+    Transition.checkGuard(ev, payload, ctx, tr)
+  } else {
+    false
+  },
+  true,
+  trx,
+)
+export initialControl = (ctx, mch) => {
+  ref = initialState(mch)
+  initial = Log
+    .log
+    .interpreter(
+      "default state!",
+      Maybe.isJust(ref)
+        ? ref
+        : pipe(
+          states,
+          List.first,
+        )(mch),
+    )
+
+  shouldRun = (ev, current, payload) => where(current) {
+    Maybe.Just(State.State(stateName, transitions)) =>
+      do {
+        return checkTransitions(
+          transitions,
+          findEvent(ev, Set.toList(Machine.events(mch))),
+          ctx,
+          payload,
+        )
+      }
+
+    _ =>
+      false
+  }
+  sendWithPayload = (current, ev, payload) => if (shouldRun(ev, current, payload)) {
+    where(current) {
+      Just(State.State(stateName, transitions)) =>
+        invoke(ev, stateName, mch)
+
+      _ =>
+        false
+    }
+  } else {
+    false
+  }
+
+  // send = sendWithPayload($, Nothing)
+  return Controller(initial, sendWithPayload)
+}
+// interpret :: c -> Machine pay c -> Either String (Controller a b)
+export interpret = (ctx, mch) => {
+  states = stateSet(mch)
+  return if (Set.length(states) == 0) {
+    Left("No states")
+  } else {
+    Right(initialControl(ctx, mch))
+  }
 }

@@ -3,6 +3,7 @@ import type { Maybe } from "Maybe"
 import type { Action } from "@/Action"
 import type { Event } from "@/Event"
 
+import IO from "IO"
 import List from "List"
 import { Just, Nothing, fromMaybe } from "Maybe"
 import String from "String"
@@ -16,7 +17,6 @@ import { log } from "@/Log"
 // b = context
 // a = event
 export type Guard pay ctx = Guard(Maybe ctx -> Event -> Maybe pay -> Boolean)
-
 // guard :: (b -> Event a -> Boolean) -> Guard a b
 // export guard = Guard
 
@@ -27,18 +27,14 @@ export alias TransitionModifier pay ctx = {
   guards :: List (Guard pay ctx),
   reducers :: List Boolean,
 }
-
 // event(origin) -> destination
 export type Transition pay ctx = Transition(Event, String, Maybe (TransitionModifier pay ctx))
-
 // TODO: deal with payloads in the future
 export withContext = (fromEventName, toDestination, mods) => pipe(
   Event.create,
   Transition($, toDestination, mods),
 )(fromEventName)
-
 export create = withContext($, $, Nothing)
-
 event :: Transition a b -> Event
 export event = where {
   Transition(e, _, _) =>
@@ -49,16 +45,11 @@ export target = where {
   Transition(_, d, _) =>
     d
 }
-
 modifiers :: Transition a b -> Maybe (TransitionModifier a b)
 export modifiers = where {
   Transition(_, _, m) =>
     m
 }
-import IO from "IO"
-
-
-
 checkGuard :: Event -> Maybe a -> Maybe b -> Transition a b -> Boolean
 export checkGuard = (ev, pay, ctx, tr) => pipe(
   modifiers,
