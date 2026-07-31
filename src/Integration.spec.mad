@@ -2,7 +2,7 @@ import IO from "IO"
 import { Just, Nothing } from "Maybe"
 import { assertEquals, test } from "Test"
 
-import { Action } from "@/Action"
+import { Action, ActionReducer } from "@/Action"
 import Event from "@/Event"
 import Interpreter from "@/Interpreter"
 import Machine from "@/Machine"
@@ -28,7 +28,7 @@ test(
   },
 )
 test(
-  "Data can be passed into the initial context",
+  "Context can be manipulated with action reducers",
   () => do {
     ONE = State.create(
       "one",
@@ -38,13 +38,11 @@ test(
           "one",
           Just({
             actions: [
-              Action(
+              ActionReducer(
                 (_, pay, con) => where(#[pay, con]) {
                   #[Just(payload), Just(ctx)] =>
                     do {
-                      IO.pTrace("HEYNONG", #[payload, ctx])
                       merged = { ...ctx, hooray: payload.hooray }
-                      IO.pTrace("BIZNESS", merged)
                       return Just(merged)
                     }
 
@@ -54,7 +52,6 @@ test(
               ),
             ],
             guards: [],
-            reducers: [],
           }),
         ),
       ],

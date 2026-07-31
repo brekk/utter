@@ -15,12 +15,9 @@ import Log from "@/Log"
 
 
 
-// we're defining these incompletely for now (as boolean lists),
-// but all of these fields should be more complex lists
 export alias TransitionModifier pay ctx = {
   actions :: List (Action pay ctx),
   guards :: List (Guard pay ctx),
-  reducers :: List Boolean,
 }
 // event(origin) -> destination
 export type Transition pay ctx = Transition(Event, String, Maybe (TransitionModifier pay ctx))
@@ -60,9 +57,7 @@ export guards = pipe(
 )
 checkGuard :: String -> Maybe a -> Maybe b -> Transition a b -> Boolean
 export checkGuard = (ev, pay, ctx, tr) => pipe(
-  modifiers,
-  map(.guards),
-  fromMaybe([]),
+  guards,
   List.reduce(
     (pass, g) => if (pass) {
       where(g) {

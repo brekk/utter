@@ -88,8 +88,6 @@ export context = where {
   _ =>
     Nothing
 }
-// FOR LATER REMEMBERING: STEP RETURNED A SINGLE VALUE AND IT WAS HELPFULLY OVERLOADED WITH PARTIAL PARAMS
-// NOW I NEED TO MANIPULATE CONTEXT AS I GO=
 machine :: Controller pay ctx -> Machine pay ctx
 export machine = where {
   InvalidController(_, mch) =>
@@ -161,30 +159,23 @@ processAllTransitions = (ev, payload, ctx, trx) => {
 }
 export applyActionsToContext = (ctx, current, ev, payload) => where(current) {
   Just(State.State(stateName, tr)) =>
-    pipe(
-      processAllTransitions(ev, payload, ctx),
-      Log.env.interpreter("---->"),
-    )(tr)
+    processAllTransitions(ev, payload, ctx, tr)
 
   _ =>
     Nothing
 }
+getFirstState = pipe(
+  Machine.states,
+  List.first,
+)
 // initialControl :: Show a => Maybe a -> Machine a b -> Controller a b
 export initialControl = (ctx, mch) => {
   ref = Machine.initialState(mch)
-  initial = Log
-    .env
-    .interpreter(
-      "default state!",
-      isJust(ref)
-        ? ref
-        : pipe(
-          Machine.states,
-          List.first,
-        )(mch),
-    )
 
-  return Controller(ctx, mch, initial, stepWithPayload(ctx, mch))
+  return pipe(
+    Log.env.interpreter("default state!"),
+    Controller(ctx, mch, $, stepWithPayload(ctx, mch)),
+  )(isJust(ref) ? ref : getFirstState(mch))
 }
 export noStates = pipe(
   Machine.stateSet,
@@ -202,7 +193,7 @@ export send = (ev, payload, ctrl) => where(ctrl) {
   Controller(ctx, mch, current, run) =>
     do {
       newContext = applyActionsToContext(ctx, current, ev, payload)
-      Log.env.interpreter("ACTION JONES", newContext)
+      Log.env.interpreter("actions applied", newContext)
       return Controller(
         newContext,
         mch,
