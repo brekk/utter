@@ -133,36 +133,36 @@ export stepWithPayload = (ctx, mch) => (current, ev, payload) => if (
 } else {
   Nothing
 }
-// _processTransition(List.append(Action.invoke(ev, ctx, payload, action), out), actions)
-processTransition = (curr, ev, payload, ctx, tr) => {
+processTransition = (ev, payload, ctx, tr) => {
   _processTransition = (out, input) => where(input) {
     [] =>
       out
 
     [action, ...actions] =>
       pipe(
-        Action.invoke(ev, ctx, payload),
+        Action.invoke(ev, out, payload),
         _processTransition($, actions),
       )(action)
   }
-  return _processTransition(curr, Transition.actions(tr))
+  return _processTransition(ctx, Transition.actions(tr))
 }
-processAllTransitions = (curr, ev, payload, ctx, trx) => {
-  proTrans = processTransition(curr, ev, payload, ctx)
+processAllTransitions = (ev, payload, ctx, trx) => {
   _processAllTransitions = (out, transitions) => where(transitions) {
     [] =>
       out
 
     [tr, ...trans] =>
-      _processAllTransitions(proTrans(tr), trans)
+      pipe(
+        processTransition(ev, payload, out),
+        _processAllTransitions($, trans),
+      )(tr)
   }
-  return _processAllTransitions(curr, trx)
+  return _processAllTransitions(ctx, trx)
 }
-export actionsForEvent = (ctx, current, ev, payload) => where(current) {
+export applyActionsToContext = (ctx, current, ev, payload) => where(current) {
   Just(State.State(stateName, tr)) =>
     pipe(
-      // processTransition(ev, payload, ctx),
-      processAllTransitions(Nothing, ev, payload, ctx),
+      processAllTransitions(ev, payload, ctx),
       Log.env.interpreter("---->"),
     )(tr)
 
@@ -201,13 +201,13 @@ send :: (Show ctx, Show pay) => String -> Maybe pay -> Controller pay ctx -> Con
 export send = (ev, payload, ctrl) => where(ctrl) {
   Controller(ctx, mch, current, run) =>
     do {
-      actionJones = actionsForEvent(ctx, current, ev, payload)
-      Log.env.interpreter("ACTION JONES", actionJones)
+      newContext = applyActionsToContext(ctx, current, ev, payload)
+      Log.env.interpreter("ACTION JONES", newContext)
       return Controller(
-        actionJones,
+        newContext,
         mch,
         run(current, ev, payload),
-        stepWithPayload(actionJones, mch),
+        stepWithPayload(newContext, mch),
       )
     }
 
