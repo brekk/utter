@@ -36,23 +36,21 @@ test(
         Transition.createWithContext(
           "again",
           "one",
-          Just({
-            actions: [
-              ActionReducer(
-                (_, pay, con) => where(#[pay, con]) {
-                  #[Just(payload), Just(ctx)] =>
-                    do {
-                      merged = { ...ctx, hooray: payload.hooray }
-                      return Just(merged)
-                    }
+          [
+            ActionReducer(
+              (_, pay, con) => where(#[pay, con]) {
+                #[Just(payload), Just(ctx)] =>
+                  do {
+                    merged = { ...ctx, hooray: payload.hooray }
+                    return Just(merged)
+                  }
 
-                  _ =>
-                    con
-                },
-              ),
-            ],
-            guards: [],
-          }),
+                _ =>
+                  con
+              },
+            ),
+          ],
+          [],
         ),
       ],
     )

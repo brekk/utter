@@ -36,12 +36,14 @@ SIMPLE_CONTRACTED = State.create(STATES.CONTRACTED, [Transition.create("click", 
 TRANSITION_TO_EXTENDED = Transition.createWithContext(
   "click",
   STATES.EXTENDED,
-  Just({ guards: [isClickUnderTen], actions: [] }),
+  [],
+  [isClickUnderTen],
 )
 TRANSITION_TO_CONTRACTED = Transition.createWithContext(
   "click",
   STATES.CONTRACTED,
-  Just({ guards: [isClickUnderTen], actions: [] }),
+  [],
+  [isClickUnderTen],
 )
 COMPLEX_EXTENDED = State.create(STATES.CONTRACTED, [TRANSITION_TO_EXTENDED])
 COMPLEX_CONTRACTED = State.create(STATES.EXTENDED, [TRANSITION_TO_CONTRACTED])

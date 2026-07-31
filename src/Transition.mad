@@ -15,46 +15,36 @@ import Log from "@/Log"
 
 
 
-export alias TransitionModifier pay ctx = {
-  actions :: List (Action pay ctx),
-  guards :: List (Guard pay ctx),
-}
 // event(origin) -> destination
-export type Transition pay ctx = Transition(Event, String, Maybe (TransitionModifier pay ctx))
+export type Transition pay ctx
+  = Transition(Event, String, List (Action pay ctx), List (Guard pay ctx))
 // TODO: deal with payloads in the future
 export createWithContext = (fromEventName, toDestination, mods) => pipe(
   Event.create,
   Transition($, toDestination, mods),
   Log.env.transition("created"),
 )(fromEventName)
-export create = createWithContext($, $, Nothing)
+export create = createWithContext($, $, [], [])
 event :: Transition a b -> String
 export event = where {
-  Transition(e, _, _) =>
+  Transition(e, _, _, _) =>
     e
 }
 target :: Transition a b -> String
 export target = where {
-  Transition(_, d, _) =>
+  Transition(_, d, _, _) =>
     d
 }
-modifiers :: Transition a b -> Maybe (TransitionModifier a b)
-export modifiers = where {
-  Transition(_, _, m) =>
+actions :: Transition a b -> List (Action a b)
+export actions = where {
+  Transition(_, _, m, _) =>
     m
 }
-actions :: Transition pay ctx -> List (Action pay ctx)
-export actions = pipe(
-  modifiers,
-  map(.actions),
-  fromMaybe([]),
-)
 guards :: Transition a b -> List (Guard a b)
-export guards = pipe(
-  modifiers,
-  map(.guards),
-  fromMaybe([]),
-)
+export guards = where {
+  Transition(_, _, _, g) =>
+    g
+}
 checkGuard :: String -> Maybe a -> Maybe b -> Transition a b -> Boolean
 export checkGuard = (ev, pay, ctx, tr) => pipe(
   guards,

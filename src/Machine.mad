@@ -68,7 +68,7 @@ export eventMap = where {
             #[
               stateName,
               pipe(
-                map(where { Transition.Transition(ev, dest, _) => #[ev, dest] }),
+                map(where { Transition.Transition(ev, dest, _, _) => #[ev, dest] }),
                 Dict.fromList,
               )(stateTransitions),
             ]

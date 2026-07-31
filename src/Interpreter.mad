@@ -26,7 +26,6 @@ import Transition from "@/Transition"
 
 
 
-K = Fn.always
 export alias Stateish pay ctx = Maybe (State pay ctx)
 export type Controller pay ctx
   = InvalidController(String, Machine pay ctx)
@@ -112,13 +111,13 @@ export shouldRun = (ctx, mch, ev, curr, pay) => where(curr) {
   _ =>
     false
 }
-stepWithPayload :: (Show ctx, Show pay) => Maybe ctx
+stepWithPayload :: (Eq ctx, Eq pay, Show ctx, Show pay) => Maybe ctx
   -> Machine pay ctx
   -> Stateish pay ctx
   -> String
   -> Maybe pay
   -> Stateish pay ctx
-export stepWithPayload = (ctx, mch) => (current, ev, payload) => if (
+export stepWithPayload = (ctx, mch, current, ev, payload) => if (
   shouldRun(ctx, mch, ev, current, payload)
 ) {
   where(current) {
@@ -182,13 +181,15 @@ export noStates = pipe(
   Set.length,
   Fn.equals(0),
 )
-// create :: (Eq ctx, Show ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
 export create = (ctx, mch) => Fn.ifElse(
   noStates,
   InvalidController("No states"),
   initialControl(ctx),
 )(mch)
-send :: (Show ctx, Show pay) => String -> Maybe pay -> Controller pay ctx -> Controller pay ctx
+send :: (Eq ctx, Eq pay, Show ctx, Show pay) => String
+  -> Maybe pay
+  -> Controller pay ctx
+  -> Controller pay ctx
 export send = (ev, payload, ctrl) => where(ctrl) {
   Controller(ctx, mch, current, run) =>
     do {
