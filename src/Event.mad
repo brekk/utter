@@ -3,20 +3,24 @@ import type { Maybe } from "Maybe"
 import { Nothing } from "Maybe"
 import String from "String"
 
+import Log from "@/Log"
+
 
 
 // export type EventKind = ImmediateEvent | UserEvent | AsyncEvent
 
-export type Event = NullEvent | Event(String)
-derive Comparable Event
+// export type Event = NullEvent | Event(String)
+export alias Event = String
+// derive Comparable Event
+export create = pipe(
+  Log.env.event("create"),
+)
 
-export create = Event
-
-name :: Event -> String
-export name = where {
-  Event(n) =>
-    n
-
-  NullEvent =>
-    "__NULLEVENT__"
-}
+// name :: Event -> String
+// export name = where {
+//   Event(n) =>
+//     n
+//
+//   NullEvent =>
+//     ""
+// }

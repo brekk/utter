@@ -3,7 +3,6 @@ import type { Maybe } from "Maybe"
 import type { Set } from "Set"
 
 import type { Secret } from "@/Closure"
-import type { Event } from "@/Event"
 import type { Machine } from "@/Machine"
 import type { State } from "@/State"
 import type { Transition } from "@/Transition"
@@ -16,9 +15,10 @@ import List from "List"
 import { Just, Nothing, fromMaybe, isJust } from "Maybe"
 import Set from "Set"
 
+import Action from "@/Action"
 import { closed } from "@/Closure"
 import Event from "@/Event"
-import { log } from "@/Log"
+import Log from "@/Log"
 import Machine from "@/Machine"
 import SideEffect from "@/SideEffect"
 import State from "@/State"
@@ -26,6 +26,21 @@ import Transition from "@/Transition"
 
 
 
+K = Fn.always
+export alias Stateish pay ctx = Maybe (State pay ctx)
+export type Controller pay ctx
+  = InvalidController(String, Machine pay ctx)
+  | Controller(
+    Maybe ctx,
+    Machine pay ctx,
+    Stateish pay ctx,
+    Stateish pay ctx -> String -> Maybe pay -> Stateish pay ctx,
+  )
+stateFromEvent :: Dictionary String (Dictionary String String)
+  -> List (State pay ctx)
+  -> String
+  -> String
+  -> Stateish pay ctx
 export stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
   Dict.get(stateName),
   chain(Dict.get(eventName)),
@@ -36,41 +51,36 @@ export stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
     ),
   ),
 )(eventMap)
-export checkTransitions = (trx, ev, ctx, payload) => List.reduce(
-  (pass, tr) => if (pass) {
-    Transition.checkGuard(ev, payload, ctx, tr)
-  } else {
+checkTransitions :: List (Transition pay ctx) -> Maybe String -> Maybe ctx -> Maybe pay -> Boolean
+export checkTransitions = (trx, maybeEv, ctx, payload) => where(maybeEv) {
+  Just(ev) =>
+    List.reduce(
+      (pass, tr) => if (pass) {
+        Transition.checkGuard(ev, payload, ctx, tr)
+      } else {
+        false
+      },
+      true,
+      trx,
+    )
+
+  _ =>
     false
-  },
-  true,
-  trx,
-)
-findEvent :: String -> List Event -> Event
+}
+findEvent :: String -> List String -> Maybe String
 export findEvent = (e, evs) => pipe(
-  List.find(
-    pipe(
-      Event.name,
-      Fn.equals(e),
-    ),
-  ),
-  fromMaybe(Event.NullEvent),
+  List.find(Fn.equals(e)),
 )(evs)
+step :: (Show pay, Show ctx) => String -> String -> Machine pay ctx -> Stateish pay ctx
 export step = (ev, stateName, mch) => if (Set.includes(ev, Machine.eventNames(mch))) {
   pipe(
     stateFromEvent(Machine.eventMap(mch), Machine.states(mch), stateName),
-    log.interpreter("Setting new state!"),
+    Log.env.interpreter("Setting new state!"),
   )(ev)
 } else {
   Nothing
 }
-export type Controller pay ctx
-  = InvalidController(String, Machine pay ctx)
-  | Controller(
-    Maybe ctx,
-    Machine pay ctx,
-    Maybe (State pay ctx),
-    Maybe (State pay ctx) -> String -> Maybe pay -> Maybe (State pay ctx),
-  )
+context :: Controller pay ctx -> Maybe ctx
 export context = where {
   Controller(ctx, _, _, _) =>
     ctx
@@ -78,6 +88,9 @@ export context = where {
   _ =>
     Nothing
 }
+// FOR LATER REMEMBERING: STEP RETURNED A SINGLE VALUE AND IT WAS HELPFULLY OVERLOADED WITH PARTIAL PARAMS
+// NOW I NEED TO MANIPULATE CONTEXT AS I GO=
+machine :: Controller pay ctx -> Machine pay ctx
 export machine = where {
   InvalidController(_, mch) =>
     mch
@@ -85,6 +98,7 @@ export machine = where {
   Controller(_, mch, _, _) =>
     mch
 }
+state :: Controller pay ctx -> Stateish pay ctx
 export state = where {
   Controller(_, _, st, _) =>
     st
@@ -92,7 +106,7 @@ export state = where {
   _ =>
     Nothing
 }
-shouldRun :: Maybe ctx -> Machine pay ctx -> String -> Maybe (State pay ctx) -> Maybe pay -> Boolean
+shouldRun :: Maybe ctx -> Machine pay ctx -> String -> Stateish pay ctx -> Maybe pay -> Boolean
 export shouldRun = (ctx, mch, ev, curr, pay) => where(curr) {
   Just(State.State(stateName, trx)) =>
     checkTransitions(trx, findEvent(ev, Set.toList(Machine.events(mch))), ctx, pay)
@@ -102,15 +116,15 @@ export shouldRun = (ctx, mch, ev, curr, pay) => where(curr) {
 }
 stepWithPayload :: (Show ctx, Show pay) => Maybe ctx
   -> Machine pay ctx
-  -> Maybe (State pay ctx)
+  -> Stateish pay ctx
   -> String
   -> Maybe pay
-  -> Maybe (State pay ctx)
-export stepWithPayload = (ctx, mch, current, ev, payload) => if (
+  -> Stateish pay ctx
+export stepWithPayload = (ctx, mch) => (current, ev, payload) => if (
   shouldRun(ctx, mch, ev, current, payload)
 ) {
   where(current) {
-    Just(State.State(stateName, transitions)) =>
+    Just(State.State(stateName, tr)) =>
       step(ev, stateName, mch)
 
     _ =>
@@ -119,18 +133,56 @@ export stepWithPayload = (ctx, mch, current, ev, payload) => if (
 } else {
   Nothing
 }
-initialControl :: Show a => Maybe a -> Machine a b -> Controller a b
+// _processTransition(List.append(Action.invoke(ev, ctx, payload, action), out), actions)
+processTransition = (curr, ev, payload, ctx, tr) => {
+  _processTransition = (out, input) => where(input) {
+    [] =>
+      out
+
+    [action, ...actions] =>
+      pipe(
+        Action.invoke(ev, ctx, payload),
+        _processTransition($, actions),
+      )(action)
+  }
+  return _processTransition(curr, Transition.actions(tr))
+}
+processAllTransitions = (curr, ev, payload, ctx, trx) => {
+  proTrans = processTransition(curr, ev, payload, ctx)
+  _processAllTransitions = (out, transitions) => where(transitions) {
+    [] =>
+      out
+
+    [tr, ...trans] =>
+      _processAllTransitions(proTrans(tr), trans)
+  }
+  return _processAllTransitions(curr, trx)
+}
+export actionsForEvent = (ctx, current, ev, payload) => where(current) {
+  Just(State.State(stateName, tr)) =>
+    pipe(
+      // processTransition(ev, payload, ctx),
+      processAllTransitions(Nothing, ev, payload, ctx),
+      Log.env.interpreter("---->"),
+    )(tr)
+
+  _ =>
+    Nothing
+}
+// initialControl :: Show a => Maybe a -> Machine a b -> Controller a b
 export initialControl = (ctx, mch) => {
   ref = Machine.initialState(mch)
-  initial = log.interpreter(
-    "default state!",
-    isJust(ref)
-      ? ref
-      : pipe(
-        Machine.states,
-        List.first,
-      )(mch),
-  )
+  initial = Log
+    .env
+    .interpreter(
+      "default state!",
+      isJust(ref)
+        ? ref
+        : pipe(
+          Machine.states,
+          List.first,
+        )(mch),
+    )
 
   return Controller(ctx, mch, initial, stepWithPayload(ctx, mch))
 }
@@ -139,24 +191,25 @@ export noStates = pipe(
   Set.length,
   Fn.equals(0),
 )
-create :: Show ctx => Maybe ctx -> Machine pay ctx -> Controller pay ctx
+// create :: (Eq ctx, Show ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
 export create = (ctx, mch) => Fn.ifElse(
   noStates,
   InvalidController("No states"),
   initialControl(ctx),
 )(mch)
-tick :: String -> Maybe pay -> Controller pay ctx -> Maybe (State pay ctx)
-export tick = (ev, payload, ctrl) => where(ctrl) {
-  Controller(ctx, mch, current, run) =>
-    run(current, ev, payload)
-
-  _ =>
-    Nothing
-}
 send :: (Show ctx, Show pay) => String -> Maybe pay -> Controller pay ctx -> Controller pay ctx
 export send = (ev, payload, ctrl) => where(ctrl) {
   Controller(ctx, mch, current, run) =>
-    Controller(ctx, mch, run(current, ev, payload), stepWithPayload(ctx, mch))
+    do {
+      actionJones = actionsForEvent(ctx, current, ev, payload)
+      Log.env.interpreter("ACTION JONES", actionJones)
+      return Controller(
+        actionJones,
+        mch,
+        run(current, ev, payload),
+        stepWithPayload(actionJones, mch),
+      )
+    }
 
   _ =>
     ctrl

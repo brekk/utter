@@ -9,22 +9,18 @@ import String from "String"
 // a = event payload
 // b = machine context
 export type State pay ctx = State(String, List (Transition pay ctx))
-
 export createFinal = State($, [])
 export create = State
-
 name :: State pay ctx -> String
 export name = where {
   State(n, _) =>
     n
 }
-
 transitions :: State pay ctx -> List (Transition pay ctx)
 export transitions = where {
   State(_, t) =>
     t
 }
-
 nameMatches :: String -> State pay ctx -> Boolean
 export nameMatches = (x, s) => pipe(
   name,

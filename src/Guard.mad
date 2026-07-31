@@ -1,0 +1,16 @@
+import type { Maybe } from "Maybe"
+
+import type { Event } from "@/Event"
+
+import Event from "@/Event"
+import Log from "@/Log"
+
+
+
+// b = context
+// a = event
+export type Guard pay ctx = Guard(Maybe ctx -> Event -> Maybe pay -> Boolean)
+export create = pipe(
+  Guard,
+  Log.env.guard("created"),
+)

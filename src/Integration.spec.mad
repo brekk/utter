@@ -1,0 +1,72 @@
+import IO from "IO"
+import { Just, Nothing } from "Maybe"
+import { assertEquals, test } from "Test"
+
+import { Action } from "@/Action"
+import Event from "@/Event"
+import Interpreter from "@/Interpreter"
+import Machine from "@/Machine"
+import State from "@/State"
+import Transition from "@/Transition"
+
+
+
+// modeled on
+// https://github.com/matthewp/robot/blob/main/packages/core/test/test-state.js
+test(
+  "Basic state change - no payload",
+  () => do {
+    ONE = State.create("one", [Transition.create("ping", "two")])
+    TWO = State.create("two", [Transition.create("pong", "one")])
+    machine = Machine.create("ping-pong", [ONE, TWO])
+    service = Interpreter.create(Nothing, machine)
+    _ <- assertEquals(Interpreter.state(service), Just(ONE))
+    service2 = Interpreter.send("ping", Nothing, service)
+    _ <- assertEquals(Interpreter.state(service2), Just(TWO))
+    service3 = Interpreter.send("pong", Nothing, service2)
+    return assertEquals(Interpreter.state(service3), Just(ONE))
+  },
+)
+test(
+  "Data can be passed into the initial context",
+  () => do {
+    ONE = State.create(
+      "one",
+      [
+        Transition.createWithContext(
+          "again",
+          "one",
+          Just({
+            actions: [
+              Action(
+                (_, pay, con) => where(#[pay, con]) {
+                  #[Just(payload), Just(ctx)] =>
+                    do {
+                      IO.pTrace("HEYNONG", #[payload, ctx])
+                      merged = { ...ctx, hooray: payload.hooray }
+                      IO.pTrace("BIZNESS", merged)
+                      return Just(merged)
+                    }
+
+                  _ =>
+                    con
+                },
+              ),
+            ],
+            guards: [],
+            reducers: [],
+          }),
+        ),
+      ],
+    )
+    machine = Machine.create("uno", [ONE])
+    DATA = { hooray: false }
+
+    service = Interpreter.create(Just(DATA), machine)
+
+    _ <- assertEquals(Interpreter.context(service), Just(DATA))
+    service2 = Interpreter.send("again", Just({ hooray: true }), service)
+    return assertEquals(Interpreter.context(service2), Just({ hooray: true }))
+    // return assertEquals(true, true)
+  },
+)

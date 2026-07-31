@@ -1,14 +1,9 @@
-import type { Event } from "@/Event"
-
-import { Event, NullEvent } from "@/Event"
+import type { Maybe } from "Maybe"
 
 
 
-export type Action ctx = Action(Event -> ctx -> ctx)
-
-export invoke = (ev, ctx, act) => where(act) {
+export type Action ctx pay = Action(String -> Maybe pay -> Maybe ctx -> Maybe ctx)
+export invoke = (ev, ctx, pay, act) => where(act) {
   Action(call) =>
-    call(ev, ctx)
+    call(ev, pay, ctx)
 }
-
-export noop = invoke(NullEvent)
