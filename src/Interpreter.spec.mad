@@ -1,19 +1,10 @@
-import { Left, Right, isLeft, isRight } from "Either"
 import { Just, Nothing } from "Maybe"
 import { assertEquals, test } from "Test"
 
 import { caseN2, caseN3, caseN4, report } from "Study"
 
-import { invoke } from "@/Action"
 import { Guard } from "@/Guard"
-import {
-  Controller,
-  checkTransitions,
-  // consumeMachine,
-  findEvent,
-  // interpret,
-  stateFromEvent,
-} from "@/Interpreter"
+import { checkTransitions, findEvent } from "@/Interpreter"
 import Machine from "@/Machine"
 import State from "@/State"
 import Transition from "@/Transition"
@@ -38,12 +29,14 @@ TRANSITION_TO_EXTENDED = Transition.createWithContext(
   STATES.EXTENDED,
   [],
   [isClickUnderTen],
+  [],
 )
 TRANSITION_TO_CONTRACTED = Transition.createWithContext(
   "click",
   STATES.CONTRACTED,
   [],
   [isClickUnderTen],
+  [],
 )
 COMPLEX_EXTENDED = State.create(STATES.CONTRACTED, [TRANSITION_TO_EXTENDED])
 COMPLEX_CONTRACTED = State.create(STATES.EXTENDED, [TRANSITION_TO_CONTRACTED])

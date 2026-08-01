@@ -2,13 +2,13 @@ import type { Maybe } from "Maybe"
 
 import type { Action } from "@/Action"
 import type { Guard } from "@/Guard"
+import type { ActionReducer } from "@/Reducer"
 
 import IO from "IO"
 import List from "List"
-import { Just, Nothing, fromMaybe } from "Maybe"
+// import { Just, Nothing, fromMaybe } from "Maybe"
 import String from "String"
 
-import { Action, invoke } from "@/Action"
 import Event from "@/Event"
 import { Guard } from "@/Guard"
 import Log from "@/Log"
@@ -17,33 +17,43 @@ import Log from "@/Log"
 
 // event(origin) -> destination
 export type Transition pay ctx
-  = Transition(Event, String, List (Action pay ctx), List (Guard pay ctx))
+  = Transition(
+    Event,
+    String,
+    List (Action pay ctx),
+    List (Guard pay ctx),
+    List (ActionReducer pay ctx),
+  )
+export create = Transition($, $, [], [], [])
 // TODO: deal with payloads in the future
-export createWithContext = (fromEventName, toDestination, mods) => pipe(
-  Event.create,
-  Transition($, toDestination, mods),
+export createWithContext = (fromEventName, toDestination, a, g, r) => pipe(
+  Transition($, toDestination, a, g, r),
   Log.env.transition("created"),
 )(fromEventName)
-export create = createWithContext($, $, [], [])
 event :: Transition a b -> String
 export event = where {
-  Transition(e, _, _, _) =>
+  Transition(e, _, _, _, _) =>
     e
 }
 target :: Transition a b -> String
 export target = where {
-  Transition(_, d, _, _) =>
+  Transition(_, d, _, _, _) =>
     d
 }
 actions :: Transition a b -> List (Action a b)
 export actions = where {
-  Transition(_, _, m, _) =>
+  Transition(_, _, m, _, _) =>
     m
 }
 guards :: Transition a b -> List (Guard a b)
 export guards = where {
-  Transition(_, _, _, g) =>
+  Transition(_, _, _, g, _) =>
     g
+}
+reducers :: Transition a b -> List (ActionReducer a b)
+export reducers = where {
+  Transition(_, _, _, _, r) =>
+    r
 }
 checkGuard :: String -> Maybe a -> Maybe b -> Transition a b -> Boolean
 export checkGuard = (ev, pay, ctx, tr) => pipe(
@@ -60,3 +70,8 @@ export checkGuard = (ev, pay, ctx, tr) => pipe(
     true,
   ),
 )(tr)
+toPair :: Transition a b -> #[a, b]
+export toPair = where {
+  Transition(a, b, _, _, _) =>
+    #[a, b]
+}

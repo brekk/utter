@@ -1,26 +1,19 @@
-import type { Either } from "Either"
 import type { Maybe } from "Maybe"
-import type { Set } from "Set"
 
-import type { Secret } from "@/Closure"
 import type { Machine } from "@/Machine"
 import type { State } from "@/State"
 import type { Transition } from "@/Transition"
 
 import Dict from "Dictionary"
-import { Left, Right } from "Either"
 import Fn from "Function"
-import IO from "IO"
 import List from "List"
 import { Just, Nothing, fromMaybe, isJust } from "Maybe"
 import Set from "Set"
 
 import Action from "@/Action"
-import { closed } from "@/Closure"
-import Event from "@/Event"
 import Log from "@/Log"
 import Machine from "@/Machine"
-import SideEffect from "@/SideEffect"
+import ActionReducer from "@/Reducer"
 import State from "@/State"
 import Transition from "@/Transition"
 
@@ -130,18 +123,33 @@ export stepWithPayload = (ctx, mch, current, ev, payload) => if (
 } else {
   Nothing
 }
-processTransition = (ev, payload, ctx, tr) => {
-  _processTransition = (out, input) => where(input) {
+processReducers :: String -> Maybe pay -> Maybe ctx -> Transition pay ctx -> Maybe ctx
+processReducers = (ev, payload, ctx, tr) => {
+  _processReducers = (out, input) => where(input) {
     [] =>
       out
 
     [action, ...actions] =>
       pipe(
-        Action.invoke(ev, out, payload),
-        _processTransition($, actions),
+        ActionReducer.reduce(ev, out, payload),
+        _processReducers($, actions),
       )(action)
   }
-  return _processTransition(ctx, Transition.actions(tr))
+  return _processReducers(ctx, Transition.reducers(tr))
+}
+processActions :: String -> Maybe pay -> Maybe ctx -> Transition pay ctx -> Maybe ctx
+processActions = (ev, payload, ctx, tr) => {
+  _processActions = (out, input) => where(input) {
+    [] =>
+      out
+
+    [action, ...actions] =>
+      do {
+        Action.invoke(ev, out, payload, action)
+        return _processActions($, actions)
+      }
+  }
+  return _processActions(ctx, Transition.actions(tr))
 }
 processAllTransitions = (ev, payload, ctx, trx) => {
   _processAllTransitions = (out, transitions) => where(transitions) {
@@ -150,7 +158,12 @@ processAllTransitions = (ev, payload, ctx, trx) => {
 
     [tr, ...trans] =>
       pipe(
-        processTransition(ev, payload, out),
+        (x) => do {
+          // actions get the current context but don't change it
+          processActions(ev, payload, out, x)
+          // reducers change it
+          return processReducers(ev, payload, out, x)
+        },
         _processAllTransitions($, trans),
       )(tr)
   }
@@ -167,7 +180,7 @@ getFirstState = pipe(
   Machine.states,
   List.first,
 )
-// initialControl :: Show a => Maybe a -> Machine a b -> Controller a b
+initialControl :: Show a => Maybe a -> Machine a b -> Controller a b
 export initialControl = (ctx, mch) => {
   ref = Machine.initialState(mch)
 
@@ -176,11 +189,13 @@ export initialControl = (ctx, mch) => {
     Controller(ctx, mch, $, stepWithPayload(ctx, mch)),
   )(isJust(ref) ? ref : getFirstState(mch))
 }
+noStates :: Machine a b -> Boolean
 export noStates = pipe(
   Machine.stateSet,
   Set.length,
   Fn.equals(0),
 )
+create :: Maybe ctx -> Machine ctx pay -> Controller ctx pay
 export create = (ctx, mch) => Fn.ifElse(
   noStates,
   InvalidController("No states"),

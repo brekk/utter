@@ -1,19 +1,10 @@
 import type { Maybe } from "Maybe"
 
-import { Nothing } from "Maybe"
 
 
-
-export type Action ctx pay
-  = Action(String -> Maybe pay -> Maybe ctx -> {})
-  | ActionReducer(String -> Maybe pay -> Maybe ctx -> Maybe ctx)
+export type Action ctx pay = Action(String -> Maybe pay -> Maybe ctx -> {})
+invoke :: String -> Maybe pay -> Maybe ctx -> Action ctx pay -> {}
 export invoke = (ev, ctx, pay, act) => where(act) {
   Action(call) =>
-    do {
-      call(ev, pay, ctx)
-      return Nothing
-    }
-
-  ActionReducer(call) =>
     call(ev, pay, ctx)
 }
