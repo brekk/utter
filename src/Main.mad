@@ -1,4 +1,4 @@
-import type { Guard } from "@/Transition"
+import type { Guard } from "@/Guard"
 
 import Date from "Date"
 import Dict from "Dictionary"
@@ -8,9 +8,9 @@ import List from "List"
 import { Just, Nothing, fromMaybe } from "Maybe"
 
 import Closure from "@/Closure"
-import { Event } from "@/Event"
+import Guard from "@/Guard"
 import Interpreter from "@/Interpreter"
-import { log } from "@/Log"
+import Log from "@/Log"
 import Machine from "@/Machine"
 import State from "@/State"
 import Transition from "@/Transition"
@@ -18,40 +18,24 @@ import Transition from "@/Transition"
 
 
 STATES = { CONTRACTED: "contracted", EXTENDED: "extended" }
-
 ping = (ix) => pipe(
   Interpreter.state,
   map(State.name),
   (v) => where(v) {
     Just(r) =>
-      log.mainPen(show(Date.now()), r)
+      Log.env.mainPen(show(Date.now()), r)
 
     _ =>
-      log.mainPen("invalid state", "check")
+      Log.env.mainPen("invalid state", "check")
   },
   (_) => ix,
 )(ix)
-
 // v.count < 10 &&
 main = () => {
-  isClick = Transition.Guard(
-    (ctx, ev, payload) => where(#[ctx, ev]) {
-      #[_, Event(name)] =>
-        name == "click"
-
-      _ =>
-        false
-    },
-  )
+  isClick = Guard.create((ev, _, _) => ev == "click")
   contracted = State.create(
     STATES.CONTRACTED,
-    [
-      Transition.withContext(
-        "click",
-        STATES.EXTENDED,
-        Just({ guards: [isClick], actions: [], reducers: [] }),
-      ),
-    ],
+    [Transition.createWithContext("click", STATES.EXTENDED, [], [isClick], [])],
   )
   extended = State.create(STATES.EXTENDED, [Transition.create("click", STATES.CONTRACTED)])
   // IO.pTrace("transitions", #[contracted, extended])

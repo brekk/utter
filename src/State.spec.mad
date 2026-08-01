@@ -13,7 +13,7 @@ report(
   "nameMatches",
   [#[#["hello", create("hello", [])], true], #[#["hello", create("goodbye", [])], false]],
 )
-ADD_TO_CART_SELF_EVENT = Transition.create("add-to-cart", "cart")
+ADD_TO_CART_SELF_EVENT = Transition.createBasic("add-to-cart", "cart")
 report(
   transitions,
   "transitions",

@@ -10,68 +10,80 @@ import List from "List"
 import String from "String"
 
 import Event from "@/Event"
-import { Guard } from "@/Guard"
+import Guard from "@/Guard"
 import Log from "@/Log"
 
 
 
-// event(origin) -> destination
-export type Transition pay ctx
-  = Transition(
-    Event,
-    String,
+export type Transition = Transition(String, String)
+export type CTransition pay ctx
+  = ComplexTransition(
+    Transition,
     List (Action pay ctx),
     List (Guard pay ctx),
     List (ActionReducer pay ctx),
   )
-export create = Transition($, $, [], [], [])
+export create = Transition
+export createComplex = (k, v, a, g, r) => ComplexTransition(create(k, v), a, g, r)
+export createBasic = createComplex($, $, [], [], [])
 // TODO: deal with payloads in the future
 export createWithContext = (fromEventName, toDestination, a, g, r) => pipe(
-  Transition($, toDestination, a, g, r),
+  createComplex($, toDestination, a, g, r),
   Log.env.transition("created"),
 )(fromEventName)
-event :: Transition a b -> String
+event :: Transition -> String
 export event = where {
-  Transition(e, _, _, _, _) =>
+  Transition(e, _) =>
     e
 }
-target :: Transition a b -> String
+target :: Transition -> String
 export target = where {
-  Transition(_, d, _, _, _) =>
+  Transition(_, d) =>
     d
 }
-actions :: Transition a b -> List (Action a b)
+transition :: CTransition pay ctx -> Transition
+export transition = where {
+  ComplexTransition(t, _, _, _) =>
+    t
+}
+focus :: CTransition pay ctx -> String
+export focus = pipe(
+  transition,
+  event,
+)
+actions :: CTransition pay ctx -> List (Action pay ctx)
 export actions = where {
-  Transition(_, _, m, _, _) =>
+  ComplexTransition(_, m, _, _) =>
     m
 }
-guards :: Transition a b -> List (Guard a b)
+guards :: CTransition pay ctx -> List (Guard pay ctx)
 export guards = where {
-  Transition(_, _, _, g, _) =>
+  ComplexTransition(_, _, g, _) =>
     g
 }
-reducers :: Transition a b -> List (ActionReducer a b)
+reducers :: CTransition pay ctx -> List (ActionReducer pay ctx)
 export reducers = where {
-  Transition(_, _, _, _, r) =>
+  ComplexTransition(_, _, _, r) =>
     r
 }
-checkGuard :: String -> Maybe a -> Maybe b -> Transition a b -> Boolean
+checkGuard :: String -> Maybe pay -> Maybe ctx -> CTransition pay ctx -> Boolean
 export checkGuard = (ev, pay, ctx, tr) => pipe(
   guards,
-  List.reduce(
-    (pass, g) => if (pass) {
-      where(g) {
-        Guard(engarde) =>
-          engarde(ctx, ev, pay)
-      }
-    } else {
-      false
-    },
-    true,
-  ),
+  List.reduce((passing, a) => passing && Guard.check(ev, ctx, pay, a), true),
 )(tr)
-toPair :: Transition a b -> #[a, b]
+checkMany :: String -> Maybe pay -> Maybe ctx -> List (CTransition pay ctx) -> Boolean
+export checkMany = (ev, pay, ctx, trx) => List.reduce(
+  (passing, a) => passing && checkGuard(ev, ctx, pay, a),
+  true,
+  trx,
+)
+toPair :: Transition -> #[String, String]
 export toPair = where {
-  Transition(a, b, _, _, _) =>
+  Transition(a, b) =>
     #[a, b]
 }
+toSimplePair :: CTransition pay ctx -> #[String, String]
+export toSimplePair = pipe(
+  transition,
+  toPair,
+)

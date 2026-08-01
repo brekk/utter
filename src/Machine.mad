@@ -4,6 +4,7 @@ import type { Set } from "Set"
 import type { State } from "@/State"
 
 import Dict from "Dictionary"
+import Fn from "Function"
 import List from "List"
 import Set from "Set"
 import String from "String"
@@ -11,6 +12,7 @@ import String from "String"
 import Event from "@/Event"
 import State from "@/State"
 import Transition from "@/Transition"
+import Tuple from "@/Tuple"
 
 
 
@@ -39,6 +41,11 @@ export states = pipe(
   map(State.name),
   Set.fromList,
 )
+hasState :: String -> Machine pay ctx -> Boolean
+export hasState = (x, mch) => pipe(
+  states,
+  Set.includes(x),
+)(mch)
 state :: Machine pay ctx -> Maybe (State pay ctx)
 export state = where {
   Machine(_, _, m) =>
@@ -50,27 +57,36 @@ export events = pipe(
   chain(
     pipe(
       State.transitions,
-      map(Transition.event),
+      map(Transition.focus),
     ),
   ),
   Set.fromList,
 )
+hasEvent :: String -> Machine pay ctx -> Boolean
+export hasEvent = (ev, mch) => pipe(
+  events,
+  Set.includes(ev),
+)(mch)
+getEvent :: String -> Machine pay ctx -> Maybe String
+export getEvent = (ev, mch) => pipe(
+  events,
+  Set.filter(Fn.equals(ev)),
+  Set.toList,
+  List.first,
+)(mch)
 eventMap :: Machine pay ctx -> Dictionary String (Dictionary String String)
-export eventMap = where {
-  Machine(_, sts, _) =>
+export eventMap = pipe(
+  rawStates,
+  map(
     pipe(
-      map(
-        where {
-          State.State(stateName, stateTransitions) =>
-            #[
-              stateName,
-              pipe(
-                map(Transition.toPair),
-                Dict.fromList,
-              )(stateTransitions),
-            ]
-        },
+      State.toPair,
+      Tuple.mapSnd(
+        pipe(
+          map(Transition.toSimplePair),
+          Dict.fromList,
+        ),
       ),
-      Dict.fromList,
-    )(sts)
-}
+    ),
+  ),
+  Dict.fromList,
+)

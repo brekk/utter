@@ -1,4 +1,4 @@
-import type { Transition } from "@/Transition"
+import type { CTransition } from "@/Transition"
 
 import Fn from "Function"
 import List from "List"
@@ -6,9 +6,7 @@ import String from "String"
 
 
 
-// a = event payload
-// b = machine context
-export type State pay ctx = State(String, List (Transition pay ctx))
+export type State pay ctx = State(String, List (CTransition pay ctx))
 export createFinal = State($, [])
 export create = State
 name :: State pay ctx -> String
@@ -16,7 +14,7 @@ export name = where {
   State(n, _) =>
     n
 }
-transitions :: State pay ctx -> List (Transition pay ctx)
+transitions :: State pay ctx -> List (CTransition pay ctx)
 export transitions = where {
   State(_, t) =>
     t
@@ -26,3 +24,8 @@ export nameMatches = (x, s) => pipe(
   name,
   Fn.equals(x),
 )(s)
+toPair :: State pay ctx -> #[string, List (CTransition pay ctx)]
+export toPair = where {
+  State(n, t) =>
+    #[n, t]
+}

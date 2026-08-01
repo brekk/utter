@@ -15,10 +15,10 @@ import Transition from "@/Transition"
 // modeled on
 // https://github.com/matthewp/robot/blob/main/packages/core/test/test-state.js
 test(
-  "Basic state change - no payload",
+  "Basic state change - no payload, no context",
   () => do {
-    ONE = State.create("one", [Transition.create("ping", "two")])
-    TWO = State.create("two", [Transition.create("pong", "one")])
+    ONE = State.create("one", [Transition.createBasic("ping", "two")])
+    TWO = State.create("two", [Transition.createBasic("pong", "one")])
     machine = Machine.create("ping-pong", [ONE, TWO])
     service = Interpreter.create(Nothing, machine)
     _ <- assertEquals(Interpreter.state(service), Just(ONE))
@@ -28,6 +28,22 @@ test(
     return assertEquals(Interpreter.state(service3), Just(ONE))
   },
 )
+/*
+test(
+  "Basic state change - no payload, with context",
+  () => do {
+    ONE = State.create("one", [Transition.create("ping", "two")])
+    TWO = State.create("two", [Transition.create("pong", "one")])
+    machine = Machine.create("ping-pong", [ONE, TWO])
+    service = Interpreter.create(Just({ complex: { info: "yes" } }), machine)
+    _ <- assertEquals(Interpreter.state(service), Just(ONE))
+    service2 = Interpreter.send("ping", Nothing, service)
+    _ <- assertEquals(Interpreter.state(service2), Just(TWO))
+    service3 = Interpreter.send("pong", Nothing, service2)
+    return assertEquals(Interpreter.state(service3), Just(ONE))
+  },
+)
+*/
 test(
   "Context can be manipulated with action reducers",
   () => do {
@@ -58,12 +74,11 @@ test(
     )
     machine = Machine.create("uno", [ONE])
     DATA = { hooray: false }
-    service = Interpreter.create(Nothing, machine)
+    service = Interpreter.create(Just(DATA), machine)
     IO.pTrace("><?>?>?", #[machine, DATA, service])
-    return assertEquals(true, true)
-    // _ <- assertEquals(Interpreter.context(service), Just(DATA))
-    // service2 = Interpreter.send("again", Just({ hooray: true }), service)
-    // return assertEquals(Interpreter.context(service2), Just({ hooray: true }))
+    _ <- assertEquals(Interpreter.context(service), Just(DATA))
+    service2 = Interpreter.send("again", Just({ hooray: true }), service)
+    return assertEquals(Interpreter.context(service2), Just({ hooray: true }))
     // return assertEquals(true, true)
   },
 )

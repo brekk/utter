@@ -2,7 +2,7 @@ import type { Maybe } from "Maybe"
 
 import type { Machine } from "@/Machine"
 import type { State } from "@/State"
-import type { Transition } from "@/Transition"
+import type { CTransition } from "@/Transition"
 
 import Dict from "Dictionary"
 import Fn from "Function"
@@ -43,26 +43,14 @@ export stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
     ),
   ),
 )(eventMap)
-checkTransitions :: List (Transition pay ctx) -> Maybe String -> Maybe ctx -> Maybe pay -> Boolean
-export checkTransitions = (trx, maybeEv, ctx, payload) => where(maybeEv) {
+checkTransitions :: List (CTransition pay ctx) -> Maybe String -> Maybe pay -> Maybe ctx -> Boolean
+export checkTransitions = (trx, maybeEv, payload, ctx) => where(maybeEv) {
   Just(ev) =>
-    List.reduce(
-      (pass, tr) => if (pass) {
-        Transition.checkGuard(ev, payload, ctx, tr)
-      } else {
-        false
-      },
-      true,
-      trx,
-    )
+    Transition.checkMany(ev, payload, ctx, trx)
 
   _ =>
     false
 }
-findEvent :: String -> List String -> Maybe String
-export findEvent = (e, evs) => pipe(
-  List.find(Fn.equals(e)),
-)(evs)
 step :: (Show pay, Show ctx) => String -> String -> Machine pay ctx -> Stateish pay ctx
 export step = (ev, stateName, mch) => if (Set.includes(ev, Machine.events(mch))) {
   pipe(
@@ -96,80 +84,49 @@ export state = where {
   _ =>
     Nothing
 }
-shouldRun :: Maybe ctx -> Machine pay ctx -> String -> Stateish pay ctx -> Maybe pay -> Boolean
-export shouldRun = (ctx, mch, ev, curr, pay) => where(curr) {
+export stepWithPayload = (ctx, mch, current, ev, payload) => where(current) {
   Just(State.State(stateName, trx)) =>
-    checkTransitions(trx, findEvent(ev, Set.toList(Machine.events(mch))), ctx, pay)
+    if (
+      pipe(
+        Log.env.interpreter("checking transitions for payload"),
+        checkTransitions(trx, Machine.getEvent(ev, mch), payload),
+      )(ctx)
+    ) {
+      step(ev, stateName, mch)
+    } else {
+      Nothing
+    }
 
   _ =>
-    false
+    Nothing
 }
-stepWithPayload :: (Eq ctx, Eq pay, Show ctx, Show pay) => Maybe ctx
-  -> Machine pay ctx
-  -> Stateish pay ctx
-  -> String
-  -> Maybe pay
-  -> Stateish pay ctx
-export stepWithPayload = (ctx, mch, current, ev, payload) => if (
-  shouldRun(ctx, mch, ev, current, payload)
-) {
-  where(current) {
-    Just(State.State(stateName, tr)) =>
-      step(ev, stateName, mch)
-
-    _ =>
-      Nothing
-  }
-} else {
-  Nothing
-}
-processReducers :: String -> Maybe pay -> Maybe ctx -> Transition pay ctx -> Maybe ctx
-processReducers = (ev, payload, ctx, tr) => {
-  _processReducers = (out, input) => where(input) {
-    [] =>
-      out
-
-    [action, ...actions] =>
-      pipe(
-        ActionReducer.reduce(ev, out, payload),
-        _processReducers($, actions),
-      )(action)
-  }
-  return _processReducers(ctx, Transition.reducers(tr))
-}
-processActions :: String -> Maybe pay -> Maybe ctx -> Transition pay ctx -> Maybe ctx
-processActions = (ev, payload, ctx, tr) => {
-  _processActions = (out, input) => where(input) {
-    [] =>
-      out
-
-    [action, ...actions] =>
-      do {
-        Action.invoke(ev, out, payload, action)
-        return _processActions($, actions)
-      }
-  }
-  return _processActions(ctx, Transition.actions(tr))
-}
-processAllTransitions = (ev, payload, ctx, trx) => {
-  _processAllTransitions = (out, transitions) => where(transitions) {
-    [] =>
-      out
-
-    [tr, ...trans] =>
-      pipe(
-        (x) => do {
-          // actions get the current context but don't change it
-          processActions(ev, payload, out, x)
-          // reducers change it
-          return processReducers(ev, payload, out, x)
-        },
-        _processAllTransitions($, trans),
-      )(tr)
-  }
-  return _processAllTransitions(ctx, trx)
-}
-export applyActionsToContext = (ctx, current, ev, payload) => where(current) {
+processReducers :: String -> Maybe pay -> Maybe ctx -> CTransition pay ctx -> Maybe ctx
+processReducers = (ev, payload, ctx, tr) => pipe(
+  Transition.reducers,
+  List.reduce(ActionReducer.reduce(ev, payload), ctx),
+)(tr)
+processActions :: String -> Maybe pay -> Maybe ctx -> CTransition pay ctx -> Maybe ctx
+processActions = (ev, payload, ctx, tr) => pipe(
+  Transition.actions,
+  List.reduce(
+    (_ctx, action) => do {
+      Action.invoke(ev, payload, ctx, action)
+      return _ctx
+    },
+    ctx,
+  ),
+)(tr)
+processAllTransitions = (ev, payload, _ctx, trx) => List.reduce(
+  (ctx, tr) => {
+    // actions get the current context but don't change it
+    processActions(ev, payload, ctx, tr)
+    // reducers change it
+    return processReducers(ev, payload, ctx, tr)
+  },
+  _ctx,
+  trx,
+)
+export applyActionsToContext = (payload, ctx, ev, current) => where(current) {
   Just(State.State(stateName, tr)) =>
     processAllTransitions(ev, payload, ctx, tr)
 
@@ -180,26 +137,24 @@ getFirstState = pipe(
   Machine.rawStates,
   List.first,
 )
-initialControl :: (Eq a, Show a) => Maybe a -> Machine a b -> Controller a b
+initialControl :: (Eq ctx, Show ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
 export initialControl = (ctx, mch) => {
   ref = Machine.state(mch)
 
   return pipe(
-    Log.env.interpreter("default state!"),
+    // Log.env.interpreter("default state!"),
     Controller(ctx, mch, $, stepWithPayload(ctx, mch)),
   )(isJust(ref) ? ref : getFirstState(mch))
 }
-noStates :: Machine a b -> Boolean
+noStates :: Machine pay ctx -> Boolean
 export noStates = pipe(
   Machine.states,
   Set.length,
   Fn.equals(0),
 )
-create :: (Show ctx, Eq ctx) => Maybe ctx -> Machine ctx pay -> Controller ctx pay
-export create = (ctx, mch) => Fn.ifElse(
-  noStates,
-  InvalidController("No states"),
-  initialControl(ctx),
+// create :: (Show ctx, Eq ctx) => Maybe ctx -> Machine ctx pay -> Controller ctx pay
+export create = (ctx, mch) => pipe(
+  Fn.ifElse(noStates, InvalidController("No states"), initialControl(ctx)),
 )(mch)
 send :: (Eq ctx, Eq pay, Show ctx, Show pay) => String
   -> Maybe pay
@@ -208,7 +163,7 @@ send :: (Eq ctx, Eq pay, Show ctx, Show pay) => String
 export send = (ev, payload, ctrl) => where(ctrl) {
   Controller(ctx, mch, current, run) =>
     do {
-      newContext = applyActionsToContext(ctx, current, ev, payload)
+      newContext = applyActionsToContext(payload, ctx, ev, current)
       return Controller(
         newContext,
         mch,

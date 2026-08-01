@@ -15,6 +15,7 @@ export tags = {
   transition: Party.tagWithScope("utter", ["transition"]),
   interpreter: Party.tagWithScope("utter", ["interpreter"]),
   main: Party.tagWithScope("utter", ["main"]),
+  mainPen: Party.tagWithScope("utter", ["main", "pen"]),
 }
 export env = {
   utter: Party.env(tags.utter),
@@ -25,6 +26,7 @@ export env = {
   transition: Party.env(tags.transition),
   interpreter: Party.env(tags.interpreter),
   main: Party.env(tags.main),
+  mainPen: Party.env(tags.mainPen),
 }
 export tapped = {
   utter: Party.tap(env.utter),
@@ -35,4 +37,5 @@ export tapped = {
   transition: Party.tap(env.transition),
   interpreter: Party.tap(env.interpreter),
   main: Party.tap(env.main),
+  mainPen: Party.tap(env.mainPen),
 }

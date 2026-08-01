@@ -1,0 +1,10 @@
+mapFst :: (a -> b) -> #[a, c] -> #[b, c]
+export mapFst = (fn, t) => where(t) {
+  #[a, b] =>
+    #[fn(a), b]
+}
+mapSnd :: (a -> b) -> #[c, a] -> #[c, b]
+export mapSnd = (fn, t) => where(t) {
+  #[a, b] =>
+    #[a, fn(b)]
+}
