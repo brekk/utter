@@ -21,31 +21,32 @@ export type Machine pay ctx = Machine(String, List (State pay ctx), Maybe (State
 //   ↳ state: "contracted"
 //       ↳ event: "click" → "extended"
 
+create :: String -> List (State pay ctx) -> Machine pay ctx
 export create = (s, x) => Machine(s, x, List.first(x))
 name :: Machine pay ctx -> String
 export name = where {
   Machine(n, _, _) =>
     n
 }
-states :: Machine pay ctx -> List (State pay ctx)
-export states = where {
+rawStates :: Machine pay ctx -> List (State pay ctx)
+export rawStates = where {
   Machine(_, sts, _) =>
     sts
 }
-stateSet :: Machine pay ctx -> Set String
-export stateSet = pipe(
-  states,
+states :: Machine pay ctx -> Set String
+export states = pipe(
+  rawStates,
   map(State.name),
   Set.fromList,
 )
-initialState :: Machine pay ctx -> Maybe (State pay ctx)
-export initialState = where {
+state :: Machine pay ctx -> Maybe (State pay ctx)
+export state = where {
   Machine(_, _, m) =>
     m
 }
 events :: Machine pay ctx -> Set Event
 export events = pipe(
-  states,
+  rawStates,
   chain(
     pipe(
       State.transitions,
@@ -53,10 +54,6 @@ export events = pipe(
     ),
   ),
   Set.fromList,
-)
-eventNames :: Machine pay ctx -> Set String
-export eventNames = pipe(
-  events,
 )
 eventMap :: Machine pay ctx -> Dictionary String (Dictionary String String)
 export eventMap = where {

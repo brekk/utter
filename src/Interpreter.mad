@@ -64,9 +64,9 @@ export findEvent = (e, evs) => pipe(
   List.find(Fn.equals(e)),
 )(evs)
 step :: (Show pay, Show ctx) => String -> String -> Machine pay ctx -> Stateish pay ctx
-export step = (ev, stateName, mch) => if (Set.includes(ev, Machine.eventNames(mch))) {
+export step = (ev, stateName, mch) => if (Set.includes(ev, Machine.events(mch))) {
   pipe(
-    stateFromEvent(Machine.eventMap(mch), Machine.states(mch), stateName),
+    stateFromEvent(Machine.eventMap(mch), Machine.rawStates(mch), stateName),
     Log.env.interpreter("Setting new state!"),
   )(ev)
 } else {
@@ -177,12 +177,12 @@ export applyActionsToContext = (ctx, current, ev, payload) => where(current) {
     Nothing
 }
 getFirstState = pipe(
-  Machine.states,
+  Machine.rawStates,
   List.first,
 )
-initialControl :: Show a => Maybe a -> Machine a b -> Controller a b
+initialControl :: (Eq a, Show a) => Maybe a -> Machine a b -> Controller a b
 export initialControl = (ctx, mch) => {
-  ref = Machine.initialState(mch)
+  ref = Machine.state(mch)
 
   return pipe(
     Log.env.interpreter("default state!"),
@@ -191,11 +191,11 @@ export initialControl = (ctx, mch) => {
 }
 noStates :: Machine a b -> Boolean
 export noStates = pipe(
-  Machine.stateSet,
+  Machine.states,
   Set.length,
   Fn.equals(0),
 )
-create :: Maybe ctx -> Machine ctx pay -> Controller ctx pay
+create :: (Show ctx, Eq ctx) => Maybe ctx -> Machine ctx pay -> Controller ctx pay
 export create = (ctx, mch) => Fn.ifElse(
   noStates,
   InvalidController("No states"),
@@ -209,7 +209,6 @@ export send = (ev, payload, ctrl) => where(ctrl) {
   Controller(ctx, mch, current, run) =>
     do {
       newContext = applyActionsToContext(ctx, current, ev, payload)
-      Log.env.interpreter("actions applied", newContext)
       return Controller(
         newContext,
         mch,
