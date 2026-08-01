@@ -57,7 +57,7 @@ export events = pipe(
   chain(
     pipe(
       State.transitions,
-      map(Transition.focus),
+      map(Transition.name),
     ),
   ),
   Set.fromList,

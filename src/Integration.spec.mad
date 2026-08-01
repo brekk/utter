@@ -28,12 +28,11 @@ test(
     return assertEquals(Interpreter.state(service3), Just(ONE))
   },
 )
-/*
 test(
   "Basic state change - no payload, with context",
   () => do {
-    ONE = State.create("one", [Transition.create("ping", "two")])
-    TWO = State.create("two", [Transition.create("pong", "one")])
+    ONE = State.create("one", [Transition.createBasic("ping", "two")])
+    TWO = State.create("two", [Transition.createBasic("pong", "one")])
     machine = Machine.create("ping-pong", [ONE, TWO])
     service = Interpreter.create(Just({ complex: { info: "yes" } }), machine)
     _ <- assertEquals(Interpreter.state(service), Just(ONE))
@@ -43,7 +42,6 @@ test(
     return assertEquals(Interpreter.state(service3), Just(ONE))
   },
 )
-*/
 test(
   "Context can be manipulated with action reducers",
   () => do {

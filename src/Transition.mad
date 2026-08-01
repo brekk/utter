@@ -15,7 +15,9 @@ import Log from "@/Log"
 
 
 
+// we had to segment these types
 export type Transition = Transition(String, String)
+// because previously the payload and context were being conflated with the event and target types somehow
 export type CTransition pay ctx
   = ComplexTransition(
     Transition,
@@ -46,10 +48,15 @@ export transition = where {
   ComplexTransition(t, _, _, _) =>
     t
 }
+name :: CTransition pay ctx -> String
+export name = pipe(
+  transition,
+  event,
+)
 focus :: CTransition pay ctx -> String
 export focus = pipe(
   transition,
-  event,
+  target,
 )
 actions :: CTransition pay ctx -> List (Action pay ctx)
 export actions = where {
