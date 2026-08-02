@@ -1,0 +1,92 @@
+import Dict from "Dictionary"
+import { Just, Nothing } from "Maybe"
+import Set from "Set"
+
+import Study from "Study"
+
+import Machine from "@/Machine"
+import State from "@/State"
+import Transition from "@/Transition"
+
+
+
+THE_NOTHING_MACHINE = Machine.Machine("id", [], Nothing)
+SELF_CENTERED = Transition.ComplexTransition(Transition.Transition("again", "only"), [], [], [])
+SOLO_DOLO = State.State("only", [SELF_CENTERED])
+THE_LOOPER = Machine.Machine("loop", [SOLO_DOLO], Just(SOLO_DOLO))
+WAKE_UP_SHEEPLE = Transition.ComplexTransition(
+  Transition.Transition("wake up", "ragin"),
+  [],
+  [],
+  [],
+)
+NOT_996_THO = Transition.ComplexTransition(
+  Transition.Transition("long day is tiring though", "sleepin"),
+  [],
+  [],
+  [],
+)
+SLEEPIN = State.State("sleepin", [WAKE_UP_SHEEPLE])
+RAGIN = State.State("ragin", [NOT_996_THO])
+// starts RAGIN!
+THE_SLEEPER = Machine.Machine("circadian", [SLEEPIN, RAGIN], Just(RAGIN))
+Study.report(
+  Study.caseN2(Machine.create),
+  "Machine.create",
+  [
+    #[#["id", []], THE_NOTHING_MACHINE],
+    #[#["loop", [State.create("only", [Transition.createBasic("again", "only")])]], THE_LOOPER],
+  ],
+)
+Study.report(
+  Machine.name,
+  "Machine.name",
+  [#[THE_NOTHING_MACHINE, "id"], #[THE_LOOPER, "loop"], #[THE_SLEEPER, "circadian"]],
+)
+Study.report(
+  Machine.rawStates,
+  "Machine.rawStates",
+  [#[THE_NOTHING_MACHINE, []], #[THE_LOOPER, [SOLO_DOLO]], #[THE_SLEEPER, [SLEEPIN, RAGIN]]],
+)
+Study.report(
+  Study.caseN2(Machine.hasState),
+  "Machine.hasState",
+  [
+    #[#["anything", THE_NOTHING_MACHINE], false],
+    #[#["only", THE_LOOPER], true],
+    #[#["loop", THE_LOOPER], false],
+    #[#["ragin", THE_SLEEPER], true],
+    #[#["slingslangin", THE_SLEEPER], false],
+  ],
+)
+Study.report(
+  Machine.state,
+  "Machine.state",
+  [#[THE_NOTHING_MACHINE, Nothing], #[THE_LOOPER, Just(SOLO_DOLO)], #[THE_SLEEPER, Just(RAGIN)]],
+)
+Study.report(
+  Study.caseN2(Machine.hasEvent),
+  "Machine.hasEvent",
+  [
+    #[#["anything", THE_NOTHING_MACHINE], false],
+    #[#["only", THE_LOOPER], false],
+    #[#["again", THE_LOOPER], true],
+    #[#["wake up", THE_SLEEPER], true],
+    #[#["circadian", THE_SLEEPER], false],
+  ],
+)
+Study.report(
+  Machine.eventMap,
+  "Machine.eventMap",
+  [
+    #[THE_NOTHING_MACHINE, Dict.empty],
+    #[THE_LOOPER, {{ "only": {{ "again": "only" }} }}],
+    #[
+      THE_SLEEPER,
+      {{
+        "ragin": {{ "long day is tiring though": "sleepin" }},
+        "sleepin": {{ "wake up": "ragin" }},
+      }},
+    ],
+  ],
+)

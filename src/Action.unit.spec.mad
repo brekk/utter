@@ -1,0 +1,36 @@
+import { Just, Nothing } from "Maybe"
+import { assertEquals } from "Test"
+
+import Study from "Study"
+
+import Action from "@/Action"
+
+
+
+Study.report(
+  Study.caseN4(Action.invoke),
+  "actions can be invoked",
+  [
+    #[
+      #[
+        "one",
+        Just("two"),
+        Just("three"),
+        Action.Action(
+          (a, b, c) => where(#[b, c]) {
+            #[Just(_b), Just(_c)] =>
+              do {
+                assertEquals(#[a, _b, _c], #["one", "two", "three"])
+              }
+
+            _ =>
+              do {
+                assertEquals(false, true)
+              }
+          },
+        ),
+      ],
+      {},
+    ],
+  ],
+)

@@ -1,0 +1,17 @@
+import Dict from "Dictionary"
+import { Just, Nothing } from "Maybe"
+import Set from "Set"
+
+import Study from "Study"
+
+import Machine from "@/Machine"
+import State from "@/State"
+import Transition from "@/Transition"
+
+
+
+Study.report(
+  Transition.createWithContext($, "b", [], [], []),
+  "createWithContext",
+  [#["a", Transition.ComplexTransition(Transition.Transition("a", "b"), [], [], [])]],
+)

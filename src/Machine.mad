@@ -9,7 +9,6 @@ import List from "List"
 import Set from "Set"
 import String from "String"
 
-import Event from "@/Event"
 import State from "@/State"
 import Transition from "@/Transition"
 import Tuple from "@/Tuple"
@@ -51,7 +50,7 @@ export state = where {
   Machine(_, _, m) =>
     m
 }
-events :: Machine pay ctx -> Set Event
+events :: Machine pay ctx -> Set String
 export events = pipe(
   rawStates,
   chain(
