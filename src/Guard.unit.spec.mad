@@ -1,0 +1,13 @@
+import { Just, Nothing } from "Maybe"
+
+import Study from "Study"
+
+import Guard from "@/Guard"
+
+
+
+Study.report(
+  Study.caseN3(Guard.check("roar")),
+  "Guard.check",
+  [#[#[Nothing, Nothing, Guard.create((_, _, _) => false)], false]],
+)

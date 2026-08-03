@@ -7,7 +7,7 @@ import type { CTransition } from "@/Transition"
 import Dict from "Dictionary"
 import Fn from "Function"
 import List from "List"
-import { Just, Nothing, fromMaybe, isJust } from "Maybe"
+import { Just, Nothing, isJust } from "Maybe"
 import Set from "Set"
 
 import Action from "@/Action"
@@ -26,7 +26,7 @@ export type Controller pay ctx
     Maybe ctx,
     Machine pay ctx,
     Stateish pay ctx,
-    Stateish pay ctx -> String -> Maybe pay -> Stateish pay ctx,
+    Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Maybe pay -> Stateish pay ctx,
   )
 stateFromEvent :: Dictionary String (Dictionary String String)
   -> List (State pay ctx)
@@ -43,19 +43,10 @@ export stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
     ),
   ),
 )(eventMap)
-checkTransitions :: List (CTransition pay ctx) -> Maybe String -> Maybe pay -> Maybe ctx -> Boolean
-export checkTransitions = (trx, maybeEv, payload, ctx) => where(maybeEv) {
-  Just(ev) =>
-    Transition.checkMany(ev, payload, ctx, trx)
-
-  _ =>
-    false
-}
 step :: (Show pay, Show ctx) => String -> String -> Machine pay ctx -> Stateish pay ctx
-export step = (ev, stateName, mch) => if (Set.includes(ev, Machine.events(mch))) {
+export step = (ev, stateName, mch) => if (Machine.hasEvent(ev, mch)) {
   pipe(
     stateFromEvent(Machine.eventMap(mch), Machine.rawStates(mch), stateName),
-    Log.env.interpreter("Setting new state!"),
   )(ev)
 } else {
   Nothing
@@ -84,17 +75,41 @@ export state = where {
   _ =>
     Nothing
 }
+setContext :: Maybe ctx -> Controller pay ctx -> Controller pay ctx
+export setContext = (cty, ctrl) => where(ctrl) {
+  Controller(_, a, b, c) =>
+    Controller(cty, a, b, c)
+
+  _ =>
+    ctrl
+}
+setMachine :: Machine pay ctx -> Controller pay ctx -> Controller pay ctx
+export setMachine = (mch, ctrl) => where(ctrl) {
+  Controller(a, _, b, c) =>
+    Controller(a, mch, b, c)
+
+  _ =>
+    ctrl
+}
+setState :: Stateish pay ctx -> Controller pay ctx -> Controller pay ctx
+export setState = (st, ctrl) => where(ctrl) {
+  Controller(a, b, _, c) =>
+    Controller(a, b, st, c)
+
+  _ =>
+    ctrl
+}
 export stepWithPayload = (ctx, mch, current, ev, payload) => where(current) {
   Just(State.State(stateName, trx)) =>
     if (
       pipe(
         Log.env.interpreter("checking transitions for payload"),
-        checkTransitions(trx, Machine.getEvent(ev, mch), payload),
+        Transition.checkMany(ev, payload, $, trx),
       )(ctx)
     ) {
-      step(ev, stateName, mch)
+      Log.env.interpreter("running processing step", step(ev, stateName, mch))
     } else {
-      Nothing
+      Log.env.interpreter("check failed!", current)
     }
 
   _ =>
@@ -117,11 +132,18 @@ processActions = (ev, payload, ctx, tr) => pipe(
   ),
 )(tr)
 processAllTransitions = (ev, payload, _ctx, trx) => List.reduce(
-  (ctx, tr) => {
+  (ctx, tr) => if (Transition.checkMany(ev, payload, ctx, trx)) do {
     // actions get the current context but don't change it
     processActions(ev, payload, ctx, tr)
     // reducers change it
-    return processReducers(ev, payload, ctx, tr)
+
+    return pipe(
+      Log.env.interpreter("pre-processor"),
+      processReducers(ev, payload, ctx),
+      Log.env.interpreter("post-processor"),
+    )(tr)
+  } else {
+    ctx
   },
   _ctx,
   trx,
@@ -142,8 +164,7 @@ export initialControl = (ctx, mch) => {
   ref = Machine.state(mch)
 
   return pipe(
-    // Log.env.interpreter("default state!"),
-    Controller(ctx, mch, $, stepWithPayload(ctx, mch)),
+    Controller(ctx, mch, $, stepWithPayload),
   )(isJust(ref) ? ref : getFirstState(mch))
 }
 noStates :: Machine pay ctx -> Boolean
@@ -152,7 +173,7 @@ export noStates = pipe(
   Set.length,
   Fn.equals(0),
 )
-// create :: (Show ctx, Eq ctx) => Maybe ctx -> Machine ctx pay -> Controller ctx pay
+create :: (Show ctx, Eq ctx) => Maybe ctx -> Machine ctx pay -> Controller ctx pay
 export create = (ctx, mch) => pipe(
   Fn.ifElse(noStates, InvalidController("No states"), initialControl(ctx)),
 )(mch)
@@ -164,12 +185,8 @@ export send = (ev, payload, ctrl) => where(ctrl) {
   Controller(ctx, mch, current, run) =>
     do {
       newContext = applyActionsToContext(payload, ctx, ev, current)
-      return Controller(
-        newContext,
-        mch,
-        run(current, ev, payload),
-        stepWithPayload(newContext, mch),
-      )
+      newStateIsh = run(ctx, mch, current, ev, payload)
+      return Controller(newContext, mch, newStateIsh, run)
     }
 
   _ =>

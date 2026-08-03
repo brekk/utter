@@ -15,3 +15,6 @@ Study.report(
   "createWithContext",
   [#["a", Transition.ComplexTransition(Transition.Transition("a", "b"), [], [], [])]],
 )
+THAT_ONE_NOISE = Transition.create("connect", "modem")
+Study.report(Transition.target, "target", [#[THAT_ONE_NOISE, "modem"]])
+Study.report(Transition.focus, "focus", [#[Transition.makeComplex(THAT_ONE_NOISE), "modem"]])

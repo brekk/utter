@@ -10,6 +10,7 @@ import Transition from "@/Transition"
 
 
 
+// wild stateful delights
 THE_NOTHING_MACHINE = Machine.Machine("id", [], Nothing)
 SELF_CENTERED = Transition.ComplexTransition(Transition.Transition("again", "only"), [], [], [])
 SOLO_DOLO = State.State("only", [SELF_CENTERED])
@@ -28,7 +29,7 @@ NOT_996_THO = Transition.ComplexTransition(
 )
 SLEEPIN = State.State("sleepin", [WAKE_UP_SHEEPLE])
 RAGIN = State.State("ragin", [NOT_996_THO])
-// starts RAGIN!
+// starts out RAGIN!
 THE_SLEEPER = Machine.Machine("circadian", [SLEEPIN, RAGIN], Just(RAGIN))
 Study.report(
   Study.caseN2(Machine.create),

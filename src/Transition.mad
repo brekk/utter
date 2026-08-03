@@ -9,7 +9,6 @@ import List from "List"
 // import { Just, Nothing, fromMaybe } from "Maybe"
 import String from "String"
 
-import Event from "@/Event"
 import Guard from "@/Guard"
 import Log from "@/Log"
 
@@ -27,8 +26,9 @@ export type CTransition pay ctx
   )
 export create = Transition
 export createComplex = (k, v, a, g, r) => ComplexTransition(create(k, v), a, g, r)
+export makeComplex = ComplexTransition($, [], [], [])
+// useful in testing, mostly shouldn't be used for realsies
 export createBasic = createComplex($, $, [], [], [])
-// TODO: deal with payloads in the future
 export createWithContext = (fromEventName, toDestination, a, g, r) => pipe(
   createComplex($, toDestination, a, g, r),
   Log.env.transition("created"),

@@ -16,12 +16,6 @@ import Tuple from "@/Tuple"
 
 
 export type Machine pay ctx = Machine(String, List (State pay ctx), Maybe (State pay ctx))
-// machine: "pen"
-//   ↳ state: "extended"
-//       ↳ event: "click" → "contracted"
-//   ↳ state: "contracted"
-//       ↳ event: "click" → "extended"
-
 create :: String -> List (State pay ctx) -> Machine pay ctx
 export create = (s, x) => Machine(s, x, List.first(x))
 name :: Machine pay ctx -> String
@@ -65,13 +59,6 @@ hasEvent :: String -> Machine pay ctx -> Boolean
 export hasEvent = (ev, mch) => pipe(
   events,
   Set.includes(ev),
-)(mch)
-getEvent :: String -> Machine pay ctx -> Maybe String
-export getEvent = (ev, mch) => pipe(
-  events,
-  Set.filter(Fn.equals(ev)),
-  Set.toList,
-  List.first,
 )(mch)
 eventMap :: Machine pay ctx -> Dictionary String (Dictionary String String)
 export eventMap = pipe(
