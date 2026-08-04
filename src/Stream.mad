@@ -1,0 +1,104 @@
+import type { Maybe } from "Maybe"
+
+import type { Controller } from "@/Interpreter"
+import type { Machine } from "@/Machine"
+import type { State } from "@/State"
+import type { CTransition, Transition } from "@/Transition"
+
+import Fn from "Function"
+import List from "List"
+import { Just, Nothing } from "Maybe"
+import {} from "Number"
+import { Data } from "Stream"
+import Stream from "Stream"
+
+import Interpreter from "@/Interpreter"
+import Log from "@/Log"
+import Machine from "@/Machine"
+
+
+
+export alias StreamController err pay ctx = {
+  cancel :: {} -> {},
+  events :: {} -> List (MachineEvent err pay),
+}
+export type MachineEvent b g = MachineEvent(g) | MachineError(b) | MachineEnd
+export makeMachineStream = (ctrl) => {
+  controller = ctrl
+  faucet :: Maybe (String -> {})
+  faucet = Nothing
+  send = (ev, pay) => {
+    Log.env.streamEvent(ev, pay)
+    newCtrl = Interpreter.send(ev, pay, controller)
+    controller := newCtrl
+    where(faucet) {
+      Just(tap) =>
+        do {
+          tap(ev)
+        }
+
+      _ =>
+        {}
+    }
+  }
+  return #[
+    send,
+    Stream.Stream(
+      (start, sink) => pipe(
+        Fn.ifElse(
+          Fn.equals(0),
+          (_) => where(faucet) {
+            Nothing =>
+              do {
+                faucet := Just(
+                  pipe(
+                    Data,
+                    sink(1),
+                  ),
+                )
+                return faucet
+              }
+
+            _ =>
+              faucet
+          },
+          Fn.always(Nothing),
+        ),
+        (_) => {},
+      )(start),
+    ),
+  ]
+}
+subscribeToStreamWithCollectorAndInitial :: (Show ctx, Eq ctx) => Stream err pay
+  -> List (MachineEvent err pay)
+  -> (MachineEvent err pay -> List (MachineEvent err pay) -> List (MachineEvent err pay))
+  -> (err -> {})
+  -> (pay -> {})
+  -> StreamController err pay ctx
+export subscribeToStreamWithCollectorAndInitial = (
+  stream,
+  init,
+  collect,
+  badListener,
+  goodListener
+) => {
+  events = init
+  end = () => {
+    events := collect(MachineEnd, events)
+  }
+  onBad = (e) => {
+    f = MachineError(e)
+    badListener(e)
+    events := collect(f, events)
+  }
+  onGood = (a) => {
+    b = MachineEvent(a)
+    goodListener(a)
+    events := collect(b, events)
+  }
+  listen = Stream.subscribe(onBad, onGood, end)
+  cancel = listen(stream)
+  // send = Interpreter.send($, $, )
+  return { events: () => events, cancel }
+}
+export subscribeToMachine = subscribeToStreamWithCollectorAndInitial($, [], List.append)

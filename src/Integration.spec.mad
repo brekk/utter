@@ -74,7 +74,6 @@ test(
     machine = Machine.create("uno", [ONE])
     DATA = { hooray: false }
     service = Interpreter.create(Just(DATA), machine)
-    IO.pTrace("><?>?>?", #[machine, DATA, service])
     _ <- assertEquals(Interpreter.context(service), Just(DATA))
     service2 = Interpreter.send("again", Just({ hooray: true }), service)
     return assertEquals(Interpreter.context(service2), Just({ hooray: true }))
@@ -84,29 +83,21 @@ test(
 THE_LIMIT = 5
 GUARD_THE_LIMIT = Guard.create(
   (ev, ctx, pay) => {
-    IO.pTrace("EVENT: " ++ ev, #[ctx, pay])
     return ev
       == "again"
-      && IO.pTrace(
-        "MATCHED?",
-        where(#[ctx, pay]) {
-          #[Just(_ctx), Just(_pay)] =>
-            do {
-              count = _ctx.count + _pay.count
-              IO.pTrace(
-                ">?>? " ++ show(_ctx.count) ++ " + " ++ show(_pay.count) ++ " <<!<",
-                #[count, THE_LIMIT],
-              )
-              return count <= THE_LIMIT
-            }
+      && where(#[ctx, pay]) {
+        #[Just(_ctx), Just(_pay)] =>
+          do {
+            count = _ctx.count + _pay.count
+            return count <= THE_LIMIT
+          }
 
-          #[Just(_ctx), Nothing] =>
-            _ctx.count <= THE_LIMIT
+        #[Just(_ctx), Nothing] =>
+          _ctx.count <= THE_LIMIT
 
-          _ =>
-            false
-        },
-      )
+        _ =>
+          false
+      }
   },
 )
 INCREASE_THE_LIMIT = ActionReducer(
@@ -133,16 +124,12 @@ test(
     DATA = { count: 0 }
     service = Interpreter.create(Just(DATA), machine)
     _ <- assertEquals(Interpreter.context(service), Just(DATA))
-    IO.pTrace("CONTEXT 1", Interpreter.context(service))
     service2 = Interpreter.send("again", Just({ count: 1 }), service)
     _ <- assertEquals(Interpreter.context(service2), Just({ count: 1 }))
-    IO.pTrace("CONTEXT 2", Interpreter.context(service2))
     service3 = Interpreter.send("again", Just({ count: 1 }), service2)
     _ <- assertEquals(Interpreter.context(service3), Just({ count: 2 }))
-    IO.pTrace("CONTEXT 3", Interpreter.context(service3))
     // shouldn't run because it would exceed THE_LIMIT
     serviceNo = Interpreter.send("again", Just({ count: 10 }), service3)
-    IO.pTrace("CONTEXT 4", Interpreter.context(serviceNo))
     return assertEquals(Interpreter.context(serviceNo), Just({ count: 2 }))
     // return assertEquals(true, true)
   },

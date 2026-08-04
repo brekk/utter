@@ -28,29 +28,30 @@ export type Controller pay ctx
     Stateish pay ctx,
     Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Maybe pay -> Stateish pay ctx,
   )
-stateFromEvent :: Dictionary String (Dictionary String String)
-  -> List (State pay ctx)
-  -> String
-  -> String
-  -> Stateish pay ctx
-export stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
-  Dict.get(stateName),
-  chain(Dict.get(eventName)),
-  chain(
-    pipe(
-      State.nameMatches,
-      List.find($, states),
-    ),
-  ),
-)(eventMap)
-step :: (Show pay, Show ctx) => String -> String -> Machine pay ctx -> Stateish pay ctx
-export step = (ev, stateName, mch) => if (Machine.hasEvent(ev, mch)) {
-  pipe(
-    stateFromEvent(Machine.eventMap(mch), Machine.rawStates(mch), stateName),
-  )(ev)
-} else {
-  Nothing
+getFirstState = pipe(
+  Machine.rawStates,
+  List.first,
+)
+initialControl :: (Eq ctx, Show ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
+export initialControl = (ctx, mch) => {
+  ref = Machine.state(mch)
+
+  return pipe(
+    Controller(ctx, mch, $, stepWithPayload),
+  )(isJust(ref) ? ref : getFirstState(mch))
 }
+noStates :: Machine pay ctx -> Boolean
+export noStates = pipe(
+  Machine.states,
+  Set.length,
+  Fn.equals(0),
+)
+create :: (Show ctx, Eq ctx) => Maybe ctx -> Machine ctx pay -> Controller ctx pay
+export create = (ctx, mch) => pipe(
+  Fn.ifElse(noStates, InvalidController("No states"), initialControl(ctx)),
+)(mch)
+// basic accessors
+
 context :: Controller pay ctx -> Maybe ctx
 export context = where {
   Controller(ctx, _, _, _) =>
@@ -75,6 +76,7 @@ export state = where {
   _ =>
     Nothing
 }
+// basic mutators
 setContext :: Maybe ctx -> Controller pay ctx -> Controller pay ctx
 export setContext = (cty, ctrl) => where(ctrl) {
   Controller(_, a, b, c) =>
@@ -99,27 +101,51 @@ export setState = (st, ctrl) => where(ctrl) {
   _ =>
     ctrl
 }
+// given an event map and some states, look up a possible state
+stateFromEvent :: Dictionary String (Dictionary String String)
+  -> List (State pay ctx)
+  -> String
+  -> String
+  -> Stateish pay ctx
+export stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
+  Dict.get(stateName),
+  chain(Dict.get(eventName)),
+  chain(
+    pipe(
+      State.nameMatches,
+      List.find($, states),
+    ),
+  ),
+)(eventMap)
+// step does not check validity based on guards!
+step :: (Show pay, Show ctx) => String -> String -> Machine pay ctx -> Stateish pay ctx
+export step = (ev, stateName, mch) => if (Machine.hasEvent(ev, mch)) {
+  pipe(
+    stateFromEvent(Machine.eventMap(mch), Machine.rawStates(mch), stateName),
+  )(ev)
+} else {
+  Nothing
+}
+// stepWithPayload does check validity
+// it is the default interior run step for the Controller
 export stepWithPayload = (ctx, mch, current, ev, payload) => where(current) {
   Just(State.State(stateName, trx)) =>
-    if (
-      pipe(
-        Log.env.interpreter("checking transitions for payload"),
-        Transition.checkMany(ev, payload, $, trx),
-      )(ctx)
-    ) {
-      Log.env.interpreter("running processing step", step(ev, stateName, mch))
+    if (Transition.checkMany(ev, payload, ctx, trx)) {
+      step(ev, stateName, mch)
     } else {
-      Log.env.interpreter("check failed!", current)
+      current
     }
 
   _ =>
     Nothing
 }
+// apply all action reducers and transform the current context
 processReducers :: String -> Maybe pay -> Maybe ctx -> CTransition pay ctx -> Maybe ctx
 processReducers = (ev, payload, ctx, tr) => pipe(
   Transition.reducers,
   List.reduce(ActionReducer.reduce(ev, payload), ctx),
 )(tr)
+// apply all actions and fire side effects
 processActions :: String -> Maybe pay -> Maybe ctx -> CTransition pay ctx -> Maybe ctx
 processActions = (ev, payload, ctx, tr) => pipe(
   Transition.actions,
@@ -131,23 +157,20 @@ processActions = (ev, payload, ctx, tr) => pipe(
     ctx,
   ),
 )(tr)
+// apply all transitions to context, if guards pass
 processAllTransitions = (ev, payload, _ctx, trx) => List.reduce(
   (ctx, tr) => if (Transition.checkMany(ev, payload, ctx, trx)) do {
     // actions get the current context but don't change it
     processActions(ev, payload, ctx, tr)
     // reducers change it
-
-    return pipe(
-      Log.env.interpreter("pre-processor"),
-      processReducers(ev, payload, ctx),
-      Log.env.interpreter("post-processor"),
-    )(tr)
+    return processReducers(ev, payload, ctx, tr)
   } else {
     ctx
   },
   _ctx,
   trx,
 )
+// glue to connect our context transformation to our events
 export applyActionsToContext = (payload, ctx, ev, current) => where(current) {
   Just(State.State(stateName, tr)) =>
     processAllTransitions(ev, payload, ctx, tr)
@@ -155,46 +178,19 @@ export applyActionsToContext = (payload, ctx, ev, current) => where(current) {
   _ =>
     Nothing
 }
-getFirstState = pipe(
-  Machine.rawStates,
-  List.first,
-)
-initialControl :: (Eq ctx, Show ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
-export initialControl = (ctx, mch) => {
-  ref = Machine.state(mch)
-
-  return pipe(
-    Controller(ctx, mch, $, stepWithPayload),
-  )(isJust(ref) ? ref : getFirstState(mch))
-}
-noStates :: Machine pay ctx -> Boolean
-export noStates = pipe(
-  Machine.states,
-  Set.length,
-  Fn.equals(0),
-)
-create :: (Show ctx, Eq ctx) => Maybe ctx -> Machine ctx pay -> Controller ctx pay
-export create = (ctx, mch) => pipe(
-  Fn.ifElse(noStates, InvalidController("No states"), initialControl(ctx)),
-)(mch)
 send :: (Eq ctx, Eq pay, Show ctx, Show pay) => String
   -> Maybe pay
   -> Controller pay ctx
   -> Controller pay ctx
 export send = (ev, payload, ctrl) => where(ctrl) {
-  Controller(ctx, mch, current, run) =>
+  Controller(ctx, mch, currentState, run) =>
     do {
-      newContext = applyActionsToContext(payload, ctx, ev, current)
-      newStateIsh = run(ctx, mch, current, ev, payload)
+      newContext = applyActionsToContext(payload, ctx, ev, currentState)
+      newStateIsh = run(ctx, mch, currentState, ev, payload)
       return Controller(newContext, mch, newStateIsh, run)
     }
 
   _ =>
     ctrl
 }
-
-// Current state checked: Machine looks at transitions in the current state
-// Guards evaluated: If guards exist, they check if transition can proceed
-// Actions executed: If guards pass, actions/reducers run
-// State changes: Machine transitions to target state
-// Listeners notified: Any change listeners are called
+export fling = send($, Nothing)
