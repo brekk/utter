@@ -6,18 +6,31 @@ import String from "String"
 
 
 
-export type State pay ctx = State(String, List (CTransition pay ctx))
-export createFinal = State($, [])
-export create = State
+export type State pay ctx = State(String, List (CTransition pay ctx)) | FinalState(String)
+export createFinal = FinalState
+export create = (n, t) => List.length(t) > 0 ? State(n, t) : FinalState(n)
+export isFinal = where {
+  FinalState(_) =>
+    true
+
+  _ =>
+    false
+}
 name :: State pay ctx -> String
 export name = where {
   State(n, _) =>
+    n
+
+  FinalState(n) =>
     n
 }
 transitions :: State pay ctx -> List (CTransition pay ctx)
 export transitions = where {
   State(_, t) =>
     t
+
+  _ =>
+    []
 }
 nameMatches :: String -> State pay ctx -> Boolean
 export nameMatches = (x, s) => pipe(
@@ -28,4 +41,7 @@ toPair :: State pay ctx -> #[string, List (CTransition pay ctx)]
 export toPair = where {
   State(n, t) =>
     #[n, t]
+
+  FinalState(n) =>
+    #[n, []]
 }

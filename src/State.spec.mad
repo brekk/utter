@@ -1,13 +1,23 @@
 import { caseN2, report } from "Study"
 
 import Event from "@/Event"
-import { State, create, createFinal, name, nameMatches, transitions } from "@/State"
+import {
+  FinalState,
+  State,
+  create,
+  createFinal,
+  isFinal,
+  name,
+  nameMatches,
+  transitions,
+} from "@/State"
 import Transition from "@/Transition"
 
 
 
-report(createFinal, "createFinal", [#["butts", State("butts", [])]])
-report(caseN2(create), "create", [#[#["butts", []], State("butts", [])]])
+report(createFinal, "createFinal", [#["butts", FinalState("butts")]])
+report(isFinal, "isFinal", [#[FinalState("butts"), true]])
+report(caseN2(create), "create", [#[#["butts", []], FinalState("butts")]])
 report(
   caseN2(nameMatches),
   "nameMatches",
@@ -17,5 +27,9 @@ ADD_TO_CART_SELF_EVENT = Transition.createBasic("add-to-cart", "cart")
 report(
   transitions,
   "transitions",
-  [#[State("cart", []), []], #[State("cart", [ADD_TO_CART_SELF_EVENT]), [ADD_TO_CART_SELF_EVENT]]],
+  [
+    #[State("cart", []), []],
+    #[State("cart", [ADD_TO_CART_SELF_EVENT]), [ADD_TO_CART_SELF_EVENT]],
+    #[FinalState("barf"), []],
+  ],
 )

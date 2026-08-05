@@ -4,6 +4,7 @@ import type { Machine } from "@/Machine"
 import type { State } from "@/State"
 import type { CTransition } from "@/Transition"
 
+import { lt } from "Compare"
 import Dict from "Dictionary"
 import Fn from "Function"
 import List from "List"
@@ -21,7 +22,7 @@ import Transition from "@/Transition"
 
 export alias Stateish pay ctx = Maybe (State pay ctx)
 export type Controller pay ctx
-  = InvalidController(String, Machine pay ctx)
+  = InvalidController(String, Machine pay ctx, Set String)
   | Controller(
     Maybe ctx,
     Machine pay ctx,
@@ -48,7 +49,19 @@ export noStates = pipe(
 )
 create :: (Show ctx, Eq ctx) => Maybe ctx -> Machine ctx pay -> Controller ctx pay
 export create = (ctx, mch) => pipe(
-  Fn.ifElse(noStates, InvalidController("No states"), initialControl(ctx)),
+  Fn.ifElse(noStates, InvalidController("No states", $, Set.empty), initialControl(ctx)),
+)(mch)
+safeCreate :: (Show ctx, Eq ctx) => Maybe ctx -> Machine ctx pay -> Controller pay ctx
+export safeCreate = (ctx, mch) => pipe(
+  Machine.findIncomplete,
+  Fn.ifElse(
+    pipe(
+      Set.length,
+      lt(0),
+    ),
+    Fn.always(create(ctx, mch)),
+    InvalidController("Machine incomplete", mch),
+  ),
 )(mch)
 // basic accessors
 
@@ -62,7 +75,7 @@ export context = where {
 }
 machine :: Controller pay ctx -> Machine pay ctx
 export machine = where {
-  InvalidController(_, mch) =>
+  InvalidController(_, mch, _) =>
     mch
 
   Controller(_, mch, _, _) =>

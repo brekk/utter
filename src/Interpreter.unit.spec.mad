@@ -1,6 +1,19 @@
+import { Just, Nothing } from "Maybe"
+
 import Study from "Study"
 
 import Inter from "@/Interpreter"
+import Machine from "@/Machine"
+import State from "@/State"
+import Transition from "@/Transition"
 
 
 
+STATES = {
+  dealing: State.create("DEALING", [Transition.createBasic("cardsDealt", "FLIP_TRUMP")]),
+  flipTrump: State.create("FLIP_TRUMP", [Transition.createBasic("takeBets", "BETTING")]),
+  betting: State.create("BETTING", [Transition.createBasic("betsTaken", "PLAYING")]),
+  playing: State.create("PLAYING", [Transition.createBasic("flip", "")]),
+}
+CARD_GAME = Machine.create("oh-hell", [STATES.dealing])
+Study.report(Inter.safeCreate(Just({ test: true })), "safeCreate", [])

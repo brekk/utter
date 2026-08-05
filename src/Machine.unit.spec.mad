@@ -66,6 +66,11 @@ Study.report(
   [#[THE_NOTHING_MACHINE, Nothing], #[THE_LOOPER, Just(SOLO_DOLO)], #[THE_SLEEPER, Just(RAGIN)]],
 )
 Study.report(
+  Machine.isFinal,
+  "Machine.isFinal",
+  [#[THE_NOTHING_MACHINE, true], #[THE_LOOPER, false], #[THE_SLEEPER, false]],
+)
+Study.report(
   Study.caseN2(Machine.hasEvent),
   "Machine.hasEvent",
   [
@@ -89,5 +94,31 @@ Study.report(
         "sleepin": {{ "wake up": "ragin" }},
       }},
     ],
+  ],
+)
+YEET_ME = State.State("current", [Transition.createBasic("redirect", "elsewhere")])
+BAD_MACHINE = Machine.Machine("bad", [YEET_ME], Just(YEET_ME))
+Study.report(
+  Machine.complete,
+  "Machine.complete",
+  [
+    #[THE_NOTHING_MACHINE, true],
+    #[THE_LOOPER, true],
+    #[THE_SLEEPER, true],
+    // because this machine has a transition away from the current but to a state that isn't define, it is incomplete
+    #[BAD_MACHINE, false],
+    // but if we add a final state, it is complete
+    #[Machine.Machine("bad", [YEET_ME, State.createFinal("elsewhere")], Just(YEET_ME)), true],
+  ],
+)
+Study.report(
+  Machine.findIncomplete,
+  "Machine.findIncomplete",
+  [
+    #[THE_NOTHING_MACHINE, Set.empty],
+    #[THE_LOOPER, Set.empty],
+    #[THE_SLEEPER, Set.empty],
+    #[BAD_MACHINE, Set.fromList(["elsewhere"])],
+    #[Machine.Machine("bad", [YEET_ME, State.createFinal("elsewhere")], Just(YEET_ME)), Set.empty],
   ],
 )

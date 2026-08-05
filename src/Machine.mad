@@ -3,12 +3,16 @@ import type { Set } from "Set"
 
 import type { State } from "@/State"
 
+import { lt } from "Compare"
 import Dict from "Dictionary"
 import Fn from "Function"
 import List from "List"
+import Maybe from "Maybe"
 import Set from "Set"
 import String from "String"
+import TuplePrelude from "Tuple"
 
+import Log from "@/Log"
 import State from "@/State"
 import Transition from "@/Transition"
 import Tuple from "@/Tuple"
@@ -44,6 +48,20 @@ export state = where {
   Machine(_, _, m) =>
     m
 }
+isFinal :: (Show pay, Show ctx) => Machine pay ctx -> Boolean
+export isFinal = Fn.ifElse(
+  pipe(
+    rawStates,
+    List.length,
+    lt(0),
+  ),
+  pipe(
+    state,
+    map(State.isFinal),
+    Maybe.fromMaybe(false),
+  ),
+  Fn.always(true),
+)
 events :: Machine pay ctx -> Set String
 export events = pipe(
   rawStates,
@@ -76,3 +94,27 @@ export eventMap = pipe(
   ),
   Dict.fromList,
 )
+destinations :: Machine pay ctx -> Set String
+export destinations = pipe(
+  eventMap,
+  Dict.toList,
+  chain(
+    pipe(
+      TuplePrelude.snd,
+      Dict.toList,
+      map(TuplePrelude.snd),
+    ),
+  ),
+  Set.fromList,
+)
+complete :: Machine pay ctx -> Boolean
+export complete = (mch) => pipe(
+  destinations,
+  Set.toList,
+  List.all(hasState($, mch)),
+)(mch)
+findIncomplete :: Machine pay ctx -> Set String
+export findIncomplete = (mch) => pipe(
+  destinations,
+  Set.filter(Fn.complement(hasState($, mch))),
+)(mch)

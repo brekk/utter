@@ -1,0 +1,40 @@
+import type { DateTime } from "Date"
+
+import Date from "Date"
+import Dict from "Dictionary"
+import List from "List"
+import Math from "Math"
+import { Just, Nothing } from "Maybe"
+
+
+
+type Timestack a = Timestack({} -> Dictionary DateTime a, a -> {})
+export create = () => {
+  dict = Dict.empty
+  dump = (x) => {
+    dict := Dict.insert(Date.now(), x, dict)
+  }
+  return Timestack(() => dict, dump)
+}
+export slice = (a, b, tstack) => where(tstack) {
+  Timestack(dict, _) =>
+    pipe(
+      Dict.toList,
+      List.filter(where { #[k, v] => a <= k && k <= b }),
+    )(dict())
+}
+export duration = where {
+  Timestack(get, _) =>
+    do {
+      series = Dict.toList(get())
+      a = List.first(series)
+      z = List.last(series)
+      return where(#[a, z]) {
+        #[Just(#[Date.DateTime(_a), _]), Just(#[Date.DateTime(_z), _])] =>
+          Math.abs(_a - _z)
+
+        _ =>
+          -1
+      }
+    }
+}

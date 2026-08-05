@@ -1,11 +1,13 @@
 import IO from "IO"
 import { Just, Nothing } from "Maybe"
+import StreamPrelude from "Stream"
 import { assertEquals, test } from "Test"
 
 import { Action } from "@/Action"
 import Event from "@/Event"
 import Guard from "@/Guard"
 import Interpreter from "@/Interpreter"
+import Log from "@/Log"
 import Machine from "@/Machine"
 import { ActionReducer } from "@/Reducer"
 import State from "@/State"
@@ -73,14 +75,18 @@ main = () => {
   DATA = { count: 0 }
   service = Interpreter.create(Just(DATA), machine)
 
-  #[send, stream] = Stream.makeMachineStream(service)
+  #[send, _stream] = Stream.makeMachineStream(service)
+  stream = pipe(
+    map(Log.env.main("barfo")),
+    chain((v) => StreamPrelude.good(v)),
+  )(_stream)
   { events, cancel } = Stream.subscribeToMachine(
     stream,
     (e) => {
       IO.pTrace("ERROR", e)
     },
     (x) => {
-      IO.pTrace("SUCCESS", x)
+      IO.pTrace("event", x)
     },
   )
   send("again", Just({ count: 1 }))
