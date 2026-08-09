@@ -7,11 +7,6 @@
   },
   "dependencies": [
     {
-      "minVersion": "0.0.2",
-      "url": "https://github.com/brekk/gambit/archive/refs/tags/v0.0.2.zip",
-      "description": "gambit"
-    },
-    {
       "minVersion": "0.0.8",
       "url": "https://github.com/brekk/party-bus/archive/refs/tags/v0.0.8.zip",
       "description": "PartyBus"
