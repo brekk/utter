@@ -48,7 +48,7 @@ export state = where {
   Machine(_, _, m) =>
     m
 }
-isFinal :: (Show pay, Show ctx) => Machine pay ctx -> Boolean
+isFinal :: Machine pay ctx -> Boolean
 export isFinal = Fn.ifElse(
   pipe(
     rawStates,

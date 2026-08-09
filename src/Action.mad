@@ -2,8 +2,8 @@ import type { Maybe } from "Maybe"
 
 
 
-export type Action ctx pay = Action(String -> Maybe pay -> Maybe ctx -> {})
-invoke :: String -> Maybe pay -> Maybe ctx -> Action ctx pay -> {}
+export type Action pay ctx = Action(String -> pay -> Maybe ctx -> {})
+invoke :: String -> pay -> Maybe ctx -> Action pay ctx -> {}
 export invoke = (ev, pay, ctx, act) => where(act) {
   Action(call) =>
     call(ev, pay, ctx)

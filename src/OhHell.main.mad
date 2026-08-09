@@ -1,0 +1,227 @@
+import type { Card, Suit } from "gambit"
+
+import type { Controller } from "@/Interpreter"
+
+import Dict from "Dictionary"
+import IO from "IO"
+import List from "List"
+import { Just, Nothing } from "Maybe"
+import Maybe from "Maybe"
+import Random from "Random"
+import String from "String"
+import Terminal from "Terminal"
+
+import {
+  Ace,
+  Card,
+  Clubs,
+  DECK,
+  Diamonds,
+  Hearts,
+  Jack,
+  Joker,
+  King,
+  NoFace,
+  Queen,
+  Spades,
+} from "gambit"
+import Deck from "gambit/Deck"
+
+import { Action } from "@/Action"
+import { Guard } from "@/Guard"
+import Interpreter from "@/Interpreter"
+import Log from "@/Log"
+import Machine from "@/Machine"
+import Reducer from "@/Reducer"
+import State from "@/State"
+import Transition from "@/Transition"
+
+
+
+type Player = Player(String, List Card) | Bot(Player)
+type GamePayload = GameSetPlayers(List Player)
+export alias GameStateContext = {
+  bets :: Dictionary Player Integer,
+  cardsPerPlayer :: Integer,
+  cardsPerRound :: Integer,
+  dealer :: Maybe Player,
+  deck :: List Card,
+  playedCards :: List Card,
+  players :: List Player,
+  round :: Integer,
+  scores :: Dictionary Player Integer,
+  trump :: Suit,
+}
+STATES = {
+  setPlayers: "SETTING_PLAYERS",
+  changeDealer: "CHANGING_DEALER",
+  playing: "PLAYING",
+  dealing: "DEALING",
+  flipTrumpCard: "FLIPPING_TRUMP",
+  betting: "BETTING",
+  initial: "INITIAL",
+  scoring: "SCORING",
+}
+EVENTS = {
+  initialized: "initialized",
+  playersSet: "playersSet",
+  dealerSet: "dealerSet",
+  trumpCardSet: "trumpCardSet",
+  cardsDealt: "cardsDealt",
+  betsTaken: "betsTaken",
+  roundsComplete: "roundsComplete",
+  trickComplete: "trickComplete",
+  playComplete: "playComplete",
+  scoresRecorded: "scoresRecorded",
+}
+// announceWith = (k) => Action((e, mPay, mCtx) => { Log.env.main((k ?? "") ++ e, mPay) })
+// announce = announceWith(Nothing)
+_roundUnderTotalRound :: String -> pay -> Maybe ctx -> Boolean
+_roundUnderTotalRound = (ev, mPay, mCtx) => ev
+    == EVENTS.roundsComplete
+    && where(mCtx) {
+      Just(ctx) =>
+        do {
+          // ctx.round + 1 < 
+          return false
+        }
+
+      _ =>
+        false
+    }
+_allRoundsComplete :: String -> pay -> Maybe ctx -> Boolean
+_allRoundsComplete = (ev, mPay, mCtx) => ev
+    == EVENTS.roundsComplete
+    && where(mCtx) {
+      Just(ctx) =>
+        do {
+          // ctx.round + 1 < 
+          return false
+        }
+
+      _ =>
+        false
+    }
+GUARDS = {
+  roundUnderTotalRound: Guard(_roundUnderTotalRound),
+  allRoundsComplete: Guard(_allRoundsComplete),
+}
+_setPlayers :: String -> pay -> Maybe ctx -> Maybe ctx
+_setPlayers = (ev, mPay, mCtx) => ev == EVENTS.initialized
+  ? where(#[mPay, mCtx]) {
+    #[GameSetPlayers(players), Just(ctx)] =>
+      Just({ ...ctx, players })
+
+    _ =>
+      mCtx
+  }
+  : mCtx
+REDUCERS = { setPlayers: Reducer.ActionReducer(_setPlayers) }
+// setPlayers :: List Player
+//   -> Controller GamePayload GameStateContext
+//   -> Controller GamePayload GameStateContext
+setPlayers = (players, service) => Interpreter.send(
+  EVENTS.initialized,
+  Just(GameSetPlayers(players)),
+  service,
+)
+GAMEPLAY = { setPlayers }
+ACTIONS = []
+main = () => {
+  gameMachine :: Machine GamePayload GameStateContext
+  gameMachine = Machine.create(
+    "oh-hell",
+    [
+      State.create(
+        STATES.initial,
+        [
+          Transition.createComplex(
+            EVENTS.initialized,
+            STATES.setPlayers,
+            ACTIONS,
+            [],
+            [REDUCERS.setPlayers],
+          ),
+        ],
+      ),
+      State.create(
+        STATES.setPlayers,
+        [Transition.createComplex(EVENTS.playersSet, STATES.changeDealer, ACTIONS, [], [])],
+      ),
+      State.create(
+        STATES.changeDealer,
+        [Transition.createComplex(EVENTS.dealerSet, STATES.flipTrumpCard, ACTIONS, [], [])],
+      ),
+      State.create(
+        STATES.flipTrumpCard,
+        [Transition.createComplex(EVENTS.trumpCardSet, STATES.dealing, ACTIONS, [], [])],
+      ),
+      State.create(
+        STATES.dealing,
+        [Transition.createComplex(EVENTS.cardsDealt, STATES.betting, ACTIONS, [], [])],
+      ),
+      State.create(
+        STATES.betting,
+        [Transition.createComplex(EVENTS.betsTaken, STATES.playing, ACTIONS, [], [])],
+      ),
+      // State.create(
+      //   STATES.playing,
+      //   [
+      //     Transition.createComplex(
+      //       EVENTS.trickComplete,
+      //       STATES.playing,
+      //       ACTIONS,
+      //       [GUARDS.roundUnderTotalRound],
+      //       [],
+      //     ),
+      //     Transition.createComplex(
+      //       EVENTS.roundsComplete,
+      //       STATES.scoring,
+      //       ACTIONS,
+      //       [GUARDS.allRoundsComplete],
+      //       [],
+      //     ),
+      //   ],
+      // ),
+      State.create(
+        STATES.scoring,
+        [Transition.createComplex(EVENTS.scoresRecorded, STATES.changeDealer, ACTIONS, [], [])],
+      ),
+    ],
+  )
+  initialContext :: Maybe GameStateContext
+  initialContext = Just({
+    bets: Dict.empty,
+    cardsPerPlayer: -1,
+    cardsPerRound: -1,
+    dealer: Nothing,
+    deck: DECK,
+    playedCards: [],
+    players: [],
+    round: -1,
+    scores: Dict.empty,
+    trump: Joker,
+  })
+  // IO.pTrace("GAME", gameMachine)
+  service = Interpreter.create(initialContext, gameMachine)
+  // IO.pTrace(
+  //   "PLAYERS!",
+  //   pipe(
+  //     Interpreter.context,
+  //     (v) => v.players,
+  //   )(service),
+  // )
+  service2 = GAMEPLAY.setPlayers(
+    [Player("brekk", []), Bot(Player("arnaud", [])), Bot(Player("robot", []))],
+    service,
+  )
+  /*
+                                                                                                                                                                    IO.pTrace(
+                                                                                                                                                                      "PLAYERS AFTER UPDATE!",
+                                                                                                                                                                      pipe(
+                                                                                                                                                                        Interpreter.context,
+                                                                                                                                                                        map(.players),
+                                                                                                                                                                      )(service2),
+                                                                                                                                                                    )
+                                                                                                                                                                    */
+}

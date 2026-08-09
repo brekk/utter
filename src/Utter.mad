@@ -2,7 +2,7 @@ import Action from "@/Action"
 import Guard from "@/Guard"
 import Interpreter from "@/Interpreter"
 import Machine from "@/Machine"
-import ActionReducer from "@/Reducer"
+import Reducer from "@/Reducer"
 import State from "@/State"
 import Stream from "@/Stream"
 import Transition from "@/Transition"
@@ -39,6 +39,7 @@ export makeComplex = Transition.makeComplex
 export transition = Transition.transition
 export guards = Transition.guards
 export createComplex = Transition.createComplex
+export createComplexTransition = createComplex
 export event = Transition.event
 export createWithContext = Transition.createWithContext
 export createBasic = Transition.createBasic
@@ -83,4 +84,5 @@ export check = Guard.check
 
 export reduce = Reducer.reduce
 // Action
+
 export invoke = Action.invoke

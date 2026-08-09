@@ -27,18 +27,18 @@ export type Controller pay ctx
     Maybe ctx,
     Machine pay ctx,
     Stateish pay ctx,
-    Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Maybe pay -> Stateish pay ctx,
+    Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> pay -> Stateish pay ctx,
   )
 getFirstState = pipe(
   Machine.rawStates,
   List.first,
 )
 initialControl :: (Eq ctx, Show ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
-export initialControl = (ctx, mch) => {
+export initialControl = (mCtx, mch) => {
   ref = Machine.state(mch)
 
   return pipe(
-    Controller(ctx, mch, $, stepWithPayload),
+    Controller(mCtx, mch, $, stepWithPayload),
   )(isJust(ref) ? ref : getFirstState(mch))
 }
 noStates :: Machine pay ctx -> Boolean
@@ -47,11 +47,11 @@ export noStates = pipe(
   Set.length,
   Fn.equals(0),
 )
-create :: (Show ctx, Eq ctx) => Maybe ctx -> Machine ctx pay -> Controller ctx pay
+create :: (Show ctx, Eq ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
 export create = (ctx, mch) => pipe(
   Fn.ifElse(noStates, InvalidController("No states", $, Set.empty), initialControl(ctx)),
 )(mch)
-safeCreate :: (Show ctx, Eq ctx) => Maybe ctx -> Machine ctx pay -> Controller pay ctx
+safeCreate :: (Show ctx, Eq ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
 export safeCreate = (ctx, mch) => pipe(
   Machine.findIncomplete,
   Fn.ifElse(
@@ -131,7 +131,7 @@ export stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
   ),
 )(eventMap)
 // step does not check validity based on guards!
-step :: (Show pay, Show ctx) => String -> String -> Machine pay ctx -> Stateish pay ctx
+step :: String -> String -> Machine pay ctx -> Stateish pay ctx
 export step = (ev, stateName, mch) => if (Machine.hasEvent(ev, mch)) {
   pipe(
     stateFromEvent(Machine.eventMap(mch), Machine.rawStates(mch), stateName),
@@ -141,6 +141,12 @@ export step = (ev, stateName, mch) => if (Machine.hasEvent(ev, mch)) {
 }
 // stepWithPayload does check validity
 // it is the default interior run step for the Controller
+stepWithPayload :: Maybe ctx
+  -> Machine pay ctx
+  -> Stateish pay ctx
+  -> String
+  -> pay
+  -> Stateish pay ctx
 export stepWithPayload = (ctx, mch, current, ev, payload) => where(current) {
   Just(State.State(stateName, trx)) =>
     if (Transition.checkMany(ev, payload, ctx, trx)) {
@@ -153,13 +159,13 @@ export stepWithPayload = (ctx, mch, current, ev, payload) => where(current) {
     Nothing
 }
 // apply all action reducers and transform the current context
-processReducers :: String -> Maybe pay -> Maybe ctx -> CTransition pay ctx -> Maybe ctx
+processReducers :: String -> pay -> Maybe ctx -> CTransition pay ctx -> Maybe ctx
 processReducers = (ev, payload, ctx, tr) => pipe(
   Transition.reducers,
   List.reduce(ActionReducer.reduce(ev, payload), ctx),
 )(tr)
 // apply all actions and fire side effects
-processActions :: String -> Maybe pay -> Maybe ctx -> CTransition pay ctx -> Maybe ctx
+processActions :: String -> pay -> Maybe ctx -> CTransition pay ctx -> Maybe ctx
 processActions = (ev, payload, ctx, tr) => pipe(
   Transition.actions,
   List.reduce(
@@ -171,6 +177,7 @@ processActions = (ev, payload, ctx, tr) => pipe(
   ),
 )(tr)
 // apply all transitions to context, if guards pass
+processAllTransitions :: String -> pay -> Maybe ctx -> List (CTransition pay ctx) -> Maybe ctx
 processAllTransitions = (ev, payload, _ctx, trx) => List.reduce(
   (ctx, tr) => if (Transition.checkMany(ev, payload, ctx, trx)) do {
     // actions get the current context but don't change it
@@ -184,6 +191,7 @@ processAllTransitions = (ev, payload, _ctx, trx) => List.reduce(
   trx,
 )
 // glue to connect our context transformation to our events
+applyActionsToContext :: pay -> Maybe ctx -> String -> Stateish pay ctx -> Maybe ctx
 export applyActionsToContext = (payload, ctx, ev, current) => where(current) {
   Just(State.State(stateName, tr)) =>
     processAllTransitions(ev, payload, ctx, tr)
@@ -191,10 +199,7 @@ export applyActionsToContext = (payload, ctx, ev, current) => where(current) {
   _ =>
     Nothing
 }
-send :: (Eq ctx, Eq pay, Show ctx, Show pay) => String
-  -> Maybe pay
-  -> Controller pay ctx
-  -> Controller pay ctx
+send :: String -> pay -> Controller pay ctx -> Controller pay ctx
 export send = (ev, payload, ctrl) => where(ctrl) {
   Controller(ctx, mch, currentState, run) =>
     do {

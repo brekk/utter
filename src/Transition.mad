@@ -73,14 +73,14 @@ export reducers = where {
   ComplexTransition(_, _, _, r) =>
     r
 }
-checkGuard :: String -> Maybe pay -> Maybe ctx -> CTransition pay ctx -> Boolean
+checkGuard :: String -> pay -> Maybe ctx -> CTransition pay ctx -> Boolean
 export checkGuard = (ev, pay, ctx, tr) => pipe(
   guards,
-  List.reduce((passing, a) => passing && Guard.check(ev, ctx, pay, a), true),
+  List.reduce((passing, a) => passing && Guard.check(ev, pay, ctx, a), true),
 )(tr)
-checkMany :: String -> Maybe pay -> Maybe ctx -> List (CTransition pay ctx) -> Boolean
+checkMany :: String -> pay -> Maybe ctx -> List (CTransition pay ctx) -> Boolean
 export checkMany = (ev, pay, ctx, trx) => List.reduce(
-  (passing, a) => passing && checkGuard(ev, ctx, pay, a),
+  (passing, a) => passing && checkGuard(ev, pay, ctx, a),
   true,
   trx,
 )
