@@ -117,14 +117,10 @@ _setPlayers = (ev, mPay, mCtx) => ev == EVENTS.initialized
   }
   : mCtx
 REDUCERS = { setPlayers: Reducer.ActionReducer(_setPlayers) }
-// setPlayers :: List Player
-//   -> Controller GamePayload GameStateContext
-//   -> Controller GamePayload GameStateContext
-setPlayers = (players, service) => Interpreter.send(
-  EVENTS.initialized,
-  Just(GameSetPlayers(players)),
-  service,
-)
+setPlayers :: List Player
+  -> Controller GamePayload GameStateContext
+  -> Controller GamePayload GameStateContext
+setPlayers = (players, sv) => Interpreter.send(EVENTS.initialized, GameSetPlayers(players), sv)
 GAMEPLAY = { setPlayers }
 ACTIONS = []
 main = () => {
@@ -164,25 +160,25 @@ main = () => {
         STATES.betting,
         [Transition.createComplex(EVENTS.betsTaken, STATES.playing, ACTIONS, [], [])],
       ),
-      // State.create(
-      //   STATES.playing,
-      //   [
-      //     Transition.createComplex(
-      //       EVENTS.trickComplete,
-      //       STATES.playing,
-      //       ACTIONS,
-      //       [GUARDS.roundUnderTotalRound],
-      //       [],
-      //     ),
-      //     Transition.createComplex(
-      //       EVENTS.roundsComplete,
-      //       STATES.scoring,
-      //       ACTIONS,
-      //       [GUARDS.allRoundsComplete],
-      //       [],
-      //     ),
-      //   ],
-      // ),
+      State.create(
+        STATES.playing,
+        [
+          Transition.createComplex(
+            EVENTS.trickComplete,
+            STATES.playing,
+            ACTIONS,
+            [GUARDS.roundUnderTotalRound],
+            [],
+          ),
+          Transition.createComplex(
+            EVENTS.roundsComplete,
+            STATES.scoring,
+            ACTIONS,
+            [GUARDS.allRoundsComplete],
+            [],
+          ),
+        ],
+      ),
       State.create(
         STATES.scoring,
         [Transition.createComplex(EVENTS.scoresRecorded, STATES.changeDealer, ACTIONS, [], [])],
@@ -204,24 +200,22 @@ main = () => {
   })
   // IO.pTrace("GAME", gameMachine)
   service = Interpreter.create(initialContext, gameMachine)
-  // IO.pTrace(
-  //   "PLAYERS!",
-  //   pipe(
-  //     Interpreter.context,
-  //     (v) => v.players,
-  //   )(service),
-  // )
+  IO.pTrace(
+    "PLAYERS!",
+    pipe(
+      Interpreter.context,
+      map((v) => v.players),
+    )(service),
+  )
   service2 = GAMEPLAY.setPlayers(
     [Player("brekk", []), Bot(Player("arnaud", [])), Bot(Player("robot", []))],
     service,
   )
-  /*
-                                                                                                                                                                    IO.pTrace(
-                                                                                                                                                                      "PLAYERS AFTER UPDATE!",
-                                                                                                                                                                      pipe(
-                                                                                                                                                                        Interpreter.context,
-                                                                                                                                                                        map(.players),
-                                                                                                                                                                      )(service2),
-                                                                                                                                                                    )
-                                                                                                                                                                    */
+  IO.pTrace(
+    "PLAYERS AFTER UPDATE!",
+    pipe(
+      Interpreter.context,
+      map(.players),
+    )(service2),
+  )
 }

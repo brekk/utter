@@ -29,6 +29,7 @@ export type Controller pay ctx
     Stateish pay ctx,
     Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> pay -> Stateish pay ctx,
   )
+getFirstState :: Machine pay ctx -> Stateish pay ctx
 getFirstState = pipe(
   Machine.rawStates,
   List.first,
