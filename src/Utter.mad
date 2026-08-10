@@ -1,29 +1,41 @@
-import Interpreter from "@/Interpreter"
-import Machine from "@/Machine"
-import State from "@/State"
-import Stream from "@/Stream"
-import Transition from "@/Transition"
+import _A from "@/Action"
+import _G from "@/Guard"
+import _Interpreter from "@/Interpreter"
+import _Machine from "@/Machine"
+import _R from "@/Reducer"
+import _State from "@/State"
+import _Stream from "@/Stream"
+import _Transition from "@/Transition"
 
 
 
+// transition constructors
+export Reducer = _R.ActionReducer
+export ActionReducer = _R.ActionReducer
+export Action = _A.Action
+export Guard = _G.Guard
 // Machine
 
-export createMachine = Machine.create
+export Machine = _Machine.Machine
+export createMachine = _Machine.create
 // Transition
 
-export createTransition = Transition.create
-export createComplexTransition = Transition.createComplex
+export Transition = _Transition.Transition
+export ComplexTransition = _Transition.ComplexTransition
+export createTransition = _Transition.create
+export createComplexTransition = _Transition.createComplex
 // Interpreter
 
-export fling = Interpreter.fling
-export createInterpreter = Interpreter.create
-export send = Interpreter.send
+export Controller = _Interpreter.Controller
+export fling = _Interpreter.fling
+export createInterpreter = _Interpreter.create
+export send = _Interpreter.send
 // State
-
-export createState = State.create
-export createFinalState = State.createFinal
+export State = _State.State
+export createState = _State.create
+export createFinalState = _State.createFinal
 // Stream
 
-export createMachineStream = Stream.makeMachineStream
-export subscribeToMachine = Stream.subscribeToMachine
-export subscribeToStreamWithCollectorAndInitial = Stream.subscribeToStreamWithCollectorAndInitial
+export createMachineStream = _Stream.makeMachineStream
+export subscribeToMachine = _Stream.subscribeToMachine
+export subscribeToStreamWithCollectorAndInitial = _Stream.subscribeToStreamWithCollectorAndInitial

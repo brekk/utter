@@ -1,6 +1,8 @@
 utter
  - event
  - guard
+ - reducer
+ - action
  - machine
  - state
  - transition

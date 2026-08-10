@@ -14,5 +14,5 @@ export create = pipe(
 check :: String -> pay -> Maybe ctx -> Guard pay ctx -> Boolean
 export check = (ev, pay, ctx, guard) => where(guard) {
   Guard(engarde) =>
-    engarde(ev, pay, ctx)
+    Log.env.guard(ev, engarde(ev, pay, ctx))
 }

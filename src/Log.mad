@@ -1,5 +1,5 @@
-/* ★★★ utter@0.0.1 ★★★
- * THIS FILE AUTOMATICALLY GENERATED FROM SOURCE: utter.clown-car
+/* ★★★ utter@0.0.2 ★★★
+ * THIS FILE AUTOMATICALLY GENERATED FROM SOURCE: utter.clowncar
  */
 
 import Party from "PartyBus"
@@ -10,6 +10,8 @@ export tags = {
   utter: Party.tag("utter"),
   event: Party.tagWithScope("utter", ["event"]),
   guard: Party.tagWithScope("utter", ["guard"]),
+  reducer: Party.tagWithScope("utter", ["reducer"]),
+  action: Party.tagWithScope("utter", ["action"]),
   machine: Party.tagWithScope("utter", ["machine"]),
   state: Party.tagWithScope("utter", ["state"]),
   transition: Party.tagWithScope("utter", ["transition"]),
@@ -22,6 +24,8 @@ export env = {
   utter: Party.env(tags.utter),
   event: Party.env(tags.event),
   guard: Party.env(tags.guard),
+  reducer: Party.env(tags.reducer),
+  action: Party.env(tags.action),
   machine: Party.env(tags.machine),
   state: Party.env(tags.state),
   transition: Party.env(tags.transition),
@@ -34,6 +38,8 @@ export tapped = {
   utter: Party.tap(env.utter),
   event: Party.tap(env.event),
   guard: Party.tap(env.guard),
+  reducer: Party.tap(env.reducer),
+  action: Party.tap(env.action),
   machine: Party.tap(env.machine),
   state: Party.tap(env.state),
   transition: Party.tap(env.transition),

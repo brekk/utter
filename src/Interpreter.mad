@@ -200,13 +200,18 @@ export applyActionsToContext = (payload, ctx, ev, current) => where(current) {
   _ =>
     Nothing
 }
-send :: String -> pay -> Controller pay ctx -> Controller pay ctx
+send :: Show pay => String -> pay -> Controller pay ctx -> Controller pay ctx
 export send = (ev, payload, ctrl) => where(ctrl) {
   Controller(ctx, mch, currentState, run) =>
     do {
       newContext = applyActionsToContext(payload, ctx, ev, currentState)
       newStateIsh = run(ctx, mch, currentState, ev, payload)
-      return Controller(newContext, mch, newStateIsh, run)
+      return if (isJust(newStateIsh)) {
+        Controller(newContext, mch, newStateIsh, run)
+      } else do {
+        Log.env.interpreter(ev ++ " failed", payload)
+        return ctrl
+      }
     }
 
   _ =>
