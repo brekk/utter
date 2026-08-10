@@ -1,5 +1,5 @@
 {
-  "buildHash": "f31a95995e80e60ad9cbac22979069a8",
+  "buildHash": "4211bbdc69cd61febdd901e5603269ec",
   "jsApi": {
     "apiInstances": [],
     "apiAliases": {
@@ -63,7 +63,7 @@
       "src/Machine.mad#hasEvent": "String -> Machine a b -> Boolean",
       "src/Log.mad#env": "(Show a, Show b, Show c, Show d, Show e, Show f, Show g, Show h, Show i, Show j, Show k, Show l) => { action :: String -> h -> h, event :: String -> k -> k, guard :: String -> j -> j, interpreter :: String -> d -> d, machine :: String -> g -> g, main :: String -> a -> a, reducer :: String -> i -> i, state :: String -> f -> f, stream :: String -> c -> c, streamEvent :: String -> b -> b, transition :: String -> e -> e, utter :: String -> l -> l }",
       "src/Interpreter.mad#send": "(Show a, Show b) => String -> b -> Controller b a -> Controller b a",
-      "src/Reducer.mad#reduce": "(Show a, Show b) => String -> a -> Maybe b -> ActionReducer a b -> Maybe b",
+      "src/Reducer.mad#reduce": "String -> a -> Maybe b -> ActionReducer a b -> Maybe b",
       "src/Guard.mad#check": "String -> a -> Maybe b -> Guard a b -> Boolean",
       "src/Machine.mad#create": "String -> List (State a b) -> Machine a b",
       "Reducer": "(String -> a -> Maybe b -> Maybe b) -> ActionReducer a b",
@@ -191,7 +191,7 @@
       "src/Machine.mad#hasEvent": "String -> Machine a b -> Boolean",
       "src/Log.mad#env": "(Show a, Show b, Show c, Show d, Show e, Show f, Show g, Show h, Show i, Show j, Show k, Show l) => { action :: String -> h -> h, event :: String -> k -> k, guard :: String -> j -> j, interpreter :: String -> d -> d, machine :: String -> g -> g, main :: String -> a -> a, reducer :: String -> i -> i, state :: String -> f -> f, stream :: String -> c -> c, streamEvent :: String -> b -> b, transition :: String -> e -> e, utter :: String -> l -> l }",
       "src/Interpreter.mad#send": "(Show a, Show b) => String -> b -> Controller b a -> Controller b a",
-      "src/Reducer.mad#reduce": "(Show a, Show b) => String -> a -> Maybe b -> ActionReducer a b -> Maybe b",
+      "src/Reducer.mad#reduce": "String -> a -> Maybe b -> ActionReducer a b -> Maybe b",
       "src/Guard.mad#check": "String -> a -> Maybe b -> Guard a b -> Boolean",
       "src/Machine.mad#create": "String -> List (State a b) -> Machine a b",
       "Reducer": "(String -> a -> Maybe b -> Maybe b) -> ActionReducer a b",

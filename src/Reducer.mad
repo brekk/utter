@@ -1,12 +1,10 @@
 import type { Maybe } from "Maybe"
 
-import Log from "@/Log"
-
 
 
 export type ActionReducer pay ctx = ActionReducer(String -> pay -> Maybe ctx -> Maybe ctx)
-reduce :: (Show pay, Show ctx) => String -> pay -> Maybe ctx -> ActionReducer pay ctx -> Maybe ctx
+reduce :: String -> pay -> Maybe ctx -> ActionReducer pay ctx -> Maybe ctx
 export reduce = (ev, pay, ctx, act) => where(act) {
   ActionReducer(call) =>
-    Log.env.reducer(ev, call(ev, pay, ctx))
+    call(ev, pay, ctx)
 }

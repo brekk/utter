@@ -4,8 +4,6 @@ import Log from "@/Log"
 
 
 
-// b = context
-// a = event
 export type Guard pay ctx = Guard(String -> pay -> Maybe ctx -> Boolean)
 export create = pipe(
   Guard,
@@ -14,5 +12,5 @@ export create = pipe(
 check :: String -> pay -> Maybe ctx -> Guard pay ctx -> Boolean
 export check = (ev, pay, ctx, guard) => where(guard) {
   Guard(engarde) =>
-    Log.env.guard(ev, engarde(ev, pay, ctx))
+    engarde(ev, pay, ctx)
 }

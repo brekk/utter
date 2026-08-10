@@ -1,12 +1,10 @@
 import type { Maybe } from "Maybe"
 
-import Log from "@/Log"
-
 
 
 export type Action pay ctx = Action(String -> pay -> Maybe ctx -> {})
 invoke :: String -> pay -> Maybe ctx -> Action pay ctx -> {}
 export invoke = (ev, pay, ctx, act) => where(act) {
   Action(call) =>
-    Log.env.action(ev, call(ev, pay, ctx))
+    call(ev, pay, ctx)
 }
