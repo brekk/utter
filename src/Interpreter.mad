@@ -160,7 +160,11 @@ export stepWithPayload = (ctx, mch, current, ev, payload) => where(current) {
     Nothing
 }
 // apply all action reducers and transform the current context
-processReducers :: String -> pay -> Maybe ctx -> CTransition pay ctx -> Maybe ctx
+processReducers :: (Show pay, Show ctx) => String
+  -> pay
+  -> Maybe ctx
+  -> CTransition pay ctx
+  -> Maybe ctx
 processReducers = (ev, payload, ctx, tr) => pipe(
   Transition.reducers,
   List.reduce(ActionReducer.reduce(ev, payload), ctx),
@@ -178,7 +182,11 @@ processActions = (ev, payload, ctx, tr) => pipe(
   ),
 )(tr)
 // apply all transitions to context, if guards pass
-processAllTransitions :: String -> pay -> Maybe ctx -> List (CTransition pay ctx) -> Maybe ctx
+processAllTransitions :: (Show pay, Show ctx) => String
+  -> pay
+  -> Maybe ctx
+  -> List (CTransition pay ctx)
+  -> Maybe ctx
 processAllTransitions = (ev, payload, _ctx, trx) => List.reduce(
   (ctx, tr) => if (Transition.checkMany(ev, payload, ctx, trx)) do {
     // actions get the current context but don't change it
@@ -192,7 +200,11 @@ processAllTransitions = (ev, payload, _ctx, trx) => List.reduce(
   trx,
 )
 // glue to connect our context transformation to our events
-applyActionsToContext :: pay -> Maybe ctx -> String -> Stateish pay ctx -> Maybe ctx
+applyActionsToContext :: (Show pay, Show ctx) => pay
+  -> Maybe ctx
+  -> String
+  -> Stateish pay ctx
+  -> Maybe ctx
 export applyActionsToContext = (payload, ctx, ev, current) => where(current) {
   Just(State.State(stateName, tr)) =>
     processAllTransitions(ev, payload, ctx, tr)
@@ -200,7 +212,7 @@ export applyActionsToContext = (payload, ctx, ev, current) => where(current) {
   _ =>
     Nothing
 }
-send :: Show pay => String -> pay -> Controller pay ctx -> Controller pay ctx
+send :: (Show ctx, Show pay) => String -> pay -> Controller pay ctx -> Controller pay ctx
 export send = (ev, payload, ctrl) => where(ctrl) {
   Controller(ctx, mch, currentState, run) =>
     do {

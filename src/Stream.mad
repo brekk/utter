@@ -69,7 +69,7 @@ export makeMachineStream = (ctrl) => {
     ),
   ]
 }
-subscribeToStreamWithCollectorAndInitial :: (Show ctx, Eq ctx) => Stream err pay
+subscribeToStreamWithCollectorAndInitial :: (Show pay, Eq pay, Show ctx, Eq ctx) => Stream err pay
   -> List (MachineEvent err pay)
   -> (MachineEvent err pay -> List (MachineEvent err pay) -> List (MachineEvent err pay))
   -> (err -> {})
