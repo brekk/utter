@@ -50,6 +50,11 @@ Study.report(
   [#[THE_NOTHING_MACHINE, []], #[THE_LOOPER, [SOLO_DOLO]], #[THE_SLEEPER, [SLEEPIN, RAGIN]]],
 )
 Study.report(
+  Machine.firstState,
+  "Machine.firstState",
+  [#[THE_NOTHING_MACHINE, Nothing], #[THE_LOOPER, Just(SOLO_DOLO)], #[THE_SLEEPER, Just(SLEEPIN)]],
+)
+Study.report(
   Study.caseN2(Machine.hasState),
   "Machine.hasState",
   [

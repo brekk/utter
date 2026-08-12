@@ -4,6 +4,7 @@ import Log from "@/Log"
 
 
 
+export alias GuardianFn pay ctx = String -> pay -> Maybe ctx -> Boolean
 export type Guard pay ctx = Guard(String -> pay -> Maybe ctx -> Boolean)
 export create = pipe(
   Guard,
@@ -13,4 +14,12 @@ check :: String -> pay -> Maybe ctx -> Guard pay ctx -> Boolean
 export check = (ev, pay, ctx, guard) => where(guard) {
   Guard(engarde) =>
     engarde(ev, pay, ctx)
+}
+complement :: GuardianFn pay ctx -> String -> pay -> Maybe ctx -> Boolean
+export complement = (fn, ev, mPay, mCtx) => !fn(ev, mPay, mCtx)
+// protect ya neck
+invert :: Guard pay ctx -> Guard pay ctx
+export invert = (g) => where(g) {
+  Guard(fn) =>
+    Guard((ev, pay, mCtx) => !fn(ev, pay, mCtx))
 }

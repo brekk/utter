@@ -6,8 +6,16 @@ import Guard from "@/Guard"
 
 
 
+type Test a = Test(a)
 Study.report(
-  Study.caseN3(Guard.check("roar")),
-  "Guard.check",
-  [#[#[Nothing, Nothing, Guard.create((_, _, _) => false)], false]],
+  Study.caseN3(Guard.check("test")),
+  "Guard.check && Guard.complement && Guard.invert",
+  [
+    #[#[Test("one"), Nothing, Guard.create((_, _, _) => false)], false],
+    #[#[Test("two"), Nothing, Guard.create((_, _, _) => true)], true],
+    #[#[Test("three"), Nothing, Guard.create(Guard.complement((_, _, _) => true))], false],
+    #[#[Test("four"), Nothing, Guard.create(Guard.complement((_, _, _) => false))], true],
+    #[#[Test("four"), Nothing, Guard.invert(Guard.create((_, _, _) => false))], true],
+    #[#[Test("five"), Nothing, Guard.invert(Guard.create((_, _, _) => true))], false],
+  ],
 )

@@ -27,20 +27,15 @@ export type Controller pay ctx
     Maybe ctx,
     Machine pay ctx,
     Stateish pay ctx,
-    Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> pay -> Stateish pay ctx,
+    Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx,
   )
-getFirstState :: Machine pay ctx -> Stateish pay ctx
-getFirstState = pipe(
-  Machine.rawStates,
-  List.first,
-)
 initialControl :: (Eq ctx, Show ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
 export initialControl = (mCtx, mch) => {
   ref = Machine.state(mch)
 
   return pipe(
-    Controller(mCtx, mch, $, stepWithPayload),
-  )(isJust(ref) ? ref : getFirstState(mch))
+    Controller(mCtx, mch, $, _stepWithPayload),
+  )(isJust(ref) ? ref : Machine.firstState(mch))
 }
 noStates :: Machine pay ctx -> Boolean
 export noStates = pipe(
@@ -58,7 +53,9 @@ export safeCreate = (ctx, mch) => pipe(
   Fn.ifElse(
     pipe(
       Set.length,
-      lt(0),
+      Log.env.interpreter("incomplete values"),
+      (x) => x == 0,
+      Log.env.interpreter("incomplete?"),
     ),
     Fn.always(create(ctx, mch)),
     InvalidController("Machine incomplete", mch),
@@ -132,29 +129,20 @@ export stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
   ),
 )(eventMap)
 // step does not check validity based on guards!
-step :: String -> String -> Machine pay ctx -> Stateish pay ctx
-export step = (ev, stateName, mch) => if (Machine.hasEvent(ev, mch)) {
+_step :: String -> String -> Machine pay ctx -> Stateish pay ctx
+export _step = (ev, stateName, mch) => if (Machine.hasEvent(ev, mch)) {
   pipe(
     stateFromEvent(Machine.eventMap(mch), Machine.rawStates(mch), stateName),
   )(ev)
 } else {
   Nothing
 }
-// stepWithPayload does check validity
+// stepWithPayload does not check validity either!
 // it is the default interior run step for the Controller
-stepWithPayload :: Maybe ctx
-  -> Machine pay ctx
-  -> Stateish pay ctx
-  -> String
-  -> pay
-  -> Stateish pay ctx
-export stepWithPayload = (ctx, mch, current, ev, payload) => where(current) {
+_stepWithPayload :: Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx
+export _stepWithPayload = (mch, current, ev) => where(current) {
   Just(State.State(stateName, trx)) =>
-    if (Transition.checkMany(ev, payload, ctx, trx)) {
-      step(ev, stateName, mch)
-    } else {
-      current
-    }
+    _step(ev, stateName, mch)
 
   _ =>
     Nothing
@@ -217,7 +205,7 @@ export send = (ev, payload, ctrl) => where(ctrl) {
   Controller(ctx, mch, currentState, run) =>
     do {
       newContext = applyActionsToContext(payload, ctx, ev, currentState)
-      newStateIsh = run(ctx, mch, currentState, ev, payload)
+      newStateIsh = run(mch, currentState, ev)
       return if (isJust(newStateIsh)) {
         Controller(newContext, mch, newStateIsh, run)
       } else do {

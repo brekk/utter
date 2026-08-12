@@ -118,3 +118,8 @@ export findIncomplete = (mch) => pipe(
   destinations,
   Set.filter(Fn.complement(hasState($, mch))),
 )(mch)
+firstState :: Machine pay ctx -> Maybe (State pay ctx)
+export firstState = pipe(
+  rawStates,
+  List.first,
+)

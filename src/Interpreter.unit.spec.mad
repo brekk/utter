@@ -1,19 +1,84 @@
 import { Just, Nothing } from "Maybe"
+import Set from "Set"
 
 import Study from "Study"
 
+import Guard from "@/Guard"
 import Inter from "@/Interpreter"
 import Machine from "@/Machine"
+import Reducer from "@/Reducer"
 import State from "@/State"
 import Transition from "@/Transition"
 
 
 
+UNDER_TEN = Guard.Guard(
+  (ev, pay, mCtx) => where(mCtx) {
+    Just({ count }) =>
+      count + 1 < 10
+
+    _ =>
+      false
+  },
+)
+ADD_ONE = Reducer.ActionReducer(
+  (ev, pay, mCtx) => where(mCtx) {
+    Just({ count }) =>
+      Just({ count: count + 1 })
+
+    _ =>
+      mCtx
+  },
+)
 STATES = {
-  dealing: State.create("DEALING", [Transition.createBasic("cardsDealt", "FLIP_TRUMP")]),
-  flipTrump: State.create("FLIP_TRUMP", [Transition.createBasic("takeBets", "BETTING")]),
-  betting: State.create("BETTING", [Transition.createBasic("betsTaken", "PLAYING")]),
-  playing: State.create("PLAYING", [Transition.createBasic("flip", "")]),
+  initial: State.create("INITIAL", [Transition.createBasic("LOADING", "READY")]),
+  loaded: State.create("READY", [Transition.createBasic("COUNT", "COUNTING")]),
+  counting: State.create(
+    "COUNTING",
+    [
+      Transition.createComplex("COUNT", "COUNTING", [], [UNDER_TEN], [ADD_ONE]),
+      Transition.createComplex("FINISH", "DONE", [], [Guard.invert(UNDER_TEN)], []),
+    ],
+  ),
+  done: State.createFinal("DONE"),
 }
-CARD_GAME = Machine.create("oh-hell", [STATES.dealing])
-Study.report(Inter.safeCreate(Just({ test: true })), "safeCreate", [])
+COUNTING_MACHINE = Machine.create(
+  "test",
+  [STATES.initial, STATES.loaded, STATES.counting, STATES.done],
+)
+NOTHING_MACHINE = Machine.Machine(
+  "end",
+  [STATES.initial, STATES.loaded, STATES.counting, STATES.done],
+  Nothing,
+)
+COUNTING_SERVICE = Inter.Controller(
+  Just({ count: 0 }),
+  COUNTING_MACHINE,
+  Just(STATES.initial),
+  Inter._stepWithPayload,
+)
+NOTHING_SERVICE = Inter.Controller(
+  Nothing,
+  NOTHING_MACHINE,
+  Just(STATES.initial),
+  Inter._stepWithPayload,
+)
+BAD_SERVICE = Inter.InvalidController("this is a test", NOTHING_MACHINE, Set.empty)
+Study.report(
+  Inter.safeCreate(Just({ count: 0 })),
+  "safeCreate",
+  [#[COUNTING_MACHINE, COUNTING_SERVICE]],
+)
+Study.report(
+  Study.caseN2(Inter.initialControl),
+  "initialControl",
+  [
+    #[#[Just({ count: 0 }), COUNTING_MACHINE], COUNTING_SERVICE],
+    #[#[Nothing, NOTHING_MACHINE], NOTHING_SERVICE],
+  ],
+)
+Study.report(
+  Inter.context,
+  "context",
+  [#[COUNTING_SERVICE, Just({ count: 0 })], #[BAD_SERVICE, Nothing]],
+)
