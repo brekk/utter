@@ -1,6 +1,6 @@
 {
   "name": "utter",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "main": "src/Utter.mad",
   "importAliases": {
     ".": "src"
