@@ -28,6 +28,7 @@ alias GraphvizConfig = {
   edgeStyle :: List EdgeAttribute,
   edges :: List Edge,
   graphs :: List Graph,
+  nodeMap :: String -> List NodeAttribute,
   nodeStyle :: List NodeAttribute,
   nodes :: List Node,
 }
@@ -36,13 +37,19 @@ toGraphviz :: GraphvizConfig -> Machine pay ctx -> Vizier
 export toGraphviz = (conf, mch) => where(mch) {
   M.Machine(_name, _states, _curr) =>
     do {
-      { nodes: givenNodes, clusters: givenClusters, edges: givenEdges, graphs: givenGraphs } = conf
+      {
+        nodeMap,
+        nodes: givenNodes,
+        clusters: givenClusters,
+        edges: givenEdges,
+        graphs: givenGraphs,
+      } = conf
       nodeList = pipe(
         M.states,
         Set.toList,
       )(mch)
       nodes = pipe(
-        map(VNode.Node($, [])),
+        map((v) => VNode.Node(v, nodeMap(v))),
       )(nodeList)
       edges = pipe(
         M.eventMap,
@@ -70,6 +77,7 @@ export toGraphviz = (conf, mch) => where(mch) {
 }
 VANILLA :: GraphvizConfig
 export VANILLA = {
+  nodeMap: (_) => [],
   clusters: [],
   attrStyle: [],
   edgeStyle: [],
@@ -85,7 +93,7 @@ export toDotWithConfig = (conf, mch) => pipe(
 )(mch)
 export defaultConfig = (a) => {
   attrStyle = graphAttrs(a)
-  return { ...VANILLA, attrStyle }
+  return { ...VANILLA, edges: [VEdge.GlobalEdge([VEdge.Fontname(a.fontname)])], attrStyle }
 }
 export toDot = toDotWithConfig(
   defaultConfig({ fontname: `"Helvetica Neue",Helvetica,Arial,sans-serif` }),
