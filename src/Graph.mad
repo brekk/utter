@@ -51,7 +51,14 @@ export toGraphviz = (conf, mch) => where(mch) {
           (#[start, vv]) => pipe(
             Dict.toList,
             map(
-              (#[label, end]) => VEdge.Edge([start, end], [...conf.edgeStyle, VEdge.Label(label)]),
+              (#[label, end]) => VEdge.Edge(
+                [start, end],
+                [
+                  ...conf.edgeStyle,
+                  VEdge.Style(start == end ? VEdge.EdgeStyleDashed : VEdge.EdgeStyleSolid),
+                  VEdge.Label(label),
+                ],
+              ),
             ),
           )(vv),
         ),
