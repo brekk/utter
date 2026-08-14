@@ -37,19 +37,12 @@ toGraphviz :: GraphvizConfig -> Machine pay ctx -> Vizier
 export toGraphviz = (conf, mch) => where(mch) {
   M.Machine(_name, _states, _curr) =>
     do {
-      {
-        nodeMap,
-        nodes: givenNodes,
-        clusters: givenClusters,
-        edges: givenEdges,
-        graphs: givenGraphs,
-      } = conf
       nodeList = pipe(
         M.states,
         Set.toList,
       )(mch)
       nodes = pipe(
-        map((v) => VNode.Node(v, nodeMap(v))),
+        map((v) => VNode.Node(v, conf.nodeMap(v))),
       )(nodeList)
       edges = pipe(
         M.eventMap,
@@ -68,10 +61,10 @@ export toGraphviz = (conf, mch) => where(mch) {
       return Vizier(
         _name,
         [...conf.attrStyle],
-        [...givenGraphs],
-        [...givenClusters],
-        [...givenNodes, ...nodes],
-        [...givenEdges, ...edges],
+        [...conf.graphs],
+        [...conf.clusters],
+        [...conf.nodes, ...nodes],
+        [...conf.edges, ...edges],
       )
     }
 }
