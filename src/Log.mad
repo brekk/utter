@@ -1,4 +1,4 @@
-/* ★★★ utter@0.0.2 ★★★
+/* ★★★ utter@0.0.5 ★★★
  * THIS FILE AUTOMATICALLY GENERATED FROM SOURCE: utter.clowncar
  */
 
@@ -19,6 +19,7 @@ export tags = {
   stream: Party.tagWithScope("utter", ["stream"]),
   streamEvent: Party.tagWithScope("utter", ["stream", "event"]),
   main: Party.tagWithScope("utter", ["main"]),
+  graph: Party.tagWithScope("utter", ["graph"]),
 }
 export env = {
   utter: Party.env(tags.utter),
@@ -33,6 +34,7 @@ export env = {
   stream: Party.env(tags.stream),
   streamEvent: Party.env(tags.streamEvent),
   main: Party.env(tags.main),
+  graph: Party.env(tags.graph),
 }
 export tapped = {
   utter: Party.tap(env.utter),
@@ -47,4 +49,5 @@ export tapped = {
   stream: Party.tap(env.stream),
   streamEvent: Party.tap(env.streamEvent),
   main: Party.tap(env.main),
+  graph: Party.tap(env.graph),
 }

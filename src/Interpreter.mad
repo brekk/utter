@@ -206,8 +206,9 @@ export send = (ev, payload, ctrl) => where(ctrl) {
     do {
       newContext = applyActionsToContext(payload, ctx, ev, currentState)
       newStateIsh = run(mch, currentState, ev)
-      return if (isJust(newStateIsh)) {
-        Controller(newContext, mch, newStateIsh, run)
+      return if (isJust(newStateIsh)) do {
+        Log.tapped.interpreter("changing state:", map(map(State.name)), [currentState, newStateIsh])
+        return Controller(newContext, mch, newStateIsh, run)
       } else do {
         Log.env.interpreter(ev ++ " failed", payload)
         return ctrl

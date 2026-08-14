@@ -1,0 +1,67 @@
+import type { Vizier } from "vizier"
+import type { EdgeAttribute } from "vizier/Edge"
+import type { GraphAttribute } from "vizier/Graph"
+import type { NodeAttribute } from "vizier/Node"
+
+import type { Machine } from "@/Machine"
+
+import Dict from "Dictionary"
+import List from "List"
+import Set from "Set"
+
+import { Vizier, toString } from "vizier"
+import VCluster from "vizier/Cluster"
+import VColor from "vizier/Color"
+import VEdge from "vizier/Edge"
+import VGraph from "vizier/Graph"
+import VNode from "vizier/Node"
+
+import Log from "@/Log"
+import M from "@/Machine"
+
+
+
+alias GraphvizConfig = {
+  attrStyle :: List GraphAttribute,
+  edgeStyle :: List EdgeAttribute,
+  nodeStyle :: List NodeAttribute,
+}
+graphAttrs = ({ fontname }) => [VGraph.Fontname(fontname)]
+toGraphviz :: GraphvizConfig -> Machine pay ctx -> Vizier
+export toGraphviz = (conf, mch) => where(mch) {
+  M.Machine(_name, _states, _curr) =>
+    do {
+      nodeList = pipe(
+        M.states,
+        Set.toList,
+      )(mch)
+      nodes = pipe(
+        map(VNode.Node($, [])),
+      )(nodeList)
+      edges = pipe(
+        M.eventMap,
+        Dict.toList,
+        chain(
+          (#[start, vv]) => pipe(
+            Dict.toList,
+            map(
+              (#[label, end]) => VEdge.Edge([start, end], [...conf.edgeStyle, VEdge.Label(label)]),
+            ),
+          )(vv),
+        ),
+      )(mch)
+      return Vizier(_name, [...conf.attrStyle], [], [], nodes, edges)
+    }
+}
+toDotWithConfig :: GraphvizConfig -> Machine pay ctx -> String
+export toDotWithConfig = (conf, mch) => pipe(
+  toGraphviz(conf),
+  toString,
+)(mch)
+export defaultConfig = (a) => {
+  attrStyle = graphAttrs(a)
+  return { attrStyle, edgeStyle: [], nodeStyle: [] }
+}
+export toDot = toDotWithConfig(
+  defaultConfig({ fontname: `"Helvetica Neue",Helvetica,Arial,sans-serif` }),
+)

@@ -5,6 +5,7 @@ import { assertEquals, test } from "Test"
 
 import { Action } from "@/Action"
 import Event from "@/Event"
+import Graph from "@/Graph"
 import Guard from "@/Guard"
 import Interpreter from "@/Interpreter"
 import Log from "@/Log"
@@ -76,6 +77,8 @@ main = () => {
   service = Interpreter.create(Just(DATA), machine)
 
   #[send, _stream] = Stream.makeMachineStream(service)
+  conf = { fontname: "Helvetica" }
+  viz = Graph.toGraphviz(conf, machine)
   stream = pipe(
     map(Log.env.main("barfo")),
     chain((v) => StreamPrelude.good(v)),
@@ -97,4 +100,5 @@ main = () => {
   send("again", Just({ count: 1 }))
   send("again", Just({ count: 1 }))
   IO.pTrace("<><> EVENTS <><>", events())
+  IO.pTrace("##################", Graph.toDot(conf, machine))
 }
