@@ -1,7 +1,8 @@
 import type { Vizier } from "vizier"
-import type { EdgeAttribute } from "vizier/Edge"
-import type { GraphAttribute } from "vizier/Graph"
-import type { NodeAttribute } from "vizier/Node"
+import type { Cluster } from "vizier/Cluster"
+import type { Edge, EdgeAttribute } from "vizier/Edge"
+import type { Graph, GraphAttribute } from "vizier/Graph"
+import type { Node, NodeAttribute } from "vizier/Node"
 
 import type { Machine } from "@/Machine"
 
@@ -23,14 +24,19 @@ import M from "@/Machine"
 
 alias GraphvizConfig = {
   attrStyle :: List GraphAttribute,
+  clusters :: List Cluster,
   edgeStyle :: List EdgeAttribute,
+  edges :: List Edge,
+  graphs :: List Graph,
   nodeStyle :: List NodeAttribute,
+  nodes :: List Node,
 }
 graphAttrs = ({ fontname }) => [VGraph.Fontname(fontname)]
 toGraphviz :: GraphvizConfig -> Machine pay ctx -> Vizier
 export toGraphviz = (conf, mch) => where(mch) {
   M.Machine(_name, _states, _curr) =>
     do {
+      { nodes: givenNodes, clusters: givenClusters, edges: givenEdges, graphs: givenGraphs } = conf
       nodeList = pipe(
         M.states,
         Set.toList,
@@ -50,8 +56,27 @@ export toGraphviz = (conf, mch) => where(mch) {
           )(vv),
         ),
       )(mch)
-      return Vizier(_name, [...conf.attrStyle], [], [], nodes, edges)
+      // GCNE
+      // graphs clusters nodes edges
+      return Vizier(
+        _name,
+        [...conf.attrStyle],
+        [...givenGraphs],
+        [...givenClusters],
+        [...givenNodes, ...nodes],
+        [...givenEdges, ...edges],
+      )
     }
+}
+VANILLA :: GraphvizConfig
+export VANILLA = {
+  clusters: [],
+  attrStyle: [],
+  edgeStyle: [],
+  nodeStyle: [],
+  nodes: [],
+  graphs: [],
+  edges: [],
 }
 toDotWithConfig :: GraphvizConfig -> Machine pay ctx -> String
 export toDotWithConfig = (conf, mch) => pipe(
@@ -60,7 +85,7 @@ export toDotWithConfig = (conf, mch) => pipe(
 )(mch)
 export defaultConfig = (a) => {
   attrStyle = graphAttrs(a)
-  return { attrStyle, edgeStyle: [], nodeStyle: [] }
+  return { ...VANILLA, attrStyle }
 }
 export toDot = toDotWithConfig(
   defaultConfig({ fontname: `"Helvetica Neue",Helvetica,Arial,sans-serif` }),
