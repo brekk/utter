@@ -1,12 +1,13 @@
-import type { CTransition } from "@/Transition"
+import type { CTransition, State } from "@/Types"
 
 import Fn from "Function"
 import List from "List"
 import String from "String"
 
+import { FinalState, State } from "@/Types"
 
 
-export type State pay ctx = State(String, List (CTransition pay ctx)) | FinalState(String)
+
 createFinal :: String -> State pay ctx
 export createFinal = FinalState
 create :: String -> List (CTransition pay ctx) -> State pay ctx

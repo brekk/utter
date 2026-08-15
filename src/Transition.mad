@@ -1,8 +1,6 @@
 import type { Maybe } from "Maybe"
 
-import type { Action } from "@/Action"
-import type { Guard } from "@/Guard"
-import type { ActionReducer } from "@/Reducer"
+import type { Action, CTransition, Guard, Reducer, Transition } from "@/Types"
 
 import IO from "IO"
 import List from "List"
@@ -11,19 +9,10 @@ import String from "String"
 
 import Guard from "@/Guard"
 import Log from "@/Log"
+import { ComplexTransition, Reducer, Transition } from "@/Types"
 
 
 
-// we had to segment these types
-export type Transition = Transition(String, String)
-// because previously the payload and context were being conflated with the event and target types somehow
-export type CTransition pay ctx
-  = ComplexTransition(
-    Transition,
-    List (Action pay ctx),
-    List (Guard pay ctx),
-    List (ActionReducer pay ctx),
-  )
 export create = Transition
 export createComplex = (k, v, a, g, r) => ComplexTransition(create(k, v), a, g, r)
 export makeComplex = ComplexTransition($, [], [], [])
@@ -68,7 +57,7 @@ export guards = where {
   ComplexTransition(_, _, g, _) =>
     g
 }
-reducers :: CTransition pay ctx -> List (ActionReducer pay ctx)
+reducers :: CTransition pay ctx -> List (Reducer pay ctx)
 export reducers = where {
   ComplexTransition(_, _, _, r) =>
     r

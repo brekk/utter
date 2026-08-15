@@ -1,7 +1,7 @@
 import type { Maybe } from "Maybe"
 import type { Set } from "Set"
 
-import type { State } from "@/State"
+import type { Machine, State } from "@/Types"
 
 import { lt } from "Compare"
 import Dict from "Dictionary"
@@ -16,10 +16,10 @@ import Log from "@/Log"
 import State from "@/State"
 import Transition from "@/Transition"
 import Tuple from "@/Tuple"
+import { Machine } from "@/Types"
 
 
 
-export type Machine pay ctx = Machine(String, List (State pay ctx), Maybe (State pay ctx))
 create :: String -> List (State pay ctx) -> Machine pay ctx
 export create = (s, x) => Machine(s, x, List.first(x))
 name :: Machine pay ctx -> String

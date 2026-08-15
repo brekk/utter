@@ -1,4 +1,4 @@
-import type { Guard } from "@/Guard"
+import type { Guard } from "@/Types"
 
 import Date from "Date"
 import Dict from "Dictionary"

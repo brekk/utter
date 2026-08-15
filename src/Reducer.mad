@@ -1,10 +1,13 @@
 import type { Maybe } from "Maybe"
 
+import type { Reducer } from "@/Types"
+
+import { Reducer } from "@/Types"
 
 
-export type ActionReducer pay ctx = ActionReducer(String -> pay -> Maybe ctx -> Maybe ctx)
-reduce :: String -> pay -> Maybe ctx -> ActionReducer pay ctx -> Maybe ctx
+
+reduce :: String -> pay -> Maybe ctx -> Reducer pay ctx -> Maybe ctx
 export reduce = (ev, pay, ctx, act) => where(act) {
-  ActionReducer(call) =>
+  Reducer(call) =>
     call(ev, pay, ctx)
 }

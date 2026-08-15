@@ -1,11 +1,12 @@
 import type { Maybe } from "Maybe"
 
+import type { Guard, GuardianFn } from "@/Types"
+
 import Log from "@/Log"
+import { Guard } from "@/Types"
 
 
 
-export alias GuardianFn pay ctx = String -> pay -> Maybe ctx -> Boolean
-export type Guard pay ctx = Guard(String -> pay -> Maybe ctx -> Boolean)
 export create = pipe(
   Guard,
   Log.env.guard("created"),

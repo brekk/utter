@@ -4,7 +4,7 @@ import type { Edge, EdgeAttribute } from "vizier/Edge"
 import type { Graph, GraphAttribute } from "vizier/Graph"
 import type { Node, NodeAttribute } from "vizier/Node"
 
-import type { Machine } from "@/Machine"
+import type { Machine } from "@/Types"
 
 import Dict from "Dictionary"
 import List from "List"
@@ -19,6 +19,7 @@ import VNode from "vizier/Node"
 
 import Log from "@/Log"
 import M from "@/Machine"
+import { Machine } from "@/Types"
 
 
 
@@ -35,7 +36,7 @@ alias GraphvizConfig = {
 graphAttrs = ({ fontname }) => [VGraph.Fontname(fontname)]
 toGraphviz :: GraphvizConfig -> Machine pay ctx -> Vizier
 export toGraphviz = (conf, mch) => where(mch) {
-  M.Machine(_name, _states, _curr) =>
+  Machine(_name, _states, _curr) =>
     do {
       nodeList = pipe(
         M.states,
@@ -53,11 +54,10 @@ export toGraphviz = (conf, mch) => where(mch) {
             map(
               (#[label, end]) => VEdge.Edge(
                 [start, end],
-                [
-                  ...conf.edgeStyle,
-                  VEdge.Style(start == end ? VEdge.EdgeStyleDashed : VEdge.EdgeStyleSolid),
-                  VEdge.Label(label),
-                ],
+                List.concat(
+                  [...conf.edgeStyle, VEdge.Label(label)],
+                  start == end ? [VEdge.Style(VEdge.EdgeStyleDashed)] : [],
+                ),
               ),
             ),
           )(vv),
