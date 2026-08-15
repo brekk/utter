@@ -1,266 +1,102 @@
 {
-  "buildHash": "53637dfebaad45e4263770912a3d1cb5",
+  "buildHash": "8443938066b0fb511fa2fccf9b9d72a3",
   "jsApi": {
     "apiInstances": [],
     "apiAliases": {
-      "src/Interpreter.mad#Stateish pay ctx": "(Maybe (State pay ctx))",
-      "src/Guard.mad#GuardianFn pay ctx": "(String -> pay -> Maybe ctx -> Boolean)",
-      "src/Stream.mad#StreamController err pay ctx": "{ cancel :: {} -> {}, events :: {} -> List (MachineEvent err pay) }"
+      "src/Types.mad#ReducerFn pay ctx": "(String -> pay -> Maybe ctx -> Maybe ctx)",
+      "src/Types.mad#ActionFn pay ctx": "(String -> pay -> Controller pay ctx -> Maybe ctx -> {})",
+      "src/Types.mad#Stateish pay ctx": "(Maybe (State pay ctx))",
+      "src/Types.mad#GuardianFn pay ctx": "(String -> pay -> Maybe ctx -> Boolean)"
     },
     "apiInterfaces": {},
     "apiNames": {
-      "src/Machine.mad#eventMap": "Machine a b -> Dictionary String (Dictionary String String)",
-      "src/Transition.mad#toSimplePair": "CTransition a b -> #[String, String]",
-      "src/Interpreter.mad#fling": "(Show (Maybe a), Show b) => String -> Controller (Maybe a) b -> Controller (Maybe a) b",
-      "createTransition": "String -> String -> Transition",
-      "src/Interpreter.mad#initialControl": "(Eq a, Show a) => Maybe a -> Machine b a -> Controller b a",
-      "src/Machine.mad#complete": "Machine a b -> Boolean",
-      "src/Transition.mad#create": "String -> String -> Transition",
-      "createMachineStream": "(Show a, Show b) => Controller b a -> #[String -> b -> {}, Stream c String]",
-      "src/Transition.mad#target": "Transition -> String",
-      "src/Transition.mad#toPair": "Transition -> #[String, String]",
-      "src/State.mad#isFinal": "State a b -> Boolean",
-      "src/Transition.mad#checkGuard": "String -> a -> Maybe b -> CTransition a b -> Boolean",
-      "src/Transition.mad#reducers": "CTransition a b -> List (ActionReducer a b)",
-      "src/State.mad#create": "String -> List (CTransition a b) -> State a b",
-      "src/Stream.mad#makeMachineStream": "(Show a, Show b) => Controller a b -> #[String -> a -> {}, Stream c String]",
-      "src/Interpreter.mad#state": "Controller a b -> Maybe (State a b)",
-      "src/State.mad#createFinal": "String -> State a b",
-      "src/Machine.mad#hasState": "String -> Machine a b -> Boolean",
-      "send": "(Show a, Show b) => String -> a -> Controller a b -> Controller a b",
-      "src/Stream.mad#subscribeToMachine": "(Eq a, Show a) => Stream b a -> (b -> {}) -> (a -> {}) -> { cancel :: {} -> {}, events :: {} -> List (MachineEvent b a) }",
-      "src/Guard.mad#create": "Show (Guard a b) => (String -> a -> Maybe b -> Boolean) -> Guard a b",
-      "src/Machine.mad#name": "Machine a b -> String",
-      "src/Transition.mad#checkMany": "String -> a -> Maybe b -> List (CTransition a b) -> Boolean",
+      "FinalState": "String -> State a b",
+      "InvalidController": "String -> Machine a b -> Set String -> Controller a b",
       "Guard": "(String -> a -> Maybe b -> Boolean) -> Guard a b",
-      "src/Interpreter.mad#setContext": "Maybe a -> Controller b a -> Controller b a",
-      "subscribeToStreamWithCollectorAndInitial": "(Eq a, Show a) => Stream b a -> List (MachineEvent b a) -> (MachineEvent b a -> List (MachineEvent b a) -> List (MachineEvent b a)) -> (b -> {}) -> (a -> {}) -> { cancel :: {} -> {}, events :: {} -> List (MachineEvent b a) }",
-      "src/Interpreter.mad#safeCreate": "(Show a, Eq a) => Maybe a -> Machine b a -> Controller b a",
-      "src/Transition.mad#focus": "CTransition a b -> String",
-      "src/Machine.mad#events": "Machine a b -> Set String",
-      "subscribeToMachine": "(Show a, Eq a) => Stream b a -> (b -> {}) -> (a -> {}) -> { cancel :: {} -> {}, events :: {} -> List (MachineEvent b a) }",
       "State": "String -> List (CTransition a b) -> State a b",
-      "src/State.mad#transitions": "State a b -> List (CTransition a b)",
-      "src/Interpreter.mad#machine": "Controller a b -> Machine a b",
-      "src/Machine.mad#state": "Machine a b -> Maybe (State a b)",
-      "src/Interpreter.mad#setState": "Maybe (State a b) -> Controller a b -> Controller a b",
-      "src/Interpreter.mad#setMachine": "Machine a b -> Controller a b -> Controller a b",
-      "src/Machine.mad#rawStates": "Machine a b -> List (State a b)",
-      "src/State.mad#toPair": "State a b -> #[String, List (CTransition a b)]",
-      "src/Machine.mad#firstState": "Machine a b -> Maybe (State a b)",
-      "src/Stream.mad#subscribeToStreamWithCollectorAndInitial": "(Show a, Eq a, Show b, Eq b) => Stream c a -> List (MachineEvent c a) -> (MachineEvent c a -> List (MachineEvent c a) -> List (MachineEvent c a)) -> (c -> {}) -> (a -> {}) -> { cancel :: {} -> {}, events :: {} -> List (MachineEvent c a) }",
-      "src/Guard.mad#complement": "(String -> a -> Maybe b -> Boolean) -> String -> a -> Maybe b -> Boolean",
       "Machine": "String -> List (State a b) -> Maybe (State a b) -> Machine a b",
       "Transition": "String -> String -> Transition",
-      "src/Log.mad#tags": "{ action :: Tag, event :: Tag, graph :: Tag, guard :: Tag, interpreter :: Tag, machine :: Tag, main :: Tag, reducer :: Tag, state :: Tag, stream :: Tag, streamEvent :: Tag, transition :: Tag, utter :: Tag }",
-      "src/Interpreter.mad#_stepWithPayload": "Machine a b -> Maybe (State a b) -> String -> Maybe (State a b)",
-      "src/Transition.mad#name": "CTransition a b -> String",
-      "src/Machine.mad#destinations": "Machine a b -> Set String",
       "Controller": "Maybe a -> Machine b a -> Maybe (State b a) -> (Machine b a -> Maybe (State b a) -> String -> Maybe (State b a)) -> Controller b a",
-      "src/Machine.mad#isFinal": "Machine a b -> Boolean",
-      "src/Interpreter.mad#create": "(Show a, Eq a) => Maybe a -> Machine b a -> Controller b a",
-      "createComplexTransition": "String -> String -> List (Action a b) -> List (Guard a b) -> List (ActionReducer a b) -> CTransition a b",
-      "src/Transition.mad#makeComplex": "Transition -> CTransition a b",
-      "createInterpreter": "(Eq a, Show a) => Maybe a -> Machine b a -> Controller b a",
-      "src/Guard.mad#invert": "Guard a b -> Guard a b",
-      "src/Transition.mad#transition": "CTransition a b -> Transition",
-      "src/Machine.mad#hasEvent": "String -> Machine a b -> Boolean",
-      "src/Log.mad#env": "(Show a, Show b, Show c, Show d, Show e, Show f, Show g, Show h, Show i, Show j, Show k, Show l, Show m) => { action :: String -> i -> i, event :: String -> l -> l, graph :: String -> a -> a, guard :: String -> k -> k, interpreter :: String -> e -> e, machine :: String -> h -> h, main :: String -> b -> b, reducer :: String -> j -> j, state :: String -> g -> g, stream :: String -> d -> d, streamEvent :: String -> c -> c, transition :: String -> f -> f, utter :: String -> m -> m }",
-      "src/Interpreter.mad#send": "(Show a, Show b) => String -> b -> Controller b a -> Controller b a",
-      "src/Reducer.mad#reduce": "String -> a -> Maybe b -> ActionReducer a b -> Maybe b",
-      "src/Guard.mad#check": "String -> a -> Maybe b -> Guard a b -> Boolean",
-      "src/Interpreter.mad#_step": "String -> String -> Machine a b -> Maybe (State a b)",
-      "src/Machine.mad#create": "String -> List (State a b) -> Machine a b",
-      "Reducer": "(String -> a -> Maybe b -> Maybe b) -> ActionReducer a b",
-      "ActionReducer": "(String -> a -> Maybe b -> Maybe b) -> ActionReducer a b",
-      "src/Machine.mad#findIncomplete": "Machine a b -> Set String",
-      "ComplexTransition": "Transition -> List (Action a b) -> List (Guard a b) -> List (ActionReducer a b) -> CTransition a b",
-      "Action": "(String -> a -> Maybe b -> {}) -> Action a b",
-      "src/Action.mad#invoke": "String -> a -> Maybe b -> Action a b -> {}",
-      "src/Interpreter.mad#context": "Controller a b -> Maybe b",
-      "src/Transition.mad#guards": "CTransition a b -> List (Guard a b)",
-      "src/Transition.mad#createComplex": "String -> String -> List (Action a b) -> List (Guard a b) -> List (ActionReducer a b) -> CTransition a b",
-      "src/Transition.mad#event": "Transition -> String",
-      "src/Interpreter.mad#noStates": "Machine a b -> Boolean",
-      "src/Tuple.mad#mapSnd": "(a -> b) -> #[c, a] -> #[c, b]",
-      "fling": "(Show a, Show (Maybe b)) => String -> Controller (Maybe b) a -> Controller (Maybe b) a",
-      "src/Tuple.mad#mapFst": "(a -> b) -> #[a, c] -> #[b, c]",
-      "src/Interpreter.mad#applyActionsToContext": "(Show a, Show b) => a -> Maybe b -> String -> Maybe (State a b) -> Maybe b",
-      "src/Log.mad#tapped": "(Show a, Show b, Show c, Show d, Show e, Show f, Show g, Show h, Show i, Show j, Show k, Show l, Show m) => { action :: String -> (n -> i) -> n -> n, event :: String -> (o -> l) -> o -> o, graph :: String -> (p -> a) -> p -> p, guard :: String -> (q -> k) -> q -> q, interpreter :: String -> (r -> e) -> r -> r, machine :: String -> (s -> h) -> s -> s, main :: String -> (t -> b) -> t -> t, reducer :: String -> (u -> j) -> u -> u, state :: String -> (v -> g) -> v -> v, stream :: String -> (w -> d) -> w -> w, streamEvent :: String -> (x -> c) -> x -> x, transition :: String -> (y -> f) -> y -> y, utter :: String -> (z -> m) -> z -> z }",
-      "src/Transition.mad#createWithContext": "Show (CTransition a b) => String -> String -> List (Action a b) -> List (Guard a b) -> List (ActionReducer a b) -> CTransition a b",
-      "createState": "String -> List (CTransition a b) -> State a b",
-      "createMachine": "String -> List (State a b) -> Machine a b",
-      "src/State.mad#nameMatches": "String -> State a b -> Boolean",
-      "src/State.mad#name": "State a b -> String",
-      "src/Interpreter.mad#stateFromEvent": "Dictionary String (Dictionary String String) -> List (State a b) -> String -> String -> Maybe (State a b)",
-      "src/Transition.mad#createBasic": "String -> String -> CTransition a b",
-      "createFinalState": "String -> State a b",
-      "src/Machine.mad#states": "Machine a b -> Set String",
-      "src/Transition.mad#actions": "CTransition a b -> List (Action a b)"
+      "Reducer": "(String -> a -> Maybe b -> Maybe b) -> Reducer a b",
+      "ComplexTransition": "Transition -> List (Action a b) -> List (Guard a b) -> List (Reducer a b) -> CTransition a b",
+      "Action": "(String -> a -> Controller a b -> Maybe b -> {}) -> Action a b"
     },
     "apiTypes": {
-      "src/Action.mad#Action pay ctx": [
-        "Action (String -> pay -> Maybe ctx -> {})"
+      "src/Types.mad#Action pay ctx": [
+        "Action (String -> pay -> Controller pay ctx -> Maybe ctx -> {})"
       ],
-      "src/Interpreter.mad#Controller pay ctx": [
-        "InvalidController String (Machine pay ctx) (Set String)",
-        "Controller (Maybe ctx) (Machine pay ctx) (Stateish pay ctx) (Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx)"
-      ],
-      "src/Stream.mad#MachineEvent b g": [
-        "MachineEvent g",
-        "MachineError b",
-        "MachineEnd"
-      ],
-      "src/Guard.mad#Guard pay ctx": [
-        "Guard (String -> pay -> Maybe ctx -> Boolean)"
-      ],
-      "src/Machine.mad#Machine pay ctx": [
-        "Machine String (List (State pay ctx)) (Maybe (State pay ctx))"
-      ],
-      "src/Transition.mad#Transition": [
-        "Transition String String"
-      ],
-      "src/Transition.mad#CTransition pay ctx": [
-        "ComplexTransition Transition (List (Action pay ctx)) (List (Guard pay ctx)) (List (ActionReducer pay ctx))"
-      ],
-      "src/State.mad#State pay ctx": [
+      "src/Types.mad#State pay ctx": [
         "State String (List (CTransition pay ctx))",
         "FinalState String"
       ],
-      "src/Reducer.mad#ActionReducer pay ctx": [
-        "ActionReducer (String -> pay -> Maybe ctx -> Maybe ctx)"
+      "src/Types.mad#Machine pay ctx": [
+        "Machine String (List (State pay ctx)) (Maybe (State pay ctx))"
+      ],
+      "src/Types.mad#Guard pay ctx": [
+        "Guard (String -> pay -> Maybe ctx -> Boolean)"
+      ],
+      "src/Types.mad#Reducer pay ctx": [
+        "Reducer (String -> pay -> Maybe ctx -> Maybe ctx)"
+      ],
+      "src/Types.mad#Transition": [
+        "Transition String String"
+      ],
+      "src/Types.mad#CTransition pay ctx": [
+        "ComplexTransition Transition (List (Action pay ctx)) (List (Guard pay ctx)) (List (Reducer pay ctx))"
+      ],
+      "src/Types.mad#Controller pay ctx": [
+        "InvalidController String (Machine pay ctx) (Set String)",
+        "Controller (Maybe ctx) (Machine pay ctx) (Stateish pay ctx) (Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx)"
       ]
     }
   },
   "llvmApi": {
     "apiInstances": [],
     "apiAliases": {
-      "src/Interpreter.mad#Stateish pay ctx": "(Maybe (State pay ctx))",
-      "src/Guard.mad#GuardianFn pay ctx": "(String -> pay -> Maybe ctx -> Boolean)",
-      "src/Stream.mad#StreamController err pay ctx": "{ cancel :: {} -> {}, events :: {} -> List (MachineEvent err pay) }"
+      "src/Types.mad#ReducerFn pay ctx": "(String -> pay -> Maybe ctx -> Maybe ctx)",
+      "src/Types.mad#ActionFn pay ctx": "(String -> pay -> Controller pay ctx -> Maybe ctx -> {})",
+      "src/Types.mad#Stateish pay ctx": "(Maybe (State pay ctx))",
+      "src/Types.mad#GuardianFn pay ctx": "(String -> pay -> Maybe ctx -> Boolean)"
     },
     "apiInterfaces": {},
     "apiNames": {
-      "src/Machine.mad#eventMap": "Machine a b -> Dictionary String (Dictionary String String)",
-      "src/Transition.mad#toSimplePair": "CTransition a b -> #[String, String]",
-      "src/Interpreter.mad#fling": "(Show (Maybe a), Show b) => String -> Controller (Maybe a) b -> Controller (Maybe a) b",
-      "createTransition": "String -> String -> Transition",
-      "src/Interpreter.mad#initialControl": "(Eq a, Show a) => Maybe a -> Machine b a -> Controller b a",
-      "src/Machine.mad#complete": "Machine a b -> Boolean",
-      "src/Transition.mad#create": "String -> String -> Transition",
-      "createMachineStream": "(Show a, Show b) => Controller b a -> #[String -> b -> {}, Stream c String]",
-      "src/Transition.mad#target": "Transition -> String",
-      "src/Transition.mad#toPair": "Transition -> #[String, String]",
-      "src/State.mad#isFinal": "State a b -> Boolean",
-      "src/Transition.mad#checkGuard": "String -> a -> Maybe b -> CTransition a b -> Boolean",
-      "src/Transition.mad#reducers": "CTransition a b -> List (ActionReducer a b)",
-      "src/State.mad#create": "String -> List (CTransition a b) -> State a b",
-      "src/Stream.mad#makeMachineStream": "(Show a, Show b) => Controller a b -> #[String -> a -> {}, Stream c String]",
-      "src/Interpreter.mad#state": "Controller a b -> Maybe (State a b)",
-      "src/State.mad#createFinal": "String -> State a b",
-      "src/Machine.mad#hasState": "String -> Machine a b -> Boolean",
-      "send": "(Show a, Show b) => String -> a -> Controller a b -> Controller a b",
-      "src/Stream.mad#subscribeToMachine": "(Eq a, Show a) => Stream b a -> (b -> {}) -> (a -> {}) -> { cancel :: {} -> {}, events :: {} -> List (MachineEvent b a) }",
-      "src/Guard.mad#create": "Show (Guard a b) => (String -> a -> Maybe b -> Boolean) -> Guard a b",
-      "src/Machine.mad#name": "Machine a b -> String",
-      "src/Transition.mad#checkMany": "String -> a -> Maybe b -> List (CTransition a b) -> Boolean",
+      "FinalState": "String -> State a b",
+      "InvalidController": "String -> Machine a b -> Set String -> Controller a b",
       "Guard": "(String -> a -> Maybe b -> Boolean) -> Guard a b",
-      "src/Interpreter.mad#setContext": "Maybe a -> Controller b a -> Controller b a",
-      "subscribeToStreamWithCollectorAndInitial": "(Eq a, Show a) => Stream b a -> List (MachineEvent b a) -> (MachineEvent b a -> List (MachineEvent b a) -> List (MachineEvent b a)) -> (b -> {}) -> (a -> {}) -> { cancel :: {} -> {}, events :: {} -> List (MachineEvent b a) }",
-      "src/Interpreter.mad#safeCreate": "(Show a, Eq a) => Maybe a -> Machine b a -> Controller b a",
-      "src/Transition.mad#focus": "CTransition a b -> String",
-      "src/Machine.mad#events": "Machine a b -> Set String",
-      "subscribeToMachine": "(Show a, Eq a) => Stream b a -> (b -> {}) -> (a -> {}) -> { cancel :: {} -> {}, events :: {} -> List (MachineEvent b a) }",
       "State": "String -> List (CTransition a b) -> State a b",
-      "src/State.mad#transitions": "State a b -> List (CTransition a b)",
-      "src/Interpreter.mad#machine": "Controller a b -> Machine a b",
-      "src/Machine.mad#state": "Machine a b -> Maybe (State a b)",
-      "src/Interpreter.mad#setState": "Maybe (State a b) -> Controller a b -> Controller a b",
-      "src/Interpreter.mad#setMachine": "Machine a b -> Controller a b -> Controller a b",
-      "src/Machine.mad#rawStates": "Machine a b -> List (State a b)",
-      "src/State.mad#toPair": "State a b -> #[String, List (CTransition a b)]",
-      "src/Machine.mad#firstState": "Machine a b -> Maybe (State a b)",
-      "src/Stream.mad#subscribeToStreamWithCollectorAndInitial": "(Show a, Eq a, Show b, Eq b) => Stream c a -> List (MachineEvent c a) -> (MachineEvent c a -> List (MachineEvent c a) -> List (MachineEvent c a)) -> (c -> {}) -> (a -> {}) -> { cancel :: {} -> {}, events :: {} -> List (MachineEvent c a) }",
-      "src/Guard.mad#complement": "(String -> a -> Maybe b -> Boolean) -> String -> a -> Maybe b -> Boolean",
       "Machine": "String -> List (State a b) -> Maybe (State a b) -> Machine a b",
       "Transition": "String -> String -> Transition",
-      "src/Log.mad#tags": "{ action :: Tag, event :: Tag, graph :: Tag, guard :: Tag, interpreter :: Tag, machine :: Tag, main :: Tag, reducer :: Tag, state :: Tag, stream :: Tag, streamEvent :: Tag, transition :: Tag, utter :: Tag }",
-      "src/Interpreter.mad#_stepWithPayload": "Machine a b -> Maybe (State a b) -> String -> Maybe (State a b)",
-      "src/Transition.mad#name": "CTransition a b -> String",
-      "src/Machine.mad#destinations": "Machine a b -> Set String",
       "Controller": "Maybe a -> Machine b a -> Maybe (State b a) -> (Machine b a -> Maybe (State b a) -> String -> Maybe (State b a)) -> Controller b a",
-      "src/Machine.mad#isFinal": "Machine a b -> Boolean",
-      "src/Interpreter.mad#create": "(Show a, Eq a) => Maybe a -> Machine b a -> Controller b a",
-      "createComplexTransition": "String -> String -> List (Action a b) -> List (Guard a b) -> List (ActionReducer a b) -> CTransition a b",
-      "src/Transition.mad#makeComplex": "Transition -> CTransition a b",
-      "createInterpreter": "(Eq a, Show a) => Maybe a -> Machine b a -> Controller b a",
-      "src/Guard.mad#invert": "Guard a b -> Guard a b",
-      "src/Transition.mad#transition": "CTransition a b -> Transition",
-      "src/Machine.mad#hasEvent": "String -> Machine a b -> Boolean",
-      "src/Log.mad#env": "(Show a, Show b, Show c, Show d, Show e, Show f, Show g, Show h, Show i, Show j, Show k, Show l, Show m) => { action :: String -> i -> i, event :: String -> l -> l, graph :: String -> a -> a, guard :: String -> k -> k, interpreter :: String -> e -> e, machine :: String -> h -> h, main :: String -> b -> b, reducer :: String -> j -> j, state :: String -> g -> g, stream :: String -> d -> d, streamEvent :: String -> c -> c, transition :: String -> f -> f, utter :: String -> m -> m }",
-      "src/Interpreter.mad#send": "(Show a, Show b) => String -> b -> Controller b a -> Controller b a",
-      "src/Reducer.mad#reduce": "String -> a -> Maybe b -> ActionReducer a b -> Maybe b",
-      "src/Guard.mad#check": "String -> a -> Maybe b -> Guard a b -> Boolean",
-      "src/Interpreter.mad#_step": "String -> String -> Machine a b -> Maybe (State a b)",
-      "src/Machine.mad#create": "String -> List (State a b) -> Machine a b",
-      "Reducer": "(String -> a -> Maybe b -> Maybe b) -> ActionReducer a b",
-      "ActionReducer": "(String -> a -> Maybe b -> Maybe b) -> ActionReducer a b",
-      "src/Machine.mad#findIncomplete": "Machine a b -> Set String",
-      "ComplexTransition": "Transition -> List (Action a b) -> List (Guard a b) -> List (ActionReducer a b) -> CTransition a b",
-      "Action": "(String -> a -> Maybe b -> {}) -> Action a b",
-      "src/Action.mad#invoke": "String -> a -> Maybe b -> Action a b -> {}",
-      "src/Interpreter.mad#context": "Controller a b -> Maybe b",
-      "src/Transition.mad#guards": "CTransition a b -> List (Guard a b)",
-      "src/Transition.mad#createComplex": "String -> String -> List (Action a b) -> List (Guard a b) -> List (ActionReducer a b) -> CTransition a b",
-      "src/Transition.mad#event": "Transition -> String",
-      "src/Interpreter.mad#noStates": "Machine a b -> Boolean",
-      "src/Tuple.mad#mapSnd": "(a -> b) -> #[c, a] -> #[c, b]",
-      "fling": "(Show a, Show (Maybe b)) => String -> Controller (Maybe b) a -> Controller (Maybe b) a",
-      "src/Tuple.mad#mapFst": "(a -> b) -> #[a, c] -> #[b, c]",
-      "src/Interpreter.mad#applyActionsToContext": "(Show a, Show b) => a -> Maybe b -> String -> Maybe (State a b) -> Maybe b",
-      "src/Log.mad#tapped": "(Show a, Show b, Show c, Show d, Show e, Show f, Show g, Show h, Show i, Show j, Show k, Show l, Show m) => { action :: String -> (n -> i) -> n -> n, event :: String -> (o -> l) -> o -> o, graph :: String -> (p -> a) -> p -> p, guard :: String -> (q -> k) -> q -> q, interpreter :: String -> (r -> e) -> r -> r, machine :: String -> (s -> h) -> s -> s, main :: String -> (t -> b) -> t -> t, reducer :: String -> (u -> j) -> u -> u, state :: String -> (v -> g) -> v -> v, stream :: String -> (w -> d) -> w -> w, streamEvent :: String -> (x -> c) -> x -> x, transition :: String -> (y -> f) -> y -> y, utter :: String -> (z -> m) -> z -> z }",
-      "src/Transition.mad#createWithContext": "Show (CTransition a b) => String -> String -> List (Action a b) -> List (Guard a b) -> List (ActionReducer a b) -> CTransition a b",
-      "createState": "String -> List (CTransition a b) -> State a b",
-      "createMachine": "String -> List (State a b) -> Machine a b",
-      "src/State.mad#nameMatches": "String -> State a b -> Boolean",
-      "src/State.mad#name": "State a b -> String",
-      "src/Interpreter.mad#stateFromEvent": "Dictionary String (Dictionary String String) -> List (State a b) -> String -> String -> Maybe (State a b)",
-      "src/Transition.mad#createBasic": "String -> String -> CTransition a b",
-      "createFinalState": "String -> State a b",
-      "src/Machine.mad#states": "Machine a b -> Set String",
-      "src/Transition.mad#actions": "CTransition a b -> List (Action a b)"
+      "Reducer": "(String -> a -> Maybe b -> Maybe b) -> Reducer a b",
+      "ComplexTransition": "Transition -> List (Action a b) -> List (Guard a b) -> List (Reducer a b) -> CTransition a b",
+      "Action": "(String -> a -> Controller a b -> Maybe b -> {}) -> Action a b"
     },
     "apiTypes": {
-      "src/Action.mad#Action pay ctx": [
-        "Action (String -> pay -> Maybe ctx -> {})"
+      "src/Types.mad#Action pay ctx": [
+        "Action (String -> pay -> Controller pay ctx -> Maybe ctx -> {})"
       ],
-      "src/Interpreter.mad#Controller pay ctx": [
-        "InvalidController String (Machine pay ctx) (Set String)",
-        "Controller (Maybe ctx) (Machine pay ctx) (Stateish pay ctx) (Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx)"
-      ],
-      "src/Stream.mad#MachineEvent b g": [
-        "MachineEvent g",
-        "MachineError b",
-        "MachineEnd"
-      ],
-      "src/Guard.mad#Guard pay ctx": [
-        "Guard (String -> pay -> Maybe ctx -> Boolean)"
-      ],
-      "src/Machine.mad#Machine pay ctx": [
-        "Machine String (List (State pay ctx)) (Maybe (State pay ctx))"
-      ],
-      "src/Transition.mad#Transition": [
-        "Transition String String"
-      ],
-      "src/Transition.mad#CTransition pay ctx": [
-        "ComplexTransition Transition (List (Action pay ctx)) (List (Guard pay ctx)) (List (ActionReducer pay ctx))"
-      ],
-      "src/State.mad#State pay ctx": [
+      "src/Types.mad#State pay ctx": [
         "State String (List (CTransition pay ctx))",
         "FinalState String"
       ],
-      "src/Reducer.mad#ActionReducer pay ctx": [
-        "ActionReducer (String -> pay -> Maybe ctx -> Maybe ctx)"
+      "src/Types.mad#Machine pay ctx": [
+        "Machine String (List (State pay ctx)) (Maybe (State pay ctx))"
+      ],
+      "src/Types.mad#Guard pay ctx": [
+        "Guard (String -> pay -> Maybe ctx -> Boolean)"
+      ],
+      "src/Types.mad#Reducer pay ctx": [
+        "Reducer (String -> pay -> Maybe ctx -> Maybe ctx)"
+      ],
+      "src/Types.mad#Transition": [
+        "Transition String String"
+      ],
+      "src/Types.mad#CTransition pay ctx": [
+        "ComplexTransition Transition (List (Action pay ctx)) (List (Guard pay ctx)) (List (Reducer pay ctx))"
+      ],
+      "src/Types.mad#Controller pay ctx": [
+        "InvalidController String (Machine pay ctx) (Set String)",
+        "Controller (Maybe ctx) (Machine pay ctx) (Stateish pay ctx) (Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx)"
       ]
     }
   },

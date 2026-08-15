@@ -1,11 +1,35 @@
-import _A from "@/Action"
-import _G from "@/Guard"
-import _Interpreter from "@/Interpreter"
-import _Machine from "@/Machine"
-import _R from "@/Reducer"
-import _State from "@/State"
-import _Stream from "@/Stream"
-import _Transition from "@/Transition"
+import type {
+  Action,
+  CTransition,
+  Controller,
+  Guard,
+  Machine,
+  Reducer,
+  State,
+  Stateish,
+  Transition,
+} from "@/Types"
+
+import T from "@/Types"
 
 
 
+export type Machine
+export type State
+export type Transition
+export type CTransition
+export type Guard
+export type Action
+export type Reducer
+export type Stateish
+export type Controller
+export Machine = T.Machine
+export State = T.State
+export FinalState = T.FinalState
+export Guard = T.Guard
+export Action = T.Action
+export Reducer = T.Reducer
+export Transition = T.Transition
+export ComplexTransition = T.ComplexTransition
+export Controller = T.Controller
+export InvalidController = T.InvalidController
