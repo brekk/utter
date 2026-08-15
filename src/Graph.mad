@@ -26,10 +26,11 @@ import { Machine } from "@/Types"
 alias GraphvizConfig = {
   attrStyle :: List GraphAttribute,
   clusters :: List Cluster,
+  edgeMap :: List Edge -> List Edge,
   edgeStyle :: List EdgeAttribute,
   edges :: List Edge,
   graphs :: List Graph,
-  nodeMap :: String -> List NodeAttribute,
+  nodeMap :: List Node -> List Node,
   nodeStyle :: List NodeAttribute,
   nodes :: List Node,
 }
@@ -43,7 +44,7 @@ export toGraphviz = (conf, mch) => where(mch) {
         Set.toList,
       )(mch)
       nodes = pipe(
-        map((v) => VNode.Node(v, conf.nodeMap(v))),
+        map((v) => VNode.Node(v, [])),
       )(nodeList)
       edges = pipe(
         M.eventMap,
@@ -63,21 +64,24 @@ export toGraphviz = (conf, mch) => where(mch) {
           )(vv),
         ),
       )(mch)
-      // GCNE
-      // graphs clusters nodes edges
+      // AGCNE
+      // attributes graphs clusters nodes edges
       return Vizier(
         _name,
         [...conf.attrStyle],
         [...conf.graphs],
         [...conf.clusters],
-        [...conf.nodes, ...nodes],
-        [...conf.edges, ...edges],
+        // written as a fold so that you can filter or add if you want
+        conf.nodeMap([...conf.nodes, ...nodes]),
+        conf.edgeMap([...conf.edges, ...edges]),
       )
+      // and if you really want, you can manipulate the Vizier instance
     }
 }
 VANILLA :: GraphvizConfig
 export VANILLA = {
-  nodeMap: (_) => [],
+  nodeMap: (a) => a,
+  edgeMap: (a) => a,
   clusters: [],
   attrStyle: [],
   edgeStyle: [],

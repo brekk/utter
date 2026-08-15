@@ -1,18 +1,6 @@
-import type { Maybe } from "Maybe"
-
-import type { Guard } from "@/Guard"
-import type { ActionReducer } from "@/Reducer"
-
-import IO from "IO"
-import List from "List"
-// import { Just, Nothing, fromMaybe } from "Maybe"
-import String from "String"
-
 import _A from "@/Action"
 import _G from "@/Guard"
-import Guard from "@/Guard"
 import _Interpreter from "@/Interpreter"
-import Log from "@/Log"
 import _Machine from "@/Machine"
 import _R from "@/Reducer"
 import _State from "@/State"
