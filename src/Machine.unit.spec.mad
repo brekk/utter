@@ -7,30 +7,21 @@ import Study from "Study"
 import Machine from "@/Machine"
 import State from "@/State"
 import Transition from "@/Transition"
+import T from "@/Types"
 
 
 
 // wild stateful delights
-THE_NOTHING_MACHINE = Machine.Machine("id", [], Nothing)
-SELF_CENTERED = Transition.ComplexTransition(Transition.Transition("again", "only"), [], [], [])
-SOLO_DOLO = State.State("only", [SELF_CENTERED])
-THE_LOOPER = Machine.Machine("loop", [SOLO_DOLO], Just(SOLO_DOLO))
-WAKE_UP_SHEEPLE = Transition.ComplexTransition(
-  Transition.Transition("wake up", "ragin"),
-  [],
-  [],
-  [],
-)
-NOT_996_THO = Transition.ComplexTransition(
-  Transition.Transition("long day is tiring though", "sleepin"),
-  [],
-  [],
-  [],
-)
-SLEEPIN = State.State("sleepin", [WAKE_UP_SHEEPLE])
-RAGIN = State.State("ragin", [NOT_996_THO])
+THE_NOTHING_MACHINE = T.Machine("id", [], Nothing)
+SELF_CENTERED = T.ComplexTransition(T.Transition("again", "only"), [], [], [])
+SOLO_DOLO = T.State("only", [SELF_CENTERED])
+THE_LOOPER = T.Machine("loop", [SOLO_DOLO], Just(SOLO_DOLO))
+WAKE_UP_SHEEPLE = T.ComplexTransition(T.Transition("wake up", "ragin"), [], [], [])
+NOT_996_THO = T.ComplexTransition(T.Transition("long day is tiring though", "sleepin"), [], [], [])
+SLEEPIN = T.State("sleepin", [WAKE_UP_SHEEPLE])
+RAGIN = T.State("ragin", [NOT_996_THO])
 // starts out RAGIN!
-THE_SLEEPER = Machine.Machine("circadian", [SLEEPIN, RAGIN], Just(RAGIN))
+THE_SLEEPER = T.Machine("circadian", [SLEEPIN, RAGIN], Just(RAGIN))
 Study.report(
   Study.caseN2(Machine.create),
   "Machine.create",
@@ -101,8 +92,8 @@ Study.report(
     ],
   ],
 )
-YEET_ME = State.State("current", [Transition.createBasic("redirect", "elsewhere")])
-BAD_MACHINE = Machine.Machine("bad", [YEET_ME], Just(YEET_ME))
+YEET_ME = T.State("current", [Transition.createBasic("redirect", "elsewhere")])
+BAD_MACHINE = T.Machine("bad", [YEET_ME], Just(YEET_ME))
 Study.report(
   Machine.complete,
   "Machine.complete",
@@ -113,7 +104,7 @@ Study.report(
     // because this machine has a transition away from the current but to a state that isn't define, it is incomplete
     #[BAD_MACHINE, false],
     // but if we add a final state, it is complete
-    #[Machine.Machine("bad", [YEET_ME, State.createFinal("elsewhere")], Just(YEET_ME)), true],
+    #[T.Machine("bad", [YEET_ME, State.createFinal("elsewhere")], Just(YEET_ME)), true],
   ],
 )
 Study.report(
@@ -124,6 +115,6 @@ Study.report(
     #[THE_LOOPER, Set.empty],
     #[THE_SLEEPER, Set.empty],
     #[BAD_MACHINE, Set.fromList(["elsewhere"])],
-    #[Machine.Machine("bad", [YEET_ME, State.createFinal("elsewhere")], Just(YEET_ME)), Set.empty],
+    #[T.Machine("bad", [YEET_ME, State.createFinal("elsewhere")], Just(YEET_ME)), Set.empty],
   ],
 )

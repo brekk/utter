@@ -7,13 +7,14 @@ import Study from "Study"
 import Machine from "@/Machine"
 import State from "@/State"
 import Transition from "@/Transition"
+import T from "@/Types"
 
 
 
 Study.report(
   Transition.createWithContext($, "b", [], [], []),
   "createWithContext",
-  [#["a", Transition.ComplexTransition(Transition.Transition("a", "b"), [], [], [])]],
+  [#["a", T.ComplexTransition(T.Transition("a", "b"), [], [], [])]],
 )
 THAT_ONE_NOISE = Transition.create("connect", "modem")
 Study.report(Transition.target, "target", [#[THAT_ONE_NOISE, "modem"]])

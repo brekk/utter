@@ -150,14 +150,16 @@ processReducers = (ev, payload, ctx, tr) => pipe(
   List.reduce(ActionReducer.reduce(ev, payload), ctx),
 )(tr)
 // apply all actions and fire side effects
-processActions :: String
+processActionsWithFilter :: (Action pay ctx -> Boolean)
+  -> String
   -> pay
   -> Maybe ctx
   -> Controller pay ctx
   -> CTransition pay ctx
   -> Maybe ctx
-processActions = (ev, payload, ctx, ctrl, tr) => pipe(
+processActionsWithFilter = (filter, ev, payload, ctx, ctrl, tr) => pipe(
   Transition.actions,
+  List.filter(filter),
   List.reduce(
     (_ctx, action) => do {
       _Action.invoke(ev, payload, ctx, ctrl, action)
@@ -166,6 +168,8 @@ processActions = (ev, payload, ctx, ctrl, tr) => pipe(
     ctx,
   ),
 )(tr)
+export processActions = processActionsWithFilter(_Action.isAction)
+export postprocessActions = processActionsWithFilter(_Action.isPostAction)
 // apply all transitions to context, if guards pass
 processAllTransitions :: (Show pay, Show ctx) => String
   -> pay
@@ -178,7 +182,9 @@ processAllTransitions = (ev, payload, _ctx, ctrl, trx) => List.reduce(
     // actions get the current context but don't change it
     processActions(ev, payload, ctx, ctrl, tr)
     // reducers change it
-    return processReducers(ev, payload, ctx, tr)
+    postctx = processReducers(ev, payload, ctx, tr)
+    // post actions get the updated content and don't change it
+    return postprocessActions(ev, payload, postctx, ctrl, tr)
   } else {
     ctx
   },

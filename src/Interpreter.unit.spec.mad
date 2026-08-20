@@ -9,10 +9,11 @@ import Machine from "@/Machine"
 import Reducer from "@/Reducer"
 import State from "@/State"
 import Transition from "@/Transition"
+import T from "@/Types"
 
 
 
-UNDER_TEN = Guard.Guard(
+UNDER_TEN = T.Guard(
   (ev, pay, mCtx) => where(mCtx) {
     Just({ count }) =>
       count + 1 < 10
@@ -21,7 +22,7 @@ UNDER_TEN = Guard.Guard(
       false
   },
 )
-ADD_ONE = Reducer.ActionReducer(
+ADD_ONE = T.Reducer(
   (ev, pay, mCtx) => where(mCtx) {
     Just({ count }) =>
       Just({ count: count + 1 })
@@ -46,24 +47,24 @@ COUNTING_MACHINE = Machine.create(
   "test",
   [STATES.initial, STATES.loaded, STATES.counting, STATES.done],
 )
-NOTHING_MACHINE = Machine.Machine(
+NOTHING_MACHINE = T.Machine(
   "end",
   [STATES.initial, STATES.loaded, STATES.counting, STATES.done],
   Nothing,
 )
-COUNTING_SERVICE = Inter.Controller(
+COUNTING_SERVICE = T.Controller(
   Just({ count: 0 }),
   COUNTING_MACHINE,
   Just(STATES.initial),
   Inter._stepWithPayload,
 )
-NOTHING_SERVICE = Inter.Controller(
+NOTHING_SERVICE = T.Controller(
   Nothing,
   NOTHING_MACHINE,
   Just(STATES.initial),
   Inter._stepWithPayload,
 )
-BAD_SERVICE = Inter.InvalidController("this is a test", NOTHING_MACHINE, Set.empty)
+BAD_SERVICE = T.InvalidController("this is a test", NOTHING_MACHINE, Set.empty)
 Study.report(
   Inter.safeCreate(Just({ count: 0 })),
   "safeCreate",

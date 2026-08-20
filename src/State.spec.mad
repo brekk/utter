@@ -1,17 +1,9 @@
 import { caseN2, report } from "Study"
 
 import Event from "@/Event"
-import {
-  FinalState,
-  State,
-  create,
-  createFinal,
-  isFinal,
-  name,
-  nameMatches,
-  transitions,
-} from "@/State"
+import { create, createFinal, isFinal, name, nameMatches, transitions } from "@/State"
 import Transition from "@/Transition"
+import { FinalState, State } from "@/Types"
 
 
 

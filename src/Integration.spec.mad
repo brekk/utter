@@ -2,14 +2,13 @@ import IO from "IO"
 import { Just, Nothing } from "Maybe"
 import { assertEquals, test } from "Test"
 
-import { Action } from "@/Action"
 import Event from "@/Event"
 import Guard from "@/Guard"
 import Interpreter from "@/Interpreter"
 import Machine from "@/Machine"
-import { ActionReducer } from "@/Reducer"
 import State from "@/State"
 import Transition from "@/Transition"
+import { Action, Reducer } from "@/Types"
 
 
 
@@ -55,7 +54,7 @@ test(
           [],
           [],
           [
-            ActionReducer(
+            Reducer(
               (_, pay, con) => where(#[pay, con]) {
                 #[Just(payload), Just(ctx)] =>
                   do {
@@ -100,7 +99,7 @@ GUARD_THE_LIMIT = Guard.create(
       }
   },
 )
-INCREASE_THE_LIMIT = ActionReducer(
+INCREASE_THE_LIMIT = Reducer(
   (ev, pay, con) => where(#[pay, con]) {
     #[Just(payload), Just(ctx)] =>
       do {

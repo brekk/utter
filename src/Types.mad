@@ -20,7 +20,7 @@ export type Controller pay ctx
 export alias GuardianFn pay ctx = String -> pay -> Maybe ctx -> Boolean
 export type Guard pay ctx = Guard(String -> pay -> Maybe ctx -> Boolean)
 export alias ActionFn pay ctx = String -> pay -> Controller pay ctx -> Maybe ctx -> {}
-export type Action pay ctx = Action(String -> pay -> Controller pay ctx -> Maybe ctx -> {})
+export type Action pay ctx = Action(ActionFn pay ctx) | PostAction(ActionFn pay ctx)
 export alias ReducerFn pay ctx = String -> pay -> Maybe ctx -> Maybe ctx
 export type Reducer pay ctx = Reducer(String -> pay -> Maybe ctx -> Maybe ctx)
 // we had to segment these types
