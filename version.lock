@@ -1,5 +1,5 @@
 {
-  "buildHash": "8443938066b0fb511fa2fccf9b9d72a3",
+  "buildHash": "8f0c629dbb505e537a4cc7dfa50ef2fb",
   "jsApi": {
     "apiInstances": [],
     "apiAliases": {
@@ -23,7 +23,8 @@
     },
     "apiTypes": {
       "src/Types.mad#Action pay ctx": [
-        "Action (String -> pay -> Controller pay ctx -> Maybe ctx -> {})"
+        "Action (ActionFn pay ctx)",
+        "PostAction (ActionFn pay ctx)"
       ],
       "src/Types.mad#State pay ctx": [
         "State String (List (CTransition pay ctx))",
@@ -73,7 +74,8 @@
     },
     "apiTypes": {
       "src/Types.mad#Action pay ctx": [
-        "Action (String -> pay -> Controller pay ctx -> Maybe ctx -> {})"
+        "Action (ActionFn pay ctx)",
+        "PostAction (ActionFn pay ctx)"
       ],
       "src/Types.mad#State pay ctx": [
         "State String (List (CTransition pay ctx))",
