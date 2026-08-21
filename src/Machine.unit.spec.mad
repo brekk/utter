@@ -13,11 +13,17 @@ import T from "@/Types"
 
 // wild stateful delights
 THE_NOTHING_MACHINE = T.Machine("id", [], Nothing)
-SELF_CENTERED = T.ComplexTransition(T.Transition("again", "only"), [], [], [])
+SELF_CENTERED = T.ComplexTransition(T.Transition("again", "only"), [], [], [], [])
 SOLO_DOLO = T.State("only", [SELF_CENTERED])
 THE_LOOPER = T.Machine("loop", [SOLO_DOLO], Just(SOLO_DOLO))
-WAKE_UP_SHEEPLE = T.ComplexTransition(T.Transition("wake up", "ragin"), [], [], [])
-NOT_996_THO = T.ComplexTransition(T.Transition("long day is tiring though", "sleepin"), [], [], [])
+WAKE_UP_SHEEPLE = T.ComplexTransition(T.Transition("wake up", "ragin"), [], [], [], [])
+NOT_996_THO = T.ComplexTransition(
+  T.Transition("long day is tiring though", "sleepin"),
+  [],
+  [],
+  [],
+  [],
+)
 SLEEPIN = T.State("sleepin", [WAKE_UP_SHEEPLE])
 RAGIN = T.State("ragin", [NOT_996_THO])
 // starts out RAGIN!

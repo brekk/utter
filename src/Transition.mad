@@ -1,6 +1,6 @@
 import type { Maybe } from "Maybe"
 
-import type { Action, CTransition, Guard, Reducer, Transition } from "@/Types"
+import type { Action, ActionController, CTransition, Guard, Reducer, Transition } from "@/Types"
 
 import IO from "IO"
 import List from "List"
@@ -14,10 +14,10 @@ import { ComplexTransition, Reducer, Transition } from "@/Types"
 
 
 export create = Transition
-export createComplex = (k, v, a, g, r) => ComplexTransition(create(k, v), a, g, r)
-export makeComplex = ComplexTransition($, [], [], [])
+export createComplex = (k, v, a, g, r, x) => ComplexTransition(create(k, v), a, g, r, x)
+export makeComplex = ComplexTransition($, [], [], [], [])
 // useful in testing, mostly shouldn't be used for realsies
-export createBasic = createComplex($, $, [], [], [])
+export createBasic = createComplex($, $, [], [], [], [])
 export createWithContext = (fromEventName, toDestination, a, g, r) => pipe(
   createComplex($, toDestination, a, g, r),
   Log.env.transition("created"),
@@ -34,7 +34,7 @@ export target = where {
 }
 transition :: CTransition pay ctx -> Transition
 export transition = where {
-  ComplexTransition(t, _, _, _) =>
+  ComplexTransition(t, _, _, _, _) =>
     t
 }
 name :: CTransition pay ctx -> String
@@ -49,18 +49,23 @@ export focus = pipe(
 )
 actions :: CTransition pay ctx -> List (Action pay ctx)
 export actions = where {
-  ComplexTransition(_, m, _, _) =>
+  ComplexTransition(_, m, _, _, _) =>
     m
 }
 guards :: CTransition pay ctx -> List (Guard pay ctx)
 export guards = where {
-  ComplexTransition(_, _, g, _) =>
+  ComplexTransition(_, _, g, _, _) =>
     g
 }
 reducers :: CTransition pay ctx -> List (Reducer pay ctx)
 export reducers = where {
-  ComplexTransition(_, _, _, r) =>
+  ComplexTransition(_, _, _, r, _) =>
     r
+}
+controllers :: CTransition pay ctx -> List (ActionController pay ctx)
+export controllers = where {
+  ComplexTransition(_, _, _, _, c) =>
+    c
 }
 checkGuard :: String -> pay -> Maybe ctx -> CTransition pay ctx -> Boolean
 export checkGuard = (ev, pay, ctx, tr) => pipe(

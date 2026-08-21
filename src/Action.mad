@@ -1,6 +1,6 @@
 import type { Maybe } from "Maybe"
 
-import type { Action, Controller } from "@/Types"
+import type { Action } from "@/Types"
 
 import Fn from "Function"
 
@@ -8,13 +8,13 @@ import { Action, PostAction } from "@/Types"
 
 
 
-invoke :: String -> pay -> Maybe ctx -> Controller pay ctx -> Action pay ctx -> {}
-export invoke = (ev, pay, ctx, ctrl, act) => where(act) {
+invoke :: String -> pay -> Maybe ctx -> Action pay ctx -> {}
+export invoke = (ev, pay, ctx, act) => where(act) {
   Action(call) =>
-    call(ev, pay, ctrl, ctx)
+    call(ev, pay, ctx)
 
   PostAction(call) =>
-    call(ev, pay, ctrl, ctx)
+    call(ev, pay, ctx)
 }
 isPostAction :: Action pay ctx -> Boolean
 export isPostAction = where {

@@ -10,9 +10,9 @@ import { InvalidController, Machine } from "@/Types"
 
 
 
-xctrl = InvalidController("This is a test", Machine("test", [], Nothing), Set.empty)
+// xctrl = InvalidController("This is a test", Machine("test", [], Nothing), Set.empty)
 Study.report(
-  Study.caseN5(Action.invoke),
+  Study.caseN4(Action.invoke),
   "actions can be invoked",
   [
     #[
@@ -20,9 +20,8 @@ Study.report(
         "one",
         Just("two"),
         Just("three"),
-        xctrl,
         T.Action(
-          (ev, pay, ctrl, mCtx) => where(#[pay, mCtx]) {
+          (ev, pay, mCtx) => where(#[pay, mCtx]) {
             #[Just(_b), Just(_c)] =>
               do {
                 assertEquals(#[ev, _b, _c], #["one", "two", "three"])

@@ -37,8 +37,8 @@ STATES = {
   counting: State.create(
     "COUNTING",
     [
-      Transition.createComplex("COUNT", "COUNTING", [], [UNDER_TEN], [ADD_ONE]),
-      Transition.createComplex("FINISH", "DONE", [], [Guard.invert(UNDER_TEN)], []),
+      Transition.createComplex("COUNT", "COUNTING", [], [UNDER_TEN], [ADD_ONE], []),
+      Transition.createComplex("FINISH", "DONE", [], [Guard.invert(UNDER_TEN)], [], []),
     ],
   ),
   done: State.createFinal("DONE"),

@@ -67,6 +67,7 @@ test(
               },
             ),
           ],
+          [],
         ),
       ],
     )
@@ -117,7 +118,16 @@ test(
   () => do {
     ONLY = State.create(
       "only",
-      [Transition.createWithContext("again", "only", [], [GUARD_THE_LIMIT], [INCREASE_THE_LIMIT])],
+      [
+        Transition.createWithContext(
+          "again",
+          "only",
+          [],
+          [GUARD_THE_LIMIT],
+          [INCREASE_THE_LIMIT],
+          [],
+        ),
+      ],
     )
     machine = Machine.create("uno", [ONLY])
     DATA = { count: 0 }

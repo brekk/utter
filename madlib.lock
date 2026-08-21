@@ -27,15 +27,15 @@
       "version": "0.0.6",
       "versionHash": "cf12946e6e3b4847d54e3b71a38c6145"
     },
-    "https://github.com/brekk/vizier/archive/refs/tags/v0.0.2.zip": {
-      "buildHash": "01dca6b4a56f01e5303d3bc30d15cfd0",
+    "https://github.com/brekk/vizier/archive/refs/tags/v0.0.3.zip": {
+      "buildHash": "88a3c8fab4e8b7275786eb14c3b078fc",
       "dependencies": [
         "https://github.com/brekk/study/archive/refs/tags/v0.0.6.zip",
         "https://github.com/brekk/party-bus/archive/refs/tags/v0.0.6.zip"
       ],
       "name": "vizier",
-      "version": "0.0.2",
-      "versionHash": "f9df19c8ed7b93c9843bcaef9576a042"
+      "version": "0.0.3",
+      "versionHash": "1a5f24930565e0a552fe015200b3ee1a"
     }
   }
 }
