@@ -1,10 +1,11 @@
 {
-  "buildHash": "8f0c629dbb505e537a4cc7dfa50ef2fb",
+  "buildHash": "df5abef9729ea4c6bf80e95cdd78b67a",
   "jsApi": {
     "apiInstances": [],
     "apiAliases": {
       "src/Types.mad#ReducerFn pay ctx": "(String -> pay -> Maybe ctx -> Maybe ctx)",
-      "src/Types.mad#ActionFn pay ctx": "(String -> pay -> Controller pay ctx -> Maybe ctx -> {})",
+      "src/Types.mad#ActionControllerFn pay ctx": "(Controller pay ctx -> String -> pay -> Maybe ctx -> Controller pay ctx)",
+      "src/Types.mad#ActionFn pay ctx": "(String -> pay -> Maybe ctx -> {})",
       "src/Types.mad#Stateish pay ctx": "(Maybe (State pay ctx))",
       "src/Types.mad#GuardianFn pay ctx": "(String -> pay -> Maybe ctx -> Boolean)"
     },
@@ -18,10 +19,13 @@
       "Transition": "String -> String -> Transition",
       "Controller": "Maybe a -> Machine b a -> Maybe (State b a) -> (Machine b a -> Maybe (State b a) -> String -> Maybe (State b a)) -> Controller b a",
       "Reducer": "(String -> a -> Maybe b -> Maybe b) -> Reducer a b",
-      "ComplexTransition": "Transition -> List (Action a b) -> List (Guard a b) -> List (Reducer a b) -> CTransition a b",
-      "Action": "(String -> a -> Controller a b -> Maybe b -> {}) -> Action a b"
+      "ComplexTransition": "Transition -> List (Action a b) -> List (Guard a b) -> List (Reducer a b) -> List (ActionController a b) -> CTransition a b",
+      "Action": "(String -> a -> Maybe b -> {}) -> Action a b"
     },
     "apiTypes": {
+      "src/Types.mad#ActionController pay ctx": [
+        "ActionController (ActionControllerFn pay ctx)"
+      ],
       "src/Types.mad#Action pay ctx": [
         "Action (ActionFn pay ctx)",
         "PostAction (ActionFn pay ctx)"
@@ -43,7 +47,7 @@
         "Transition String String"
       ],
       "src/Types.mad#CTransition pay ctx": [
-        "ComplexTransition Transition (List (Action pay ctx)) (List (Guard pay ctx)) (List (Reducer pay ctx))"
+        "ComplexTransition Transition (List (Action pay ctx)) (List (Guard pay ctx)) (List (Reducer pay ctx)) (List (ActionController pay ctx))"
       ],
       "src/Types.mad#Controller pay ctx": [
         "InvalidController String (Machine pay ctx) (Set String)",
@@ -55,7 +59,8 @@
     "apiInstances": [],
     "apiAliases": {
       "src/Types.mad#ReducerFn pay ctx": "(String -> pay -> Maybe ctx -> Maybe ctx)",
-      "src/Types.mad#ActionFn pay ctx": "(String -> pay -> Controller pay ctx -> Maybe ctx -> {})",
+      "src/Types.mad#ActionControllerFn pay ctx": "(Controller pay ctx -> String -> pay -> Maybe ctx -> Controller pay ctx)",
+      "src/Types.mad#ActionFn pay ctx": "(String -> pay -> Maybe ctx -> {})",
       "src/Types.mad#Stateish pay ctx": "(Maybe (State pay ctx))",
       "src/Types.mad#GuardianFn pay ctx": "(String -> pay -> Maybe ctx -> Boolean)"
     },
@@ -69,10 +74,13 @@
       "Transition": "String -> String -> Transition",
       "Controller": "Maybe a -> Machine b a -> Maybe (State b a) -> (Machine b a -> Maybe (State b a) -> String -> Maybe (State b a)) -> Controller b a",
       "Reducer": "(String -> a -> Maybe b -> Maybe b) -> Reducer a b",
-      "ComplexTransition": "Transition -> List (Action a b) -> List (Guard a b) -> List (Reducer a b) -> CTransition a b",
-      "Action": "(String -> a -> Controller a b -> Maybe b -> {}) -> Action a b"
+      "ComplexTransition": "Transition -> List (Action a b) -> List (Guard a b) -> List (Reducer a b) -> List (ActionController a b) -> CTransition a b",
+      "Action": "(String -> a -> Maybe b -> {}) -> Action a b"
     },
     "apiTypes": {
+      "src/Types.mad#ActionController pay ctx": [
+        "ActionController (ActionControllerFn pay ctx)"
+      ],
       "src/Types.mad#Action pay ctx": [
         "Action (ActionFn pay ctx)",
         "PostAction (ActionFn pay ctx)"
@@ -94,7 +102,7 @@
         "Transition String String"
       ],
       "src/Types.mad#CTransition pay ctx": [
-        "ComplexTransition Transition (List (Action pay ctx)) (List (Guard pay ctx)) (List (Reducer pay ctx))"
+        "ComplexTransition Transition (List (Action pay ctx)) (List (Guard pay ctx)) (List (Reducer pay ctx)) (List (ActionController pay ctx))"
       ],
       "src/Types.mad#Controller pay ctx": [
         "InvalidController String (Machine pay ctx) (Set String)",
