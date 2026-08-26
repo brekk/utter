@@ -4,64 +4,29 @@ import type { Action, ActionController, CTransition, Guard, Reducer, Transition 
 
 import IO from "IO"
 import List from "List"
-import { Just, Nothing, fromMaybe } from "Maybe"
 // import { Just, Nothing, fromMaybe } from "Maybe"
 import String from "String"
 
 import Guard from "@/Guard"
 import Log from "@/Log"
-import { ComplexTransition, Reducer, Transition, VerboseTransition } from "@/Types"
+import { ComplexTransition, Reducer, Transition } from "@/Types"
 
 
 
 export create = Transition
 export createComplex = (k, v, a, g, r, x) => ComplexTransition(create(k, v), a, g, r, x)
-export createVerbose = (vvv, k, v, a, g, r, x) => VerboseTransition(
-  vvv,
-  ComplexTransition(create(k, v), a, g, r, x),
-)
 export makeComplex = ComplexTransition($, [], [], [], [])
 // useful in testing, mostly shouldn't be used for realsies
 export createBasic = createComplex($, $, [], [], [], [])
-createWithContext :: (Show ctx, Show pay, Eq ctx, Eq pay) => String
-  -> String
-  -> List (Action pay ctx)
-  -> List (Guard pay ctx)
-  -> List (Reducer pay ctx)
-  -> List (ActionController pay ctx)
-  -> CTransition pay ctx
-export createWithContext = (fromEventName, toDestination, a, g, r, c) => pipe(
-  createComplex($, toDestination, a, g, r, c),
-  Log
-    .tapped
-    .transition(
-      "created",
-      pipe(
-        verboseName,
-        fromMaybe(fromEventName),
-      ),
-    ),
+name :: CTransition pay ctx -> String
+export name = pipe(
+  transition,
+  event,
+)
+export createWithContext = (fromEventName, toDestination, a, g, r, x) => pipe(
+  createComplex($, toDestination, a, g, r, x),
+  Log.tapped.transition("created", name),
 )(fromEventName)
-export createVerboseWithContext = (vvv, fromEventName, toDestination, a, g, r, c) => pipe(
-  createWithContext(fromEventName, toDestination, a, g, r),
-  VerboseTransition(vvv),
-)(c)
-isVerbose :: CTransition pay ctx -> Boolean
-export isVerbose = where {
-  VerboseTransition(_, _) =>
-    true
-
-  _ =>
-    false
-}
-verboseName :: CTransition pay ctx -> Maybe String
-export verboseName = where {
-  VerboseTransition(n, _) =>
-    Just(n)
-
-  _ =>
-    Nothing
-}
 event :: Transition -> String
 export event = where {
   Transition(e, _) =>
@@ -76,15 +41,7 @@ transition :: CTransition pay ctx -> Transition
 export transition = where {
   ComplexTransition(t, _, _, _, _) =>
     t
-
-  VerboseTransition(_, c) =>
-    transition(c)
 }
-name :: CTransition pay ctx -> String
-export name = pipe(
-  transition,
-  event,
-)
 focus :: CTransition pay ctx -> String
 export focus = pipe(
   transition,
@@ -94,33 +51,21 @@ actions :: CTransition pay ctx -> List (Action pay ctx)
 export actions = where {
   ComplexTransition(_, m, _, _, _) =>
     m
-
-  VerboseTransition(_, c) =>
-    actions(c)
 }
 guards :: CTransition pay ctx -> List (Guard pay ctx)
 export guards = where {
   ComplexTransition(_, _, g, _, _) =>
     g
-
-  VerboseTransition(_, c) =>
-    guards(c)
 }
 reducers :: CTransition pay ctx -> List (Reducer pay ctx)
 export reducers = where {
   ComplexTransition(_, _, _, r, _) =>
     r
-
-  VerboseTransition(_, c) =>
-    reducers(c)
 }
 controllers :: CTransition pay ctx -> List (ActionController pay ctx)
 export controllers = where {
   ComplexTransition(_, _, _, _, c) =>
     c
-
-  VerboseTransition(_, c) =>
-    controllers(c)
 }
 checkGuard :: String -> pay -> Maybe ctx -> CTransition pay ctx -> Boolean
 export checkGuard = (ev, pay, ctx, tr) => pipe(
@@ -131,17 +76,7 @@ checkMany :: String -> pay -> Maybe ctx -> List (CTransition pay ctx) -> Boolean
 export checkMany = (ev, pay, ctx, trx) => List.reduce(
   (passing, a) => if (passing) do {
     checked = checkGuard(ev, pay, ctx, a)
-    Log
-      .env
-      .guard(
-        verboseName(a) ?? "unnamed",
-        if (!checked) {
-          "failed "
-        } else {
-          "passed "
-        }
-          ++ ev,
-      )
+    Log.env.guard("checking: " ++ ev, !checked)
     return checked
   } else {
     false

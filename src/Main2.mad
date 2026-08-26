@@ -82,8 +82,7 @@ machine2 = Machine.create(
     State.create(
       "only",
       [
-        Transition.createVerboseWithContext(
-          "again-loop",
+        Transition.createWithContext(
           "again",
           "only",
           [ANNOUNCE],
@@ -91,9 +90,8 @@ machine2 = Machine.create(
           [INCREASE_THE_LIMIT],
           [EVENTUALLY_GO_TO_THE_END],
         ),
-        Transition.createVerboseWithContext(
-          "again-inter",
-          "again",
+        Transition.createWithContext(
+          "again-out",
           "intermediate",
           [ANNOUNCE],
           [Guard.invert(GUARD_THE_LIMIT)],
