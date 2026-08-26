@@ -40,3 +40,4 @@ export type CTransition pay ctx
     List (Reducer pay ctx),
     List (ActionController pay ctx),
   )
+  | VerboseTransition(String, CTransition pay ctx)

@@ -9,7 +9,6 @@ import { Guard } from "@/Types"
 
 export create = pipe(
   Guard,
-  Log.env.guard("created"),
 )
 check :: String -> pay -> Maybe ctx -> Guard pay ctx -> Boolean
 export check = (ev, pay, ctx, guard) => where(guard) {

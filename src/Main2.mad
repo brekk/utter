@@ -12,7 +12,7 @@ import Machine from "@/Machine"
 import State from "@/State"
 import Stream from "@/Stream"
 import Transition from "@/Transition"
-import { Action, Reducer } from "@/Types"
+import { Action, ActionController, Reducer } from "@/Types"
 
 
 
@@ -45,7 +45,7 @@ INCREASE_THE_LIMIT = Reducer(
       con
   },
 )
-ANNOUNCE = Action((ev, pay, ctrl, ctx) => { IO.pTrace(">>>", #[ev, pay, ctrl, ctx]) })
+ANNOUNCE = Action((ev, pay, ctx) => { IO.pTrace(">>>", #[ev, pay, ctx]) })
 ONLY = State.create(
   "only",
   [
@@ -55,28 +55,83 @@ ONLY = State.create(
       [ANNOUNCE],
       [GUARD_THE_LIMIT],
       [INCREASE_THE_LIMIT],
+      [],
     ),
   ],
 )
 machine = Machine.create("uno", [ONLY])
-mainNoStream = () => {
+EVENTUALLY_GO_TO_THE_END = ActionController(
+  (ctrl, ev, pay, mCtx) => where(#[pay, mCtx]) {
+    #[Just(_pay), Just(ctx)] =>
+      do {
+        IO.pTrace("ACTION CONTROLLER", #[ev, pay, mCtx])
+        return if (_pay.count + ctx.count > THE_LIMIT) {
+          Interpreter.send("stop", Nothing, ctrl)
+        } else {
+          ctrl
+        }
+      }
+
+    _ =>
+      ctrl
+  },
+)
+machine2 = Machine.create(
+  "duo",
+  [
+    State.create(
+      "only",
+      [
+        Transition.createVerboseWithContext(
+          "again-loop",
+          "again",
+          "only",
+          [ANNOUNCE],
+          [GUARD_THE_LIMIT],
+          [INCREASE_THE_LIMIT],
+          [EVENTUALLY_GO_TO_THE_END],
+        ),
+        Transition.createVerboseWithContext(
+          "again-inter",
+          "again",
+          "intermediate",
+          [ANNOUNCE],
+          [Guard.invert(GUARD_THE_LIMIT)],
+          [],
+          [],
+        ),
+      ],
+    ),
+    State.create("intermediate", [Transition.createComplex("stop", "end", [ANNOUNCE], [], [], [])]),
+    State.createFinal("end"),
+  ],
+)
+// /*
+main = () => {
   DATA = { count: 0 }
-  service = Interpreter.create(Just(DATA), machine)
+  service = Interpreter.create(Just(DATA), machine2)
   IO.pTrace("CONTEXT 1", Interpreter.context(service))
   service2 = Interpreter.send("again", Just({ count: 1 }), service)
   IO.pTrace("CONTEXT 2", Interpreter.context(service2))
   service3 = Interpreter.send("again", Just({ count: 1 }), service2)
   IO.pTrace("CONTEXT 3", Interpreter.context(service3))
+
+  service4 = Interpreter.send("again", Just({ count: 1 }), service3)
+  IO.pTrace("CONTEXT 4", Interpreter.context(service4))
   // shouldn't run because it would exceed THE_LIMIT
   serviceNo = Interpreter.send("again", Just({ count: 10 }), service3)
-  IO.pTrace("CONTEXT 4", Interpreter.context(serviceNo))
+  IO.pTrace("CONTEXT 5", Interpreter.context(serviceNo))
+  serviceYes = Interpreter.send("again", Just({ count: 2 }), service3)
+  IO.pTrace("CONTEXT 5a", Interpreter.context(serviceYes))
 }
-main = () => {
+
+// */
+/*main = () => {
   DATA = { count: 0 }
-  service = Interpreter.create(Just(DATA), machine)
+  service = Interpreter.create(Just(DATA), machine2)
 
   #[send, _stream] = Stream.makeMachineStream(service)
-  viz = Graph.toDot(machine)
+  // viz = Graph.toDot(machine)
   stream = pipe(
     map(Log.env.main("barfo")),
     chain((v) => StreamPrelude.good(v)),
@@ -92,11 +147,9 @@ main = () => {
   )
   send("again", Just({ count: 1 }))
   send("again", Just({ count: 1 }))
-  send("again", Just({ count: 1 }))
-  send("again", Just({ count: 1 }))
-  send("again", Just({ count: 1 }))
-  send("again", Just({ count: 1 }))
-  send("again", Just({ count: 1 }))
+  send("again", Just({ count: 3 }))
+  send("again", Just({ count: 3 }))
   IO.pTrace("<><> EVENTS <><>", events())
-  IO.put(Graph.toDot(machine))
+  IO.put(Graph.toDot(machine2))
 }
+*/
