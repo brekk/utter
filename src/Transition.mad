@@ -83,21 +83,16 @@ export modifiers = where {
   ImmediateTransition(_, m) =>
     m
 }
+onlyMod = (filt, x) => pipe(
+  modifiers,
+  List.filter(filt),
+)(x)
 actions :: Transition pay ctx -> List (TransitionModifier pay ctx)
-export actions = pipe(
-  modifiers,
-  List.filter(Modifier.isAction),
-)
+export actions = onlyMod(Modifier.isAction)
 guards :: Transition pay ctx -> List (TransitionModifier pay ctx)
-export guards = pipe(
-  modifiers,
-  List.filter(Modifier.isAction),
-)
+export guards = onlyMod(Modifier.isGuard)
 reducers :: Transition pay ctx -> List (TransitionModifier pay ctx)
-export reducers = pipe(
-  modifiers,
-  List.filter(Modifier.isAction),
-)
+export reducers = onlyMod(Modifier.isReducer)
 checkGuard :: String -> pay -> Maybe ctx -> Transition pay ctx -> Boolean
 export checkGuard = (ev, pay, ctx, tr) => pipe(
   guards,

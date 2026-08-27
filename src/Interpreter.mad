@@ -127,9 +127,9 @@ export stateFromEvent = (eventMap, states, stateName, eventName) => pipe(
     ),
   ),
 )(eventMap)
-// step does not check validity based on guards!
+// _step does not check validity based on guards!
 _step :: String -> String -> Machine pay ctx -> Stateish pay ctx
-export _step = (ev, stateName, mch) => if (Machine.hasEvent(ev, mch)) {
+_step = (ev, stateName, mch) => if (Machine.hasEvent(ev, mch)) {
   pipe(
     stateFromEvent(Machine.eventMap(mch), Machine.rawStates(mch), stateName),
   )(ev)
@@ -138,8 +138,8 @@ export _step = (ev, stateName, mch) => if (Machine.hasEvent(ev, mch)) {
 }
 // stepWithPayload does not check validity either!
 // it is the default interior run step for the Controller
-// _stepWithPayload :: Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx
-export _stepWithPayload = (mCtx, mch, current, ev) => where(#[mCtx, current]) {
+_stepWithPayload :: Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx
+_stepWithPayload = (mCtx, mch, current, ev) => where(#[mCtx, current]) {
   #[Just(ctx), Just(State(stateName, trx))] =>
     _step(ev, stateName, mch)
 
@@ -157,7 +157,7 @@ processReducers = (ev, payload, ctx, tr) => pipe(
   List.reduce(ActionReducer.reduce(ev, payload), ctx),
 )(tr)
 // apply all actions and fire side effects
-processActionsWithFilter :: (TransitionModifier pay ctx -> Boolean)
+processActionsWithFilter :: (Show pay, Show ctx) => (TransitionModifier pay ctx -> Boolean)
   -> String
   -> pay
   -> Maybe ctx
@@ -174,8 +174,8 @@ processActionsWithFilter = (filter, ev, payload, ctx, tr) => pipe(
     ctx,
   ),
 )(tr)
-export processActions = processActionsWithFilter(Modifier.isAction)
-export postprocessActions = processActionsWithFilter(Modifier.isPostAction)
+processActions = processActionsWithFilter(Modifier.isAction)
+postprocessActions = processActionsWithFilter(Modifier.isPostAction)
 processAllImmediateTransitions :: (Show pay, Show ctx) => pay
   -> Maybe ctx
   -> List (Transition pay ctx)

@@ -1,0 +1,5 @@
+expectedModifier = (g) => `Expected a ${g} modifier.`
+export EXPECTED_GUARD = expectedModifier("Guard")
+export EXPECTED_REDUCER = expectedModifier("Reducer")
+export EXPECTED_ACTION = expectedModifier("Action")
+export EXPECTED_POSTACTION = expectedModifier("PostAction")

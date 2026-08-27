@@ -4,6 +4,7 @@ import Set from "Set"
 import Study from "Study"
 
 import Guard from "@/Guard"
+import Interpreter from "@/Interpreter"
 import Inter from "@/Interpreter"
 import Machine from "@/Machine"
 import Reducer from "@/Reducer"
@@ -37,8 +38,8 @@ STATES = {
   counting: State.create(
     "COUNTING",
     [
-      Transition.create("COUNT", "COUNTING", [], [UNDER_TEN], [ADD_ONE]),
-      Transition.create("FINISH", "DONE", [], [Guard.invert(UNDER_TEN)], []),
+      Transition.create("COUNT", "COUNTING", [UNDER_TEN, ADD_ONE]),
+      Transition.create("FINISH", "DONE", [Guard.invert(UNDER_TEN)]),
     ],
   ),
   done: State.createFinal("DONE"),
@@ -52,18 +53,8 @@ NOTHING_MACHINE = T.Machine(
   [STATES.initial, STATES.loaded, STATES.counting, STATES.done],
   Nothing,
 )
-COUNTING_SERVICE = T.Controller(
-  Just({ count: 0 }),
-  COUNTING_MACHINE,
-  Just(STATES.initial),
-  Inter._stepWithPayload,
-)
-NOTHING_SERVICE = T.Controller(
-  Nothing,
-  NOTHING_MACHINE,
-  Just(STATES.initial),
-  Inter._stepWithPayload,
-)
+COUNTING_SERVICE = Interpreter.create(Just({ count: 0 }), COUNTING_MACHINE)
+NOTHING_SERVICE = Interpreter.create(Nothing, NOTHING_MACHINE)
 BAD_SERVICE = T.InvalidController("this is a test", NOTHING_MACHINE, Set.empty)
 Study.report(
   Inter.safeCreate(Just({ count: 0 })),

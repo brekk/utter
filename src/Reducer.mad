@@ -2,15 +2,23 @@ import type { Maybe } from "Maybe"
 
 import type { TransitionModifier } from "@/Types"
 
+import Mod from "@/TransitionModifier"
 import { Reducer } from "@/Types"
 
 
 
-reduce :: String -> pay -> Maybe ctx -> TransitionModifier pay ctx -> Maybe ctx
-export reduce = (ev, pay, ctx, act) => where(act) {
-  Reducer(call) =>
-    call(ev, pay, ctx)
+reduce :: (Show pay, Show ctx) => String
+  -> pay
+  -> Maybe ctx
+  -> TransitionModifier pay ctx
+  -> Maybe ctx
+export reduce = (ev, pay, ctx, act) => pipe(
+  Mod.ensureReducer,
+  where {
+    Reducer(call) =>
+      call(ev, pay, ctx)
 
-  _ =>
-    ???
-}
+    _ =>
+      ???
+  },
+)(act)

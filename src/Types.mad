@@ -6,6 +6,10 @@ import String from "String"
 
 
 
+// sugar
+export alias GuardianFn pay ctx = String -> pay -> Maybe ctx -> Boolean
+export alias ActionFn pay ctx = String -> pay -> Maybe ctx -> {}
+export alias ReducerFn pay ctx = String -> pay -> Maybe ctx -> Maybe ctx
 // proper types
 export type Machine pay ctx = Machine(String, List (State pay ctx), Maybe (State pay ctx))
 export type State pay ctx = State(String, List (Transition pay ctx)) | FinalState(String)
@@ -17,22 +21,15 @@ export type Controller pay ctx
     Stateish pay ctx,
     Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx,
   )
-// export type Guard pay ctx = Guard(String -> pay -> Maybe ctx -> Boolean)
-// export type Action pay ctx = Action(ActionFn pay ctx) | PostAction(ActionFn pay ctx)
-// export type Reducer pay ctx = Reducer(String -> pay -> Maybe ctx -> Maybe ctx)
-
+export alias Stateish pay ctx = Maybe (State pay ctx)
 export type TransitionModifier pay ctx
-  = Guard(String -> pay -> Maybe ctx -> Boolean)
+  = Guard(GuardianFn pay ctx)
   | Action(ActionFn pay ctx)
   | PostAction(ActionFn pay ctx)
-  | Reducer(String -> pay -> Maybe ctx -> Maybe ctx)
+  | Reducer(ReducerFn pay ctx)
   | InvalidModifier(String)
 // aliases
 export alias TransitionModifiers pay ctx = List (TransitionModifier pay ctx)
-export alias Stateish pay ctx = Maybe (State pay ctx)
-export alias GuardianFn pay ctx = String -> pay -> Maybe ctx -> Boolean
-export alias ActionFn pay ctx = String -> pay -> Maybe ctx -> {}
-export alias ReducerFn pay ctx = String -> pay -> Maybe ctx -> Maybe ctx
 export type TransitionPath = TransitionPath(String, String) | ImmediatePath(String)
 export type Transition pay ctx
   = Transition(TransitionPath, TransitionModifiers pay ctx)

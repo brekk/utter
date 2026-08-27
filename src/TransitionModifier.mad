@@ -1,3 +1,5 @@
+import CONSTANTS from "@/Constants"
+import Log from "@/Log"
 import { Action, Guard, InvalidModifier, PostAction, Reducer } from "@/Types"
 
 
@@ -47,3 +49,19 @@ export isInvalidModifier = where {
   _ =>
     false
 }
+export orInvalid = (why, checker, x) => if (checker(x)) {
+  x
+} else {
+  Log
+    .tapped
+    .modifier("Modifier processed in an invalid location", (y) => #[x, y], InvalidModifier(why))
+}
+export onlyGuard = orInvalid($, isGuard)
+export ensureGuard = onlyGuard(CONSTANTS.EXPECTED_GUARD)
+export onlyAction = orInvalid($, isAction)
+export ensureAction = onlyAction(CONSTANTS.EXPECTED_ACTION)
+export onlyPostAction = orInvalid($, isPostAction)
+export ensurePostAction = onlyPostAction(CONSTANTS.EXPECTED_POSTACTION)
+export onlyStrictAction = orInvalid($, isStrictAction)
+export onlyReducer = orInvalid($, isReducer)
+export ensureReducer = onlyReducer(CONSTANTS.EXPECTED_REDUCER)

@@ -1,12 +1,10 @@
 import { Just, Nothing } from "Maybe"
-import Set from "Set"
 import { assertEquals } from "Test"
 
 import Study from "Study"
 
 import Action from "@/Action"
 import T from "@/Types"
-import { InvalidController, Machine } from "@/Types"
 
 
 

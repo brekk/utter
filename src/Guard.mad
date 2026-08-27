@@ -3,29 +3,46 @@ import type { Maybe } from "Maybe"
 import type { GuardianFn, TransitionModifier } from "@/Types"
 
 import Log from "@/Log"
+import Modifier from "@/TransitionModifier"
 import { Guard } from "@/Types"
 
 
 
-export create = pipe(
-  Guard,
-)
+export create = Guard
 check :: String -> pay -> Maybe ctx -> TransitionModifier pay ctx -> Boolean
 export check = (ev, pay, ctx, guard) => where(guard) {
   Guard(engarde) =>
     engarde(ev, pay, ctx)
 
   _ =>
-    ???
+    false
 }
 complement :: GuardianFn pay ctx -> String -> pay -> Maybe ctx -> Boolean
 export complement = (fn, ev, mPay, mCtx) => !fn(ev, mPay, mCtx)
 // protect ya neck
-invert :: TransitionModifier pay ctx -> TransitionModifier pay ctx
-export invert = (g) => where(g) {
-  Guard(fn) =>
-    Guard((ev, pay, mCtx) => !fn(ev, pay, mCtx))
+invert :: (Show pay, Show ctx) => TransitionModifier pay ctx -> TransitionModifier pay ctx
+export invert = pipe(
+  Modifier.ensureGuard,
+  where {
+    Guard(fn) =>
+      Guard((ev, pay, mCtx) => !fn(ev, pay, mCtx))
 
-  _ =>
-    ???
-}
+    _ =>
+      ???
+  },
+)
+export herald = (binaryLogger, k, guard) => pipe(
+  Modifier.ensureGuard,
+  where {
+    Guard(fn) =>
+      Guard(
+        pipe(
+          binaryLogger(k),
+          fn,
+        ),
+      )
+
+    _ =>
+      ???
+  },
+)(guard)

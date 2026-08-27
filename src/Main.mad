@@ -24,6 +24,7 @@ GUARD_THE_LIMIT = Guard.create(
       && where(#[mCtx, pay]) {
         #[Just(ctx), Just(_pay)] =>
           do {
+            IO.pTrace("THE CHEAT", #[pay, ctx])
             count = ctx.count + _pay.count
             return count <= THE_LIMIT
           }
@@ -85,13 +86,19 @@ machine2 = Machine.create(
 )
 // /*
 main = () => {
-  DATA = { count: 0, hooray: false }
-  service = Interpreter.create(Just(DATA), machine2)
-  IO.pTrace("CONTEXT 1", Interpreter.context(service))
-  service2 = Interpreter.send("fetch", Nothing, service)
-  IO.pTrace("CONTEXT 2", Interpreter.context(service2))
-  service3 = Interpreter.send("done", Nothing, service2)
-  IO.pTrace("CONTEXT 3", Interpreter.context(service3))
+  DATA = { count: 0 }
+  service = Interpreter.create(Just(DATA), machine)
+  IO.pTrace("A CONTEXT 1", Interpreter.context(service))
+  service_2 = Interpreter.send("again", Just({ count: 3 }), service)
+  IO.pTrace("A CONTEXT 2", Interpreter.context(service_2))
+
+  DATA2 = { count: 0, hooray: false }
+  service2 = Interpreter.create(Just(DATA2), machine2)
+  IO.pTrace("B CONTEXT 1", Interpreter.context(service2))
+  service2_2 = Interpreter.send("fetch", Nothing, service)
+  IO.pTrace("B CONTEXT 2", Interpreter.context(service2_2))
+  service2_3 = Interpreter.send("done", Nothing, service2)
+  IO.pTrace("B CONTEXT 3", Interpreter.context(service2_3))
   //
   // service4 = Interpreter.send("again", Just({ count: 1 }), service3)
   // IO.pTrace("CONTEXT 4", Interpreter.context(service4))

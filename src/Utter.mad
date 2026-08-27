@@ -1,18 +1,13 @@
 import type {
-  Action,
   ActionFn,
-  Actions,
   Controller,
-  Guard,
   GuardianFn,
-  Guards,
   Machine,
-  Reducer,
   ReducerFn,
-  Reducers,
   State,
   Stateish,
   Transition,
+  TransitionModifier,
   TransitionPath,
 } from "@/Types"
 
@@ -35,6 +30,7 @@ export type Reducers
 export type State
 export type Stateish
 export type Transition
+export type TransitionModifier
 export type TransitionPath
 // CONSTRUCTORS
 export Machine = T.Machine
