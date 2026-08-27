@@ -7,7 +7,7 @@ import Study from "Study"
 import Machine from "@/Machine"
 import State from "@/State"
 import Transition from "@/Transition"
-import T from "@/Types"
+import T from "@/Utter"
 
 
 

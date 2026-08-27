@@ -1,116 +1,82 @@
 {
-  "buildHash": "86ace3d1ce0c7016f3bac91b97ccb6d3",
+  "buildHash": "b3351c9ab8dac4f0cf30989a88916ded",
   "jsApi": {
     "apiInstances": [],
     "apiAliases": {
-      "src/Types.mad#ReducerFn pay ctx": "(String -> pay -> Maybe ctx -> Maybe ctx)",
-      "src/Types.mad#Reducers pay ctx": "(List (Reducer pay ctx))",
-      "src/Types.mad#Actions pay ctx": "(List (Action pay ctx))",
-      "src/Types.mad#Guards pay ctx": "(List (Guard pay ctx))",
-      "src/Types.mad#ActionFn pay ctx": "(String -> pay -> Maybe ctx -> {})",
-      "src/Types.mad#Stateish pay ctx": "(Maybe (State pay ctx))",
-      "src/Types.mad#GuardianFn pay ctx": "(String -> pay -> Maybe ctx -> Boolean)"
+      "TransitionModifiers pay ctx": "(List (TransitionModifier pay ctx))",
+      "ReducerFn pay ctx": "(String -> pay -> Maybe ctx -> Maybe ctx)",
+      "Stateish pay ctx": "(Maybe (State pay ctx))",
+      "ActionFn pay ctx": "(String -> pay -> Maybe ctx -> {})",
+      "GuardianFn pay ctx": "(String -> pay -> Maybe ctx -> Boolean)"
     },
     "apiInterfaces": {},
-    "apiNames": {
-      "FinalState": "String -> State a b",
-      "InvalidController": "String -> Machine a b -> Set String -> Controller a b",
-      "ImmediatePath": "String -> TransitionPath",
-      "State": "String -> List (Transition a b) -> State a b",
-      "ImmediateTransition": "TransitionPath -> List (Action a b) -> List (Guard a b) -> List (Reducer a b) -> Transition a b",
-      "Machine": "String -> List (State a b) -> Maybe (State a b) -> Machine a b",
-      "Transition": "TransitionPath -> List (Action a b) -> List (Guard a b) -> List (Reducer a b) -> Transition a b",
-      "Controller": "Maybe a -> Machine b a -> Maybe (State b a) -> (Maybe a -> Machine b a -> Maybe (State b a) -> String -> Maybe (State b a)) -> Controller b a",
-      "TransitionPath": "String -> String -> TransitionPath",
-      "Action": "(String -> a -> Maybe b -> {}) -> Action a b",
-      "PostAction": "(String -> a -> Maybe b -> {}) -> Action a b"
-    },
+    "apiNames": {},
     "apiTypes": {
-      "src/Types.mad#TransitionPath": [
+      "Controller pay ctx": [
+        "InvalidController String (Machine pay ctx) (Set String)",
+        "Controller (Maybe ctx) (Machine pay ctx) (Stateish pay ctx) (Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx)"
+      ],
+      "Transition pay ctx": [
+        "Transition TransitionPath (TransitionModifiers pay ctx)",
+        "ImmediateTransition TransitionPath (TransitionModifiers pay ctx)"
+      ],
+      "Machine pay ctx": [
+        "Machine String (List (State pay ctx)) (Maybe (State pay ctx))"
+      ],
+      "TransitionModifier pay ctx": [
+        "Guard (GuardianFn pay ctx)",
+        "Action (ActionFn pay ctx)",
+        "PostAction (ActionFn pay ctx)",
+        "Reducer (ReducerFn pay ctx)",
+        "InvalidModifier String"
+      ],
+      "TransitionPath": [
         "TransitionPath String String",
         "ImmediatePath String"
       ],
-      "src/Types.mad#Action pay ctx": [
-        "Action (ActionFn pay ctx)",
-        "PostAction (ActionFn pay ctx)"
-      ],
-      "src/Types.mad#State pay ctx": [
+      "State pay ctx": [
         "State String (List (Transition pay ctx))",
         "FinalState String"
-      ],
-      "src/Types.mad#Machine pay ctx": [
-        "Machine String (List (State pay ctx)) (Maybe (State pay ctx))"
-      ],
-      "src/Types.mad#Guard pay ctx": [
-        "Guard (String -> pay -> Maybe ctx -> Boolean)"
-      ],
-      "src/Types.mad#Reducer pay ctx": [
-        "Reducer (String -> pay -> Maybe ctx -> Maybe ctx)"
-      ],
-      "src/Types.mad#Transition pay ctx": [
-        "Transition TransitionPath (Actions pay ctx) (Guards pay ctx) (Reducers pay ctx)",
-        "ImmediateTransition TransitionPath (Actions pay ctx) (Guards pay ctx) (Reducers pay ctx)"
-      ],
-      "src/Types.mad#Controller pay ctx": [
-        "InvalidController String (Machine pay ctx) (Set String)",
-        "Controller (Maybe ctx) (Machine pay ctx) (Stateish pay ctx) (Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx)"
       ]
     }
   },
   "llvmApi": {
     "apiInstances": [],
     "apiAliases": {
-      "src/Types.mad#ReducerFn pay ctx": "(String -> pay -> Maybe ctx -> Maybe ctx)",
-      "src/Types.mad#Reducers pay ctx": "(List (Reducer pay ctx))",
-      "src/Types.mad#Actions pay ctx": "(List (Action pay ctx))",
-      "src/Types.mad#Guards pay ctx": "(List (Guard pay ctx))",
-      "src/Types.mad#ActionFn pay ctx": "(String -> pay -> Maybe ctx -> {})",
-      "src/Types.mad#Stateish pay ctx": "(Maybe (State pay ctx))",
-      "src/Types.mad#GuardianFn pay ctx": "(String -> pay -> Maybe ctx -> Boolean)"
+      "TransitionModifiers pay ctx": "(List (TransitionModifier pay ctx))",
+      "ReducerFn pay ctx": "(String -> pay -> Maybe ctx -> Maybe ctx)",
+      "Stateish pay ctx": "(Maybe (State pay ctx))",
+      "ActionFn pay ctx": "(String -> pay -> Maybe ctx -> {})",
+      "GuardianFn pay ctx": "(String -> pay -> Maybe ctx -> Boolean)"
     },
     "apiInterfaces": {},
-    "apiNames": {
-      "FinalState": "String -> State a b",
-      "InvalidController": "String -> Machine a b -> Set String -> Controller a b",
-      "ImmediatePath": "String -> TransitionPath",
-      "State": "String -> List (Transition a b) -> State a b",
-      "ImmediateTransition": "TransitionPath -> List (Action a b) -> List (Guard a b) -> List (Reducer a b) -> Transition a b",
-      "Machine": "String -> List (State a b) -> Maybe (State a b) -> Machine a b",
-      "Transition": "TransitionPath -> List (Action a b) -> List (Guard a b) -> List (Reducer a b) -> Transition a b",
-      "Controller": "Maybe a -> Machine b a -> Maybe (State b a) -> (Maybe a -> Machine b a -> Maybe (State b a) -> String -> Maybe (State b a)) -> Controller b a",
-      "TransitionPath": "String -> String -> TransitionPath",
-      "Action": "(String -> a -> Maybe b -> {}) -> Action a b",
-      "PostAction": "(String -> a -> Maybe b -> {}) -> Action a b"
-    },
+    "apiNames": {},
     "apiTypes": {
-      "src/Types.mad#TransitionPath": [
+      "Controller pay ctx": [
+        "InvalidController String (Machine pay ctx) (Set String)",
+        "Controller (Maybe ctx) (Machine pay ctx) (Stateish pay ctx) (Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx)"
+      ],
+      "Transition pay ctx": [
+        "Transition TransitionPath (TransitionModifiers pay ctx)",
+        "ImmediateTransition TransitionPath (TransitionModifiers pay ctx)"
+      ],
+      "Machine pay ctx": [
+        "Machine String (List (State pay ctx)) (Maybe (State pay ctx))"
+      ],
+      "TransitionModifier pay ctx": [
+        "Guard (GuardianFn pay ctx)",
+        "Action (ActionFn pay ctx)",
+        "PostAction (ActionFn pay ctx)",
+        "Reducer (ReducerFn pay ctx)",
+        "InvalidModifier String"
+      ],
+      "TransitionPath": [
         "TransitionPath String String",
         "ImmediatePath String"
       ],
-      "src/Types.mad#Action pay ctx": [
-        "Action (ActionFn pay ctx)",
-        "PostAction (ActionFn pay ctx)"
-      ],
-      "src/Types.mad#State pay ctx": [
+      "State pay ctx": [
         "State String (List (Transition pay ctx))",
         "FinalState String"
-      ],
-      "src/Types.mad#Machine pay ctx": [
-        "Machine String (List (State pay ctx)) (Maybe (State pay ctx))"
-      ],
-      "src/Types.mad#Guard pay ctx": [
-        "Guard (String -> pay -> Maybe ctx -> Boolean)"
-      ],
-      "src/Types.mad#Reducer pay ctx": [
-        "Reducer (String -> pay -> Maybe ctx -> Maybe ctx)"
-      ],
-      "src/Types.mad#Transition pay ctx": [
-        "Transition TransitionPath (Actions pay ctx) (Guards pay ctx) (Reducers pay ctx)",
-        "ImmediateTransition TransitionPath (Actions pay ctx) (Guards pay ctx) (Reducers pay ctx)"
-      ],
-      "src/Types.mad#Controller pay ctx": [
-        "InvalidController String (Machine pay ctx) (Set String)",
-        "Controller (Maybe ctx) (Machine pay ctx) (Stateish pay ctx) (Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx)"
       ]
     }
   },

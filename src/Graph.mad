@@ -4,7 +4,7 @@ import type { Edge, EdgeAttribute } from "vizier/Edge"
 import type { Graph, GraphAttribute } from "vizier/Graph"
 import type { Node, NodeAttribute } from "vizier/Node"
 
-import type { Machine } from "@/Types"
+import type { Machine } from "@/Utter"
 
 import Dict from "Dictionary"
 import List from "List"
@@ -19,7 +19,7 @@ import VNode from "vizier/Node"
 
 import Log from "@/Log"
 import M from "@/Machine"
-import { Machine } from "@/Types"
+import { Machine } from "@/Utter"
 
 
 

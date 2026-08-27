@@ -1,7 +1,7 @@
 import type { Maybe } from "Maybe"
 import type { Set } from "Set"
 
-import type { Machine, State, Stateish } from "@/Types"
+import type { Machine, State, Stateish } from "@/Utter"
 
 import { lt } from "Compare"
 import Dict from "Dictionary"
@@ -15,7 +15,7 @@ import TuplePrelude from "Tuple"
 import State from "@/State"
 import Transition from "@/Transition"
 import Tuple from "@/Tuple"
-import { Machine } from "@/Types"
+import { Machine } from "@/Utter"
 
 
 

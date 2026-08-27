@@ -1,9 +1,9 @@
 import type { Maybe } from "Maybe"
 
-import type { TransitionModifier } from "@/Types"
+import type { TransitionModifier } from "@/Utter"
 
 import Mod from "@/TransitionModifier"
-import { Action, PostAction } from "@/Types"
+import { Action, PostAction } from "@/Utter"
 
 
 

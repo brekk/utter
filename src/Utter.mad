@@ -1,46 +1,36 @@
-import type {
-  ActionFn,
-  Controller,
-  GuardianFn,
-  Machine,
-  ReducerFn,
-  State,
-  Stateish,
-  Transition,
-  TransitionModifier,
-  TransitionPath,
-} from "@/Types"
+import type { Maybe } from "Maybe"
 
-import T from "@/Types"
+import List from "List"
+import Set from "Set"
+import String from "String"
 
 
 
-// TYPES
-export type Action
-export type ActionFn
-export type Actions
-export type Controller
-export type Guard
-export type GuardianFn
-export type Guards
-export type Machine
-export type Reducer
-export type ReducerFn
-export type Reducers
-export type State
-export type Stateish
-export type Transition
-export type TransitionModifier
-export type TransitionPath
-// CONSTRUCTORS
-export Machine = T.Machine
-export State = T.State
-export Transition = T.Transition
-export ImmediateTransition = T.ImmediateTransition
-export Action = T.Action
-export PostAction = T.PostAction
-export TransitionPath = T.TransitionPath
-export ImmediatePath = T.ImmediatePath
-export FinalState = T.FinalState
-export InvalidController = T.InvalidController
-export Controller = T.Controller
+// sugar
+export alias GuardianFn pay ctx = String -> pay -> Maybe ctx -> Boolean
+export alias ActionFn pay ctx = String -> pay -> Maybe ctx -> {}
+export alias ReducerFn pay ctx = String -> pay -> Maybe ctx -> Maybe ctx
+// proper types
+export type Machine pay ctx = Machine(String, List (State pay ctx), Maybe (State pay ctx))
+export type State pay ctx = State(String, List (Transition pay ctx)) | FinalState(String)
+export type Controller pay ctx
+  = InvalidController(String, Machine pay ctx, Set String)
+  | Controller(
+    Maybe ctx,
+    Machine pay ctx,
+    Stateish pay ctx,
+    Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx,
+  )
+export alias Stateish pay ctx = Maybe (State pay ctx)
+export type TransitionModifier pay ctx
+  = Guard(GuardianFn pay ctx)
+  | Action(ActionFn pay ctx)
+  | PostAction(ActionFn pay ctx)
+  | Reducer(ReducerFn pay ctx)
+  | InvalidModifier(String)
+// aliases
+export alias TransitionModifiers pay ctx = List (TransitionModifier pay ctx)
+export type TransitionPath = TransitionPath(String, String) | ImmediatePath(String)
+export type Transition pay ctx
+  = Transition(TransitionPath, TransitionModifiers pay ctx)
+  | ImmediateTransition(TransitionPath, TransitionModifiers pay ctx)

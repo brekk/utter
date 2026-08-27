@@ -12,7 +12,7 @@ import Machine from "@/Machine"
 import State from "@/State"
 import Stream from "@/Stream"
 import Transition from "@/Transition"
-import { Action, Reducer } from "@/Types"
+import { Action, Reducer } from "@/Utter"
 
 
 

@@ -1,10 +1,10 @@
-import type { State, Transition } from "@/Types"
+import type { State, Transition } from "@/Utter"
 
 import Fn from "Function"
 import List from "List"
 import String from "String"
 
-import { FinalState, State } from "@/Types"
+import { FinalState, State } from "@/Utter"
 
 
 

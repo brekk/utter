@@ -1,6 +1,6 @@
 import type { Maybe } from "Maybe"
 
-import type { Transition, TransitionModifier, TransitionPath } from "@/Types"
+import type { Transition, TransitionModifier, TransitionPath } from "@/Utter"
 
 import IO from "IO"
 import List from "List"
@@ -11,7 +11,7 @@ import String from "String"
 import Guard from "@/Guard"
 import Log from "@/Log"
 import Modifier from "@/TransitionModifier"
-import { ImmediatePath, ImmediateTransition, Reducer, Transition, TransitionPath } from "@/Types"
+import { ImmediatePath, ImmediateTransition, Reducer, Transition, TransitionPath } from "@/Utter"
 
 
 

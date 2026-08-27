@@ -8,7 +8,7 @@ import Interpreter from "@/Interpreter"
 import Machine from "@/Machine"
 import State from "@/State"
 import Transition from "@/Transition"
-import { Action, Reducer } from "@/Types"
+import { Action, Reducer } from "@/Utter"
 
 
 

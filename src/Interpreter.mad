@@ -1,6 +1,6 @@
 import type { Maybe } from "Maybe"
 
-import type { Controller, Machine, State, Stateish, Transition, TransitionModifier } from "@/Types"
+import type { Controller, Machine, State, Stateish, Transition, TransitionModifier } from "@/Utter"
 
 import Dict from "Dictionary"
 import Fn from "Function"
@@ -17,7 +17,7 @@ import ActionReducer from "@/Reducer"
 import _State from "@/State"
 import Transition from "@/Transition"
 import Modifier from "@/TransitionModifier"
-import { Controller, InvalidController, State } from "@/Types"
+import { Controller, InvalidController, State } from "@/Utter"
 
 
 
