@@ -12,10 +12,9 @@ import T from "@/Types"
 
 
 Study.report(
-  Transition.createWithContext($, "b", [], [], [], []),
+  Transition.create($, "b", [], [], []),
   "createWithContext",
-  [#["a", T.ComplexTransition(T.Transition("a", "b"), [], [], [], [])]],
+  [#["a", T.Transition(T.TransitionPath("a", "b"), [], [], [])]],
 )
-THAT_ONE_NOISE = Transition.create("connect", "modem")
-Study.report(Transition.target, "target", [#[THAT_ONE_NOISE, "modem"]])
-Study.report(Transition.focus, "focus", [#[Transition.makeComplex(THAT_ONE_NOISE), "modem"]])
+THAT_ONE_NOISE = Transition.createRaw("connect", "modem")
+Study.report(Transition.focus, "focus", [#[THAT_ONE_NOISE, Just("modem")]])

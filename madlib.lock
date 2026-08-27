@@ -10,22 +10,22 @@
       "version": "0.0.10",
       "versionHash": "4d3d03bfb040ab3e2b209e3c62ed614c"
     },
-    "https://github.com/brekk/party-bus/archive/refs/tags/v0.0.8.zip": {
-      "buildHash": "ad6a150dbb2bb6f34cd39215b973d98b",
+    "https://github.com/brekk/party-bus/archive/refs/tags/v0.0.9.zip": {
+      "buildHash": "19488e8e804f79e9328dc37802ce8d6a",
       "dependencies": [
         "https://github.com/brekk/dye/archive/refs/tags/v0.0.10.zip",
-        "https://github.com/brekk/study/archive/refs/tags/v0.0.3.zip"
+        "https://github.com/brekk/study/archive/refs/tags/v0.0.7.zip"
       ],
       "name": "PartyBus",
-      "version": "0.0.8",
-      "versionHash": "03afcd24d3b7852bdef203bc34360409"
+      "version": "0.0.9",
+      "versionHash": "0fe62b963ce472b48dfecf0855803fec"
     },
-    "https://github.com/brekk/study/archive/refs/tags/v0.0.6.zip": {
-      "buildHash": "ea22d1b4088f66d9160d10e6d0079eb7",
+    "https://github.com/brekk/study/archive/refs/tags/v0.0.7.zip": {
+      "buildHash": "919dea83a7ccd0a2a11a03e011ecd52e",
       "dependencies": [],
       "name": "study",
-      "version": "0.0.6",
-      "versionHash": "cf12946e6e3b4847d54e3b71a38c6145"
+      "version": "0.0.7",
+      "versionHash": "18674886c733b8b107f76ff083ead6ea"
     },
     "https://github.com/brekk/vizier/archive/refs/tags/v0.0.3.zip": {
       "buildHash": "88a3c8fab4e8b7275786eb14c3b078fc",

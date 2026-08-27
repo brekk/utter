@@ -32,13 +32,13 @@ ADD_ONE = T.Reducer(
   },
 )
 STATES = {
-  initial: State.create("INITIAL", [Transition.createBasic("LOADING", "READY")]),
-  loaded: State.create("READY", [Transition.createBasic("COUNT", "COUNTING")]),
+  initial: State.create("INITIAL", [Transition.createRaw("LOADING", "READY")]),
+  loaded: State.create("READY", [Transition.createRaw("COUNT", "COUNTING")]),
   counting: State.create(
     "COUNTING",
     [
-      Transition.createComplex("COUNT", "COUNTING", [], [UNDER_TEN], [ADD_ONE], []),
-      Transition.createComplex("FINISH", "DONE", [], [Guard.invert(UNDER_TEN)], [], []),
+      Transition.create("COUNT", "COUNTING", [], [UNDER_TEN], [ADD_ONE]),
+      Transition.create("FINISH", "DONE", [], [Guard.invert(UNDER_TEN)], []),
     ],
   ),
   done: State.createFinal("DONE"),

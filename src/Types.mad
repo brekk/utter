@@ -24,7 +24,7 @@ export type Action pay ctx = Action(ActionFn pay ctx) | PostAction(ActionFn pay 
 export alias ReducerFn pay ctx = String -> pay -> Maybe ctx -> Maybe ctx
 export type Reducer pay ctx = Reducer(String -> pay -> Maybe ctx -> Maybe ctx)
 // we had to segment these types
-export type TransitionPath = TransitionPath(String, String) | DirectImmediateTransition(String)
+export type TransitionPath = TransitionPath(String, String) | ImmediatePath(String)
 export alias Actions pay ctx = List (Action pay ctx)
 export alias Guards pay ctx = List (Guard pay ctx)
 export alias Reducers pay ctx = List (Reducer pay ctx)

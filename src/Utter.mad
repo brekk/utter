@@ -1,35 +1,50 @@
 import type {
   Action,
-  CTransition,
+  ActionFn,
+  Actions,
   Controller,
   Guard,
+  GuardianFn,
+  Guards,
   Machine,
   Reducer,
+  ReducerFn,
+  Reducers,
   State,
   Stateish,
   Transition,
+  TransitionPath,
 } from "@/Types"
 
 import T from "@/Types"
 
 
 
-export type Machine
-export type State
-export type Transition
-export type CTransition
-export type Guard
+// TYPES
 export type Action
-export type Reducer
-export type Stateish
+export type ActionFn
+export type Actions
 export type Controller
+export type Guard
+export type GuardianFn
+export type Guards
+export type Machine
+export type Reducer
+export type ReducerFn
+export type Reducers
+export type State
+export type Stateish
+export type Transition
+export type TransitionPath
+// CONSTRUCTORS
 export Machine = T.Machine
 export State = T.State
-export FinalState = T.FinalState
-export Guard = T.Guard
-export Action = T.Action
-export Reducer = T.Reducer
 export Transition = T.Transition
-export ComplexTransition = T.ComplexTransition
-export Controller = T.Controller
+export ImmediateTransition = T.ImmediateTransition
+export Action = T.Action
+export PostAction = T.PostAction
+export TransitionPath = T.TransitionPath
+export ImmediatePath = T.ImmediatePath
+export FinalState = T.FinalState
 export InvalidController = T.InvalidController
+export Controller = T.Controller

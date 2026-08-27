@@ -13,17 +13,11 @@ import T from "@/Types"
 
 // wild stateful delights
 THE_NOTHING_MACHINE = T.Machine("id", [], Nothing)
-SELF_CENTERED = T.ComplexTransition(T.Transition("again", "only"), [], [], [], [])
+SELF_CENTERED = T.Transition(T.TransitionPath("again", "only"), [], [], [])
 SOLO_DOLO = T.State("only", [SELF_CENTERED])
 THE_LOOPER = T.Machine("loop", [SOLO_DOLO], Just(SOLO_DOLO))
-WAKE_UP_SHEEPLE = T.ComplexTransition(T.Transition("wake up", "ragin"), [], [], [], [])
-NOT_996_THO = T.ComplexTransition(
-  T.Transition("long day is tiring though", "sleepin"),
-  [],
-  [],
-  [],
-  [],
-)
+WAKE_UP_SHEEPLE = T.Transition(T.TransitionPath("wake up", "ragin"), [], [], [])
+NOT_996_THO = T.Transition(T.TransitionPath("long day is tiring though", "sleepin"), [], [], [])
 SLEEPIN = T.State("sleepin", [WAKE_UP_SHEEPLE])
 RAGIN = T.State("ragin", [NOT_996_THO])
 // starts out RAGIN!
@@ -33,7 +27,7 @@ Study.report(
   "Machine.create",
   [
     #[#["id", []], THE_NOTHING_MACHINE],
-    #[#["loop", [State.create("only", [Transition.createBasic("again", "only")])]], THE_LOOPER],
+    #[#["loop", [State.create("only", [Transition.createRaw("again", "only")])]], THE_LOOPER],
   ],
 )
 Study.report(
@@ -98,11 +92,11 @@ Study.report(
     ],
   ],
 )
-YEET_ME = T.State("current", [Transition.createBasic("redirect", "elsewhere")])
+YEET_ME = T.State("current", [Transition.createRaw("redirect", "elsewhere")])
 BAD_MACHINE = T.Machine("bad", [YEET_ME], Just(YEET_ME))
 Study.report(
-  Machine.complete,
-  "Machine.complete",
+  Machine.isComplete,
+  "Machine.isComplete",
   [
     #[THE_NOTHING_MACHINE, true],
     #[THE_LOOPER, true],

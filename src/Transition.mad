@@ -10,13 +10,7 @@ import String from "String"
 
 import Guard from "@/Guard"
 import Log from "@/Log"
-import {
-  DirectImmediateTransition,
-  ImmediateTransition,
-  Reducer,
-  Transition,
-  TransitionPath,
-} from "@/Types"
+import { ImmediatePath, ImmediateTransition, Reducer, Transition, TransitionPath } from "@/Types"
 
 
 
@@ -28,7 +22,7 @@ export create = (fromEventName, toDestination, a, g, r) => pipe(
   Log.tapped.transition("created", name),
 )(r)
 export createImmediate = (a, b, c, d) => pipe(
-  ImmediateTransition(DirectImmediateTransition(a), b, c),
+  ImmediateTransition(ImmediatePath(a), b, c),
   Log.tapped.transition("created immediate", name),
 )(d)
 isImmediate :: Transition pay ctx -> Boolean
@@ -52,7 +46,7 @@ export event = where {
   TransitionPath(e, _) =>
     e
 
-  DirectImmediateTransition(e) =>
+  ImmediatePath(e) =>
     e
 }
 target :: TransitionPath -> Maybe String
@@ -151,7 +145,7 @@ export toPair = where {
   TransitionPath(a, b) =>
     #[a, b]
 
-  DirectImmediateTransition(a) =>
+  ImmediatePath(a) =>
     #[a, ""]
 }
 toSimplePair :: Transition pay ctx -> #[String, String]
