@@ -1,4 +1,4 @@
-import type { CTransition, State } from "@/Types"
+import type { State, Transition } from "@/Types"
 
 import Fn from "Function"
 import List from "List"
@@ -10,7 +10,7 @@ import { FinalState, State } from "@/Types"
 
 createFinal :: String -> State pay ctx
 export createFinal = FinalState
-create :: String -> List (CTransition pay ctx) -> State pay ctx
+create :: String -> List (Transition pay ctx) -> State pay ctx
 export create = (n, t) => List.length(t) > 0 ? State(n, t) : FinalState(n)
 isFinal :: State pay ctx -> Boolean
 export isFinal = where {
@@ -28,7 +28,7 @@ export name = where {
   FinalState(n) =>
     n
 }
-transitions :: State pay ctx -> List (CTransition pay ctx)
+transitions :: State pay ctx -> List (Transition pay ctx)
 export transitions = where {
   State(_, t) =>
     t
@@ -41,7 +41,7 @@ export nameMatches = (x, s) => pipe(
   name,
   Fn.equals(x),
 )(s)
-toPair :: State pay ctx -> #[string, List (CTransition pay ctx)]
+toPair :: State pay ctx -> #[string, List (Transition pay ctx)]
 export toPair = where {
   State(n, t) =>
     #[n, t]

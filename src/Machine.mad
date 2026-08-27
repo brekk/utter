@@ -1,13 +1,14 @@
 import type { Maybe } from "Maybe"
 import type { Set } from "Set"
 
-import type { Machine, State } from "@/Types"
+import type { Machine, State, Stateish } from "@/Types"
 
 import { lt } from "Compare"
 import Dict from "Dictionary"
 import Fn from "Function"
 import List from "List"
 import Maybe from "Maybe"
+import { Just } from "Maybe"
 import Set from "Set"
 import String from "String"
 import TuplePrelude from "Tuple"
@@ -43,11 +44,32 @@ export hasState = (x, mch) => pipe(
   states,
   Set.includes(x),
 )(mch)
+hasMaybeState :: Stateish pay ctx -> Machine pay ctx -> Boolean
+export hasMaybeState = (mSt, mch) => pipe(
+  map(
+    pipe(
+      State.name,
+      hasState($, mch),
+    ),
+  ),
+  Maybe.fromMaybe(false),
+)(mSt)
 state :: Machine pay ctx -> Maybe (State pay ctx)
 export state = where {
   Machine(_, _, m) =>
     m
 }
+_setRawState :: Stateish pay ctx -> Machine pay ctx -> Machine pay ctx
+_setRawState = (st, mch) => where(mch) {
+  Machine(x, y, _) =>
+    Machine(x, y, st)
+}
+setState :: Stateish pay ctx -> Machine pay ctx -> Machine pay ctx
+export setState = (st, mch) => Fn.ifElse(
+  hasMaybeState($, mch),
+  _setRawState($, mch),
+  Fn.always(mch),
+)(st)
 isFinal :: Machine pay ctx -> Boolean
 export isFinal = Fn.ifElse(
   pipe(
@@ -107,8 +129,8 @@ export destinations = pipe(
   ),
   Set.fromList,
 )
-complete :: Machine pay ctx -> Boolean
-export complete = (mch) => pipe(
+isComplete :: Machine pay ctx -> Boolean
+export isComplete = (mch) => pipe(
   destinations,
   Set.toList,
   List.all(hasState($, mch)),

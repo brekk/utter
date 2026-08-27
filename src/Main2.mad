@@ -12,24 +12,27 @@ import Machine from "@/Machine"
 import State from "@/State"
 import Stream from "@/Stream"
 import Transition from "@/Transition"
-import { Action, ActionController, Reducer } from "@/Types"
+import { Action, Reducer } from "@/Types"
 
 
 
 THE_LIMIT = 5
 GUARD_THE_LIMIT = Guard.create(
-  (ev, ctx, pay) => {
+  (ev, pay, mCtx) => {
     return ev
       == "again"
-      && where(#[ctx, pay]) {
-        #[Just(_ctx), Just(_pay)] =>
+      && where(#[mCtx, pay]) {
+        #[Just(ctx), Just(_pay)] =>
           do {
-            count = _ctx.count + _pay.count
+            count = ctx.count + _pay.count
             return count <= THE_LIMIT
           }
 
         #[Just(_ctx), Nothing] =>
           _ctx.count <= THE_LIMIT
+
+        #[Nothing, Just(_pay)] =>
+          _pay.count <= THE_LIMIT
 
         _ =>
           false
@@ -48,79 +51,57 @@ INCREASE_THE_LIMIT = Reducer(
 ANNOUNCE = Action((ev, pay, ctx) => { IO.pTrace(">>>", #[ev, pay, ctx]) })
 ONLY = State.create(
   "only",
-  [
-    Transition.createWithContext(
-      "again",
-      "only",
-      [ANNOUNCE],
-      [GUARD_THE_LIMIT],
-      [INCREASE_THE_LIMIT],
-      [],
-    ),
-  ],
+  [Transition.create("again", "only", [ANNOUNCE], [GUARD_THE_LIMIT], [INCREASE_THE_LIMIT])],
 )
 machine = Machine.create("uno", [ONLY])
-EVENTUALLY_GO_TO_THE_END = ActionController(
-  (ctrl, ev, pay, mCtx) => where(#[pay, mCtx]) {
-    #[Just(_pay), Just(ctx)] =>
-      do {
-        IO.pTrace("ACTION CONTROLLER", #[ev, pay, mCtx])
-        return if (_pay.count + ctx.count > THE_LIMIT) {
-          Interpreter.send("stop", Nothing, ctrl)
-        } else {
-          ctrl
-        }
-      }
-
-    _ =>
-      ctrl
-  },
-)
 machine2 = Machine.create(
-  "duo",
+  "immediate",
   [
+    State.create("idle", [Transition.createRaw("fetch", "loading")]),
+    State.create("loading", [Transition.createRaw("done", "validate")]),
     State.create(
-      "only",
+      "validate",
       [
-        Transition.createWithContext(
-          "again",
-          "only",
-          [ANNOUNCE],
-          [GUARD_THE_LIMIT],
-          [INCREASE_THE_LIMIT],
-          [EVENTUALLY_GO_TO_THE_END],
-        ),
-        Transition.createWithContext(
-          "again-out",
-          "intermediate",
-          [ANNOUNCE],
-          [Guard.invert(GUARD_THE_LIMIT)],
+        Transition.createImmediate(
+          "loaded",
           [],
           [],
+          [
+            Reducer(
+              (ev, pay, con) => where(con) {
+                Just(ctx) =>
+                  IO.pTrace("YOYOYO", Just({ ...ctx, count: 4, hooray: true }))
+
+                _ =>
+                  con
+              },
+            ),
+          ],
         ),
+        Transition.createImmediate("error", [], [Guard.invert(GUARD_THE_LIMIT)], []),
       ],
     ),
-    State.create("intermediate", [Transition.createComplex("stop", "end", [ANNOUNCE], [], [], [])]),
-    State.createFinal("end"),
+    State.createFinal("loaded"),
+    State.createFinal("error"),
   ],
 )
 // /*
 main = () => {
-  DATA = { count: 0 }
+  DATA = { count: 0, hooray: false }
   service = Interpreter.create(Just(DATA), machine2)
   IO.pTrace("CONTEXT 1", Interpreter.context(service))
-  service2 = Interpreter.send("again", Just({ count: 1 }), service)
+  service2 = Interpreter.send("fetch", Nothing, service)
   IO.pTrace("CONTEXT 2", Interpreter.context(service2))
-  service3 = Interpreter.send("again", Just({ count: 1 }), service2)
+  service3 = Interpreter.send("done", Nothing, service2)
   IO.pTrace("CONTEXT 3", Interpreter.context(service3))
-
-  service4 = Interpreter.send("again", Just({ count: 1 }), service3)
-  IO.pTrace("CONTEXT 4", Interpreter.context(service4))
-  // shouldn't run because it would exceed THE_LIMIT
-  serviceNo = Interpreter.send("again", Just({ count: 10 }), service3)
-  IO.pTrace("CONTEXT 5", Interpreter.context(serviceNo))
-  serviceYes = Interpreter.send("again", Just({ count: 2 }), service3)
-  IO.pTrace("CONTEXT 5a", Interpreter.context(serviceYes))
+  //
+  // service4 = Interpreter.send("again", Just({ count: 1 }), service3)
+  // IO.pTrace("CONTEXT 4", Interpreter.context(service4))
+  // // shouldn't run because it would exceed THE_LIMIT
+  // serviceNo = Interpreter.send("again", Just({ count: 10 }), service3)
+  // IO.pTrace("CONTEXT 5", Interpreter.context(serviceNo))
+  // serviceYes = Interpreter.send("again", Just({ count: 2 }), service3)
+  // IO.pTrace("CONTEXT 5a", Interpreter.context(serviceYes))
 }
 
 // */

@@ -1,6 +1,6 @@
 import type { Maybe } from "Maybe"
 
-import type { Action, CTransition, Controller, Machine, State, Stateish } from "@/Types"
+import type { Action, Controller, Machine, State, Stateish, Transition } from "@/Types"
 
 import Dict from "Dictionary"
 import Fn from "Function"
@@ -11,7 +11,6 @@ import Set from "Set"
 import String from "String"
 
 import _Action from "@/Action"
-import _ActionController from "@/ActionController"
 import Log from "@/Log"
 import Machine from "@/Machine"
 import ActionReducer from "@/Reducer"
@@ -99,7 +98,7 @@ export setMachine = (mch, ctrl) => where(ctrl) {
 setState :: Stateish pay ctx -> Controller pay ctx -> Controller pay ctx
 export setState = (st, ctrl) => where(ctrl) {
   Controller(a, b, _, c) =>
-    Controller(a, b, st, c)
+    Controller(a, Machine.setState(st, b), st, c)
 
   _ =>
     ctrl
@@ -138,9 +137,9 @@ export _step = (ev, stateName, mch) => if (Machine.hasEvent(ev, mch)) {
 }
 // stepWithPayload does not check validity either!
 // it is the default interior run step for the Controller
-_stepWithPayload :: Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx
-export _stepWithPayload = (mch, current, ev) => where(current) {
-  Just(State(stateName, trx)) =>
+// _stepWithPayload :: Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx
+export _stepWithPayload = (mCtx, mch, current, ev) => where(#[mCtx, current]) {
+  #[Just(ctx), Just(State(stateName, trx))] =>
     _step(ev, stateName, mch)
 
   _ =>
@@ -150,28 +149,18 @@ export _stepWithPayload = (mch, current, ev) => where(current) {
 processReducers :: (Show pay, Show ctx) => String
   -> pay
   -> Maybe ctx
-  -> CTransition pay ctx
+  -> Transition pay ctx
   -> Maybe ctx
 processReducers = (ev, payload, ctx, tr) => pipe(
   Transition.reducers,
   List.reduce(ActionReducer.reduce(ev, payload), ctx),
-)(tr)
-processActionControllers :: (Show pay, Show ctx) => Controller pay ctx
-  -> String
-  -> pay
-  -> Maybe ctx
-  -> CTransition pay ctx
-  -> Controller pay ctx
-processActionControllers = (ctrl, ev, payload, ctx, tr) => pipe(
-  Transition.controllers,
-  List.reduce((con, x) => _ActionController.control(con, ev, payload, ctx, x), ctrl),
 )(tr)
 // apply all actions and fire side effects
 processActionsWithFilter :: (Action pay ctx -> Boolean)
   -> String
   -> pay
   -> Maybe ctx
-  -> CTransition pay ctx
+  -> Transition pay ctx
   -> Maybe ctx
 processActionsWithFilter = (filter, ev, payload, ctx, tr) => pipe(
   Transition.actions,
@@ -186,42 +175,61 @@ processActionsWithFilter = (filter, ev, payload, ctx, tr) => pipe(
 )(tr)
 export processActions = processActionsWithFilter(_Action.isAction)
 export postprocessActions = processActionsWithFilter(_Action.isPostAction)
-// apply all transitions to context, if guards pass
-processAllTransitions :: (Show pay, Show ctx) => String
-  -> pay
+processAllImmediateTransitions :: (Show pay, Show ctx) => pay
   -> Maybe ctx
-  -> Controller pay ctx
-  -> List (CTransition pay ctx)
-  -> #[Controller pay ctx, Maybe ctx]
-processAllTransitions = (ev, payload, _ctx, ctrl, trx) => List.reduce(
-  (#[remote, innerCtx], tr) => if (Transition.checkMany(ev, payload, innerCtx, trx)) do {
+  -> List (Transition pay ctx)
+  -> Maybe ctx
+processAllImmediateTransitions = (payload, _ctx, trx) => List.reduce(
+  (innerCtx, tr) => if (Transition.checkImmediate(payload, innerCtx, trx)) do {
+    ev = Transition.name(tr)
     // actions get the current context but don't change it
     processActions(ev, payload, innerCtx, tr)
     // reducers change it
     postctx = processReducers(ev, payload, innerCtx, tr)
     // post actions get the updated content and don't change it
-    ctrl2 = processActionControllers(ctrl, ev, payload, postctx, tr)
+    // ctrl2 = processActionControllers(ctrl, ev, payload, postctx, tr)
     postprocessActions(ev, payload, postctx, tr)
-    return #[ctrl2, postctx]
+    return postctx
   } else {
-    #[ctrl, innerCtx]
+    innerCtx
   },
-  #[ctrl, _ctx],
+  _ctx,
+  trx,
+)
+// apply all transitions to context, if guards pass
+processAllTransitions :: (Show pay, Show ctx) => String
+  -> pay
+  -> Maybe ctx
+  -> List (Transition pay ctx)
+  -> Maybe ctx
+processAllTransitions = (ev, payload, _ctx, trx) => List.reduce(
+  (innerCtx, tr) => if (Transition.checkMany(ev, payload, innerCtx, trx)) do {
+    // actions get the current context but don't change it
+    processActions(ev, payload, innerCtx, tr)
+    // reducers change it
+    postctx = processReducers(ev, payload, innerCtx, tr)
+    // post actions get the updated content and don't change it
+    // ctrl2 = processActionControllers(ctrl, ev, payload, postctx, tr)
+    postprocessActions(ev, payload, postctx, tr)
+    return postctx
+  } else {
+    innerCtx
+  },
+  _ctx,
   trx,
 )
 // glue to connect our context transformation to our events
 applyActionsToContext :: (Show pay, Show ctx) => pay
   -> Maybe ctx
   -> String
-  -> Controller pay ctx
   -> Stateish pay ctx
-  -> #[Controller pay ctx, Maybe ctx]
-export applyActionsToContext = (payload, ctx, ev, ctrl, current) => where(current) {
+  -> Maybe ctx
+export applyActionsToContext = (payload, ctx, ev, current) => where(current) {
   Just(State(stateName, tr)) =>
-    processAllTransitions(ev, payload, ctx, ctrl, tr)
+    processAllTransitions(ev, payload, ctx, tr)
 
   _ =>
-    #[ctrl, Nothing]
+    Nothing
 }
 fromTo = pipe(
   map(
@@ -232,19 +240,48 @@ fromTo = pipe(
   ),
   String.join(" -> "),
 )
-send :: (Show ctx, Show pay) => String -> pay -> Controller pay ctx -> Controller pay ctx
+processImmediateTransitions :: (Show ctx, Eq ctx, Show pay, Eq pay) => String
+  -> pay
+  -> Stateish pay ctx
+  -> Maybe ctx
+  -> Maybe ctx
+processImmediateTransitions = (ev, payload, st, mCtx) => pipe(
+  // make a monadic accessor for transitions?
+  where {
+    Just(State(stateName, trx)) =>
+      pipe(
+        List.filter(Transition.isImmediate),
+        Log.tapped.interpreter("processing immediate transitions: ", List.length),
+        processAllImmediateTransitions(payload, mCtx),
+      )(trx)
+
+    _ =>
+      mCtx
+  },
+)(st)
+send :: (Eq ctx, Eq pay, Show ctx, Show pay) => String
+  -> pay
+  -> Controller pay ctx
+  -> Controller pay ctx
 export send = (ev, payload, ctrl) => where(ctrl) {
   Controller(ctx, mch, currentState, run) =>
     do {
-      newStateIsh = run(mch, currentState, ev)
+      newStateIsh = run(ctx, mch, currentState, ev)
       return if (isJust(newStateIsh)) do {
-        #[ctrl2, newContext] = applyActionsToContext(payload, ctx, ev, ctrl, currentState)
+        newContext = Log
+          .env
+          .interpreter("context 1", applyActionsToContext(payload, ctx, ev, currentState))
         Log.tapped.interpreter("changing state:", fromTo, [currentState, newStateIsh])
+        immediateContext = Log
+          .env
+          .interpreter(
+            "context 2",
+            processImmediateTransitions(ev, payload, newStateIsh, newContext),
+          )
         return pipe(
-          setContext(newContext),
+          setContext(immediateContext),
           setState(newStateIsh),
-          // _setRunner(run)
-        )(ctrl2)
+        )(ctrl)
         // return Controller(newContext, mch, newStateIsh, run)
       } else do {
         Log.env.interpreter(ev ++ " failed", payload)
