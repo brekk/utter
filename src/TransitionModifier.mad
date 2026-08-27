@@ -1,0 +1,49 @@
+import { Action, Guard, InvalidModifier, PostAction, Reducer } from "@/Types"
+
+
+
+export isAction = where {
+  Action(_) =>
+    true
+
+  PostAction(_) =>
+    true
+
+  _ =>
+    false
+}
+export isPostAction = where {
+  PostAction(_) =>
+    true
+
+  _ =>
+    false
+}
+export isStrictAction = where {
+  Action(_) =>
+    true
+
+  _ =>
+    false
+}
+export isGuard = where {
+  Guard(_) =>
+    true
+
+  _ =>
+    false
+}
+export isReducer = where {
+  Reducer(_) =>
+    true
+
+  _ =>
+    false
+}
+export isInvalidModifier = where {
+  InvalidModifier(_) =>
+    true
+
+  _ =>
+    false
+}

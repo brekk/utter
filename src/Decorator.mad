@@ -1,0 +1,16 @@
+import { Guard } from "@/Types"
+
+
+
+export escrima = (binaryLogger, k, guard) => where(guard) {
+  Guard(fn) =>
+    Guard(
+      pipe(
+        binaryLogger(k),
+        fn,
+      ),
+    )
+
+  _ =>
+    ???
+}

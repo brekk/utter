@@ -1,6 +1,6 @@
 import type { Maybe } from "Maybe"
 
-import type { Guard, GuardianFn } from "@/Types"
+import type { GuardianFn, TransitionModifier } from "@/Types"
 
 import Log from "@/Log"
 import { Guard } from "@/Types"
@@ -10,16 +10,22 @@ import { Guard } from "@/Types"
 export create = pipe(
   Guard,
 )
-check :: String -> pay -> Maybe ctx -> Guard pay ctx -> Boolean
+check :: String -> pay -> Maybe ctx -> TransitionModifier pay ctx -> Boolean
 export check = (ev, pay, ctx, guard) => where(guard) {
   Guard(engarde) =>
     engarde(ev, pay, ctx)
+
+  _ =>
+    ???
 }
 complement :: GuardianFn pay ctx -> String -> pay -> Maybe ctx -> Boolean
 export complement = (fn, ev, mPay, mCtx) => !fn(ev, mPay, mCtx)
 // protect ya neck
-invert :: Guard pay ctx -> Guard pay ctx
+invert :: TransitionModifier pay ctx -> TransitionModifier pay ctx
 export invert = (g) => where(g) {
   Guard(fn) =>
     Guard((ev, pay, mCtx) => !fn(ev, pay, mCtx))
+
+  _ =>
+    ???
 }

@@ -51,7 +51,7 @@ INCREASE_THE_LIMIT = Reducer(
 ANNOUNCE = Action((ev, pay, ctx) => { IO.pTrace(">>>", #[ev, pay, ctx]) })
 ONLY = State.create(
   "only",
-  [Transition.create("again", "only", [ANNOUNCE], [GUARD_THE_LIMIT], [INCREASE_THE_LIMIT])],
+  [Transition.create("again", "only", [ANNOUNCE, GUARD_THE_LIMIT, INCREASE_THE_LIMIT])],
 )
 machine = Machine.create("uno", [ONLY])
 machine2 = Machine.create(
@@ -64,8 +64,6 @@ machine2 = Machine.create(
       [
         Transition.createImmediate(
           "loaded",
-          [],
-          [],
           [
             Reducer(
               (ev, pay, con) => where(con) {
@@ -78,7 +76,7 @@ machine2 = Machine.create(
             ),
           ],
         ),
-        Transition.createImmediate("error", [], [Guard.invert(GUARD_THE_LIMIT)], []),
+        Transition.createImmediate("error", [Guard.invert(GUARD_THE_LIMIT)]),
       ],
     ),
     State.createFinal("loaded"),

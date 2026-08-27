@@ -1,6 +1,6 @@
 import type { Maybe } from "Maybe"
 
-import type { Action, Controller, Machine, State, Stateish, Transition } from "@/Types"
+import type { Controller, Machine, State, Stateish, Transition, TransitionModifier } from "@/Types"
 
 import Dict from "Dictionary"
 import Fn from "Function"
@@ -16,7 +16,8 @@ import Machine from "@/Machine"
 import ActionReducer from "@/Reducer"
 import _State from "@/State"
 import Transition from "@/Transition"
-import { Action, Controller, InvalidController, State } from "@/Types"
+import Modifier from "@/TransitionModifier"
+import { Controller, InvalidController, State } from "@/Types"
 
 
 
@@ -156,7 +157,7 @@ processReducers = (ev, payload, ctx, tr) => pipe(
   List.reduce(ActionReducer.reduce(ev, payload), ctx),
 )(tr)
 // apply all actions and fire side effects
-processActionsWithFilter :: (Action pay ctx -> Boolean)
+processActionsWithFilter :: (TransitionModifier pay ctx -> Boolean)
   -> String
   -> pay
   -> Maybe ctx
@@ -173,8 +174,8 @@ processActionsWithFilter = (filter, ev, payload, ctx, tr) => pipe(
     ctx,
   ),
 )(tr)
-export processActions = processActionsWithFilter(_Action.isAction)
-export postprocessActions = processActionsWithFilter(_Action.isPostAction)
+export processActions = processActionsWithFilter(Modifier.isAction)
+export postprocessActions = processActionsWithFilter(Modifier.isPostAction)
 processAllImmediateTransitions :: (Show pay, Show ctx) => pay
   -> Maybe ctx
   -> List (Transition pay ctx)
@@ -240,12 +241,11 @@ fromTo = pipe(
   ),
   String.join(" -> "),
 )
-processImmediateTransitions :: (Show ctx, Eq ctx, Show pay, Eq pay) => String
-  -> pay
+processImmediateTransitions :: (Show ctx, Eq ctx, Show pay, Eq pay) => pay
   -> Stateish pay ctx
   -> Maybe ctx
   -> Maybe ctx
-processImmediateTransitions = (ev, payload, st, mCtx) => pipe(
+processImmediateTransitions = (payload, st, mCtx) => pipe(
   // make a monadic accessor for transitions?
   where {
     Just(State(stateName, trx)) =>
@@ -274,10 +274,7 @@ export send = (ev, payload, ctrl) => where(ctrl) {
         Log.tapped.interpreter("changing state:", fromTo, [currentState, newStateIsh])
         immediateContext = Log
           .env
-          .interpreter(
-            "context 2",
-            processImmediateTransitions(ev, payload, newStateIsh, newContext),
-          )
+          .interpreter("context 2", processImmediateTransitions(payload, newStateIsh, newContext))
         return pipe(
           setContext(immediateContext),
           setState(newStateIsh),

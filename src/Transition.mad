@@ -1,6 +1,6 @@
 import type { Maybe } from "Maybe"
 
-import type { Action, Guard, Reducer, Transition, TransitionPath } from "@/Types"
+import type { Transition, TransitionModifier, TransitionPath } from "@/Types"
 
 import IO from "IO"
 import List from "List"
@@ -10,24 +10,25 @@ import String from "String"
 
 import Guard from "@/Guard"
 import Log from "@/Log"
+import Modifier from "@/TransitionModifier"
 import { ImmediatePath, ImmediateTransition, Reducer, Transition, TransitionPath } from "@/Types"
 
 
 
-export createDirect = (k, v, a, g, r) => Transition(TransitionPath(k, v), a, g, r)
+export createDirect = (k, v, m) => Transition(TransitionPath(k, v), m)
 // useful in testing, mostly shouldn't be used for realsies
-export createRaw = createDirect($, $, [], [], [])
-export create = (fromEventName, toDestination, a, g, r) => pipe(
-  createDirect(fromEventName, toDestination, a, g),
+export createRaw = createDirect($, $, [])
+export create = (fromEventName, toDestination, x) => pipe(
+  createDirect(fromEventName, toDestination),
   Log.tapped.transition("created", name),
-)(r)
-export createImmediate = (a, b, c, d) => pipe(
-  ImmediateTransition(ImmediatePath(a), b, c),
+)(x)
+export createImmediate = (a, d) => pipe(
+  ImmediateTransition(ImmediatePath(a)),
   Log.tapped.transition("created immediate", name),
 )(d)
 isImmediate :: Transition pay ctx -> Boolean
 export isImmediate = where {
-  ImmediateTransition(_, _, _, _) =>
+  ImmediateTransition(_, _) =>
     true
 
   _ =>
@@ -35,7 +36,7 @@ export isImmediate = where {
 }
 isNormal :: Transition pay ctx -> Boolean
 export isNormal = where {
-  ImmediateTransition(_, _, _, _) =>
+  ImmediateTransition(_, _) =>
     false
 
   _ =>
@@ -64,10 +65,10 @@ export name = pipe(
 )
 transition :: Transition pay ctx -> TransitionPath
 export transition = where {
-  Transition(t, _, _, _) =>
+  Transition(t, _) =>
     t
 
-  ImmediateTransition(t, _, _, _) =>
+  ImmediateTransition(t, _) =>
     t
 }
 focus :: Transition pay ctx -> Maybe String
@@ -75,30 +76,28 @@ export focus = pipe(
   transition,
   target,
 )
-actions :: Transition pay ctx -> List (Action pay ctx)
-export actions = where {
-  Transition(_, m, _, _) =>
+export modifiers = where {
+  Transition(_, m) =>
     m
 
-  ImmediateTransition(_, m, _, _) =>
+  ImmediateTransition(_, m) =>
     m
 }
-guards :: Transition pay ctx -> List (Guard pay ctx)
-export guards = where {
-  Transition(_, _, g, _) =>
-    g
-
-  ImmediateTransition(_, _, g, _) =>
-    g
-}
-reducers :: Transition pay ctx -> List (Reducer pay ctx)
-export reducers = where {
-  Transition(_, _, _, r) =>
-    r
-
-  ImmediateTransition(_, _, _, r) =>
-    r
-}
+actions :: Transition pay ctx -> List (TransitionModifier pay ctx)
+export actions = pipe(
+  modifiers,
+  List.filter(Modifier.isAction),
+)
+guards :: Transition pay ctx -> List (TransitionModifier pay ctx)
+export guards = pipe(
+  modifiers,
+  List.filter(Modifier.isAction),
+)
+reducers :: Transition pay ctx -> List (TransitionModifier pay ctx)
+export reducers = pipe(
+  modifiers,
+  List.filter(Modifier.isAction),
+)
 checkGuard :: String -> pay -> Maybe ctx -> Transition pay ctx -> Boolean
 export checkGuard = (ev, pay, ctx, tr) => pipe(
   guards,

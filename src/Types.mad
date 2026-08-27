@@ -6,9 +6,9 @@ import String from "String"
 
 
 
+// proper types
 export type Machine pay ctx = Machine(String, List (State pay ctx), Maybe (State pay ctx))
 export type State pay ctx = State(String, List (Transition pay ctx)) | FinalState(String)
-export alias Stateish pay ctx = Maybe (State pay ctx)
 export type Controller pay ctx
   = InvalidController(String, Machine pay ctx, Set String)
   | Controller(
@@ -17,18 +17,23 @@ export type Controller pay ctx
     Stateish pay ctx,
     Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx,
   )
+// export type Guard pay ctx = Guard(String -> pay -> Maybe ctx -> Boolean)
+// export type Action pay ctx = Action(ActionFn pay ctx) | PostAction(ActionFn pay ctx)
+// export type Reducer pay ctx = Reducer(String -> pay -> Maybe ctx -> Maybe ctx)
+
+export type TransitionModifier pay ctx
+  = Guard(String -> pay -> Maybe ctx -> Boolean)
+  | Action(ActionFn pay ctx)
+  | PostAction(ActionFn pay ctx)
+  | Reducer(String -> pay -> Maybe ctx -> Maybe ctx)
+  | InvalidModifier(String)
+// aliases
+export alias TransitionModifiers pay ctx = List (TransitionModifier pay ctx)
+export alias Stateish pay ctx = Maybe (State pay ctx)
 export alias GuardianFn pay ctx = String -> pay -> Maybe ctx -> Boolean
-export type Guard pay ctx = Guard(String -> pay -> Maybe ctx -> Boolean)
 export alias ActionFn pay ctx = String -> pay -> Maybe ctx -> {}
-export type Action pay ctx = Action(ActionFn pay ctx) | PostAction(ActionFn pay ctx)
 export alias ReducerFn pay ctx = String -> pay -> Maybe ctx -> Maybe ctx
-export type Reducer pay ctx = Reducer(String -> pay -> Maybe ctx -> Maybe ctx)
-// we had to segment these types
 export type TransitionPath = TransitionPath(String, String) | ImmediatePath(String)
-export alias Actions pay ctx = List (Action pay ctx)
-export alias Guards pay ctx = List (Guard pay ctx)
-export alias Reducers pay ctx = List (Reducer pay ctx)
-// because previously the payload and context were being conflated with the event and target types somehow
 export type Transition pay ctx
-  = Transition(TransitionPath, Actions pay ctx, Guards pay ctx, Reducers pay ctx)
-  | ImmediateTransition(TransitionPath, Actions pay ctx, Guards pay ctx, Reducers pay ctx)
+  = Transition(TransitionPath, TransitionModifiers pay ctx)
+  | ImmediateTransition(TransitionPath, TransitionModifiers pay ctx)
