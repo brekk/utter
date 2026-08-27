@@ -9,14 +9,17 @@ import { Guard } from "@/Utter"
 
 
 export create = Guard
-check :: String -> pay -> Maybe ctx -> TransitionModifier pay ctx -> Boolean
-export check = (ev, pay, ctx, guard) => where(guard) {
-  Guard(engarde) =>
-    engarde(ev, pay, ctx)
+check :: (Show pay, Show ctx) => String -> pay -> Maybe ctx -> TransitionModifier pay ctx -> Boolean
+export check = (ev, pay, ctx, guard) => pipe(
+  Modifier.ensureGuard,
+  where {
+    Guard(engarde) =>
+      engarde(ev, pay, ctx)
 
-  _ =>
-    false
-}
+    _ =>
+      ???
+  },
+)(guard)
 complement :: GuardianFn pay ctx -> String -> pay -> Maybe ctx -> Boolean
 export complement = (fn, ev, mPay, mCtx) => !fn(ev, mPay, mCtx)
 // protect ya neck

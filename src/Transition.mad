@@ -93,12 +93,16 @@ guards :: Transition pay ctx -> List (TransitionModifier pay ctx)
 export guards = onlyMod(Modifier.isGuard)
 reducers :: Transition pay ctx -> List (TransitionModifier pay ctx)
 export reducers = onlyMod(Modifier.isReducer)
-checkGuard :: String -> pay -> Maybe ctx -> Transition pay ctx -> Boolean
+checkGuard :: (Show pay, Show ctx) => String -> pay -> Maybe ctx -> Transition pay ctx -> Boolean
 export checkGuard = (ev, pay, ctx, tr) => pipe(
   guards,
   List.reduce((passing, a) => passing && Guard.check(ev, pay, ctx, a), true),
 )(tr)
-checkMany :: String -> pay -> Maybe ctx -> List (Transition pay ctx) -> Boolean
+checkMany :: (Show pay, Show ctx) => String
+  -> pay
+  -> Maybe ctx
+  -> List (Transition pay ctx)
+  -> Boolean
 export checkMany = (ev, pay, ctx, trx) => List.reduce(
   (passing, a) => Log
     .env
