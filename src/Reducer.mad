@@ -2,11 +2,14 @@ import type { Maybe } from "Maybe"
 
 import type { TransitionModifier } from "@/Utter"
 
+import Id from "@/Identifier"
 import Mod from "@/TransitionModifier"
 import { Reducer } from "@/Utter"
 
 
 
+keygen = Id.create("reducer")
+export create = Reducer(keygen())
 reduce :: (Show pay, Show ctx) => String
   -> pay
   -> Maybe ctx
@@ -15,7 +18,7 @@ reduce :: (Show pay, Show ctx) => String
 export reduce = (ev, pay, ctx, act) => pipe(
   Mod.ensureReducer,
   where {
-    Reducer(call) =>
+    Reducer(_, call) =>
       call(ev, pay, ctx)
 
     _ =>

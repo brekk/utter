@@ -3,16 +3,17 @@ import { Just, Nothing } from "Maybe"
 import StreamPrelude from "Stream"
 import { assertEquals, test } from "Test"
 
+import Action from "@/Action"
 import Event from "@/Event"
 import Graph from "@/Graph"
 import Guard from "@/Guard"
 import Interpreter from "@/Interpreter"
 import Log from "@/Log"
 import Machine from "@/Machine"
+import Reducer from "@/Reducer"
 import State from "@/State"
 import Stream from "@/Stream"
 import Transition from "@/Transition"
-import { Action, Reducer } from "@/Utter"
 
 
 
@@ -40,7 +41,7 @@ GUARD_THE_LIMIT = Guard.create(
       }
   },
 )
-INCREASE_THE_LIMIT = Reducer(
+INCREASE_THE_LIMIT = Reducer.create(
   (ev, pay, con) => where(#[pay, con]) {
     #[Just(payload), Just(ctx)] =>
       Just({ ...ctx, count: ctx.count + payload.count })
@@ -49,7 +50,7 @@ INCREASE_THE_LIMIT = Reducer(
       con
   },
 )
-ANNOUNCE = Action((ev, pay, ctx) => { IO.pTrace(">>>", #[ev, pay, ctx]) })
+ANNOUNCE = Action.create((ev, pay, ctx) => { IO.pTrace(">>>", #[ev, pay, ctx]) })
 ONLY = State.create(
   "only",
   [Transition.create("again", "only", [ANNOUNCE, GUARD_THE_LIMIT, INCREASE_THE_LIMIT])],
@@ -58,15 +59,16 @@ machine = Machine.create("uno", [ONLY])
 machine2 = Machine.create(
   "immediate",
   [
-    State.create("idle", [Transition.createRaw("fetch", "loading")]),
-    State.create("loading", [Transition.createRaw("done", "validate")]),
+    State.create("idle", [Transition.createWrap("idle2loading", "fetch", "loading")]),
+    State.create("loading", [Transition.createWrap("loading2validate", "done", "validate")]),
     State.create(
       "validate",
       [
         Transition.createImmediate(
+          "validateOnLoad",
           "loaded",
           [
-            Reducer(
+            Reducer.create(
               (ev, pay, con) => where(con) {
                 Just(ctx) =>
                   IO.pTrace("YOYOYO", Just({ ...ctx, count: 4, hooray: true }))
@@ -77,7 +79,7 @@ machine2 = Machine.create(
             ),
           ],
         ),
-        Transition.createImmediate("error", [Guard.invert(GUARD_THE_LIMIT)]),
+        Transition.createImmediate("validateOnError", "error", [Guard.invert(GUARD_THE_LIMIT)]),
       ],
     ),
     State.createFinal("loaded"),
@@ -87,13 +89,13 @@ machine2 = Machine.create(
 // /*
 main = () => {
   DATA = { count: 0 }
-  service = Interpreter.create(Just(DATA), machine)
+  service = Interpreter.create("uno-service", Just(DATA), machine)
   IO.pTrace("A CONTEXT 1", Interpreter.context(service))
   service_2 = Interpreter.send("again", Just({ count: 3 }), service)
   IO.pTrace("A CONTEXT 2", Interpreter.context(service_2))
 
   DATA2 = { count: 0, hooray: false }
-  service2 = Interpreter.create(Just(DATA2), machine2)
+  service2 = Interpreter.create("duo-service", Just(DATA2), machine2)
   IO.pTrace("B CONTEXT 1", Interpreter.context(service2))
   service2_2 = Interpreter.send("fetch", Nothing, service)
   IO.pTrace("B CONTEXT 2", Interpreter.context(service2_2))

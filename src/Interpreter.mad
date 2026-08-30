@@ -21,12 +21,13 @@ import { Controller, InvalidController, State } from "@/Utter"
 
 
 
-initialControl :: (Eq ctx, Show ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
-export initialControl = (mCtx, mch) => {
+alias Id = String
+initialControl :: (Eq ctx, Show ctx) => Id -> Maybe ctx -> Machine pay ctx -> Controller pay ctx
+export initialControl = (id, mCtx, mch) => {
   ref = Machine.state(mch)
 
   return pipe(
-    Controller(mCtx, mch, $, _stepWithPayload),
+    Controller(id, mCtx, mch, $, _stepWithPayload),
   )(isJust(ref) ? ref : Machine.firstState(mch))
 }
 noStates :: Machine pay ctx -> Boolean
@@ -35,29 +36,33 @@ export noStates = pipe(
   Set.length,
   Fn.equals(0),
 )
-create :: (Show ctx, Eq ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
-export create = (ctx, mch) => pipe(
-  Fn.ifElse(noStates, InvalidController("No states", $, Set.empty), initialControl(ctx)),
-)(mch)
-safeCreate :: (Show ctx, Eq ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
-export safeCreate = (ctx, mch) => pipe(
-  Machine.findIncomplete,
+create :: (Show ctx, Eq ctx) => Id -> Maybe ctx -> Machine pay ctx -> Controller pay ctx
+export create = (id, ctx, mch) => pipe(
   Fn.ifElse(
-    pipe(
-      Set.length,
-      Log.env.interpreter("incomplete values"),
-      (x) => x == 0,
-      Log.env.interpreter("incomplete?"),
-    ),
-    Fn.always(create(ctx, mch)),
-    InvalidController("Machine incomplete", mch),
+    noStates,
+    InvalidController("utter:ly:aimless", "No states", $, Set.empty),
+    initialControl(id, ctx),
   ),
 )(mch)
+// safeCreate :: (Show ctx, Eq ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
+// export safeCreate = (ctx, mch) => pipe(
+//   Machine.findIncomplete,
+//   Fn.ifElse(
+//     pipe(
+//       Set.length,
+//       Log.env.interpreter("incomplete values"),
+//       (x) => x == 0,
+//       Log.env.interpreter("incomplete?"),
+//     ),
+//     (_) => create(ctx, mch),
+//     InvalidController("utter:ly:incompleteController", "Machine incomplete", mch),
+//   ),
+// )(mch)
 // basic accessors
 
 context :: Controller pay ctx -> Maybe ctx
 export context = where {
-  Controller(ctx, _, _, _) =>
+  Controller(_, ctx, _, _, _) =>
     ctx
 
   _ =>
@@ -65,15 +70,15 @@ export context = where {
 }
 machine :: Controller pay ctx -> Machine pay ctx
 export machine = where {
-  InvalidController(_, mch, _) =>
+  InvalidController(_, _, mch, _) =>
     mch
 
-  Controller(_, mch, _, _) =>
+  Controller(_, _, mch, _, _) =>
     mch
 }
 state :: Controller pay ctx -> Stateish pay ctx
 export state = where {
-  Controller(_, _, st, _) =>
+  Controller(_, _, _, st, _) =>
     st
 
   _ =>
@@ -82,31 +87,24 @@ export state = where {
 // basic mutators
 setContext :: Maybe ctx -> Controller pay ctx -> Controller pay ctx
 export setContext = (cty, ctrl) => where(ctrl) {
-  Controller(_, a, b, c) =>
-    Controller(cty, a, b, c)
+  Controller(id, _, a, b, c) =>
+    Controller(id, cty, a, b, c)
 
   _ =>
     ctrl
 }
 setMachine :: Machine pay ctx -> Controller pay ctx -> Controller pay ctx
 export setMachine = (mch, ctrl) => where(ctrl) {
-  Controller(a, _, b, c) =>
-    Controller(a, mch, b, c)
+  Controller(id, a, _, b, c) =>
+    Controller(id, a, mch, b, c)
 
   _ =>
     ctrl
 }
 setState :: Stateish pay ctx -> Controller pay ctx -> Controller pay ctx
 export setState = (st, ctrl) => where(ctrl) {
-  Controller(a, b, _, c) =>
-    Controller(a, Machine.setState(st, b), st, c)
-
-  _ =>
-    ctrl
-}
-_setRunner = (r, ctrl) => where(ctrl) {
-  Controller(a, b, c, _) =>
-    Controller(a, b, c, r)
+  Controller(id, a, b, _, c) =>
+    Controller(id, a, Machine.setState(st, b), st, c)
 
   _ =>
     ctrl
@@ -264,17 +262,13 @@ send :: (Eq ctx, Eq pay, Show ctx, Show pay) => String
   -> Controller pay ctx
   -> Controller pay ctx
 export send = (ev, payload, ctrl) => where(ctrl) {
-  Controller(ctx, mch, currentState, run) =>
+  Controller(id, ctx, mch, currentState, run) =>
     do {
       newStateIsh = run(ctx, mch, currentState, ev)
       return if (isJust(newStateIsh)) do {
-        newContext = Log
-          .env
-          .interpreter("context 1", applyActionsToContext(payload, ctx, ev, currentState))
+        newContext = applyActionsToContext(payload, ctx, ev, currentState)
         Log.tapped.interpreter("changing state:", fromTo, [currentState, newStateIsh])
-        immediateContext = Log
-          .env
-          .interpreter("context 2", processImmediateTransitions(payload, newStateIsh, newContext))
+        immediateContext = processImmediateTransitions(payload, newStateIsh, newContext)
         return pipe(
           setContext(immediateContext),
           setState(newStateIsh),

@@ -2,19 +2,24 @@ import type { Maybe } from "Maybe"
 
 import type { TransitionModifier } from "@/Utter"
 
+import Id from "@/Identifier"
 import Mod from "@/TransitionModifier"
 import { Action, PostAction } from "@/Utter"
 
 
 
+keygen = Id.create("action")
+export createRawAction = Action
+export create = Action(keygen())
+export createPost = PostAction(keygen())
 invoke :: (Show pay, Show ctx) => String -> pay -> Maybe ctx -> TransitionModifier pay ctx -> {}
 export invoke = (ev, pay, ctx, act) => pipe(
   Mod.ensureAction,
   where {
-    Action(call) =>
+    Action(_, call) =>
       call(ev, pay, ctx)
 
-    PostAction(call) =>
+    PostAction(_, call) =>
       call(ev, pay, ctx)
 
     _ =>

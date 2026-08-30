@@ -2,33 +2,34 @@ import type { Maybe } from "Maybe"
 
 import type { Transition, TransitionModifier, TransitionPath } from "@/Utter"
 
-import IO from "IO"
 import List from "List"
 import { Just, Nothing } from "Maybe"
-// import { Just, Nothing, fromMaybe } from "Maybe"
 import String from "String"
 
 import Guard from "@/Guard"
+import Id from "@/Identifier"
 import Log from "@/Log"
 import Modifier from "@/TransitionModifier"
-import { ImmediatePath, ImmediateTransition, Reducer, Transition, TransitionPath } from "@/Utter"
+import { ImmediatePath, ImmediateTransition, Transition, TransitionPath } from "@/Utter"
 
 
 
-export createDirect = (k, v, m) => Transition(TransitionPath(k, v), m)
+keygen = Id.create("transition")
+export createDirect = (id, k, v, m) => Transition(id, TransitionPath(k, v), m)
 // useful in testing, mostly shouldn't be used for realsies
-export createRaw = createDirect($, $, [])
-export create = (fromEventName, toDestination, x) => pipe(
-  createDirect(fromEventName, toDestination),
+export createWrap = createDirect($, $, $, [])
+export createRaw = (id, fromEventName, toDestination, x) => pipe(
+  createDirect(id, fromEventName, toDestination),
   Log.tapped.transition("created", name),
 )(x)
-export createImmediate = (a, d) => pipe(
-  ImmediateTransition(ImmediatePath(a)),
+export create = createRaw(keygen())
+export createImmediate = (id, a, d) => pipe(
+  ImmediateTransition(id, ImmediatePath(a)),
   Log.tapped.transition("created immediate", name),
 )(d)
 isImmediate :: Transition pay ctx -> Boolean
 export isImmediate = where {
-  ImmediateTransition(_, _) =>
+  ImmediateTransition(_, _, _) =>
     true
 
   _ =>
@@ -36,7 +37,7 @@ export isImmediate = where {
 }
 isNormal :: Transition pay ctx -> Boolean
 export isNormal = where {
-  ImmediateTransition(_, _) =>
+  ImmediateTransition(_, _, _) =>
     false
 
   _ =>
@@ -65,10 +66,10 @@ export name = pipe(
 )
 transition :: Transition pay ctx -> TransitionPath
 export transition = where {
-  Transition(t, _) =>
+  Transition(_, t, _) =>
     t
 
-  ImmediateTransition(t, _) =>
+  ImmediateTransition(_, t, _) =>
     t
 }
 focus :: Transition pay ctx -> Maybe String
@@ -77,10 +78,10 @@ export focus = pipe(
   target,
 )
 export modifiers = where {
-  Transition(_, m) =>
+  Transition(_, _, m) =>
     m
 
-  ImmediateTransition(_, m) =>
+  ImmediateTransition(_, _, m) =>
     m
 }
 onlyMod = (filt, x) => pipe(
