@@ -174,13 +174,16 @@ processActionsWithFilter = (filter, ev, payload, ctx, tr) => pipe(
 )(tr)
 processActions = processActionsWithFilter(Modifier.isAction)
 postprocessActions = processActionsWithFilter(Modifier.isPostAction)
-processAllImmediateTransitions :: (Show pay, Show ctx) => pay
-  -> Maybe ctx
-  -> List (Transition pay ctx)
-  -> Maybe ctx
-processAllImmediateTransitions = (payload, _ctx, trx) => List.reduce(
+// apply all transitions to context, if guards pass
+processRawTransitions = (mEv, payload, _ctx, trx) => List.reduce(
   (innerCtx, tr) => if (Transition.checkImmediate(payload, innerCtx, trx)) do {
-    ev = Transition.name(tr)
+    // jimble jamble up an event from thin snare
+
+    ev = if (isJust(mEv)) {
+      mEv ?? "@@rawTransition@@"
+    } else {
+      Transition.name(tr)
+    }
     // actions get the current context but don't change it
     processActions(ev, payload, innerCtx, tr)
     // reducers change it
@@ -195,27 +198,19 @@ processAllImmediateTransitions = (payload, _ctx, trx) => List.reduce(
   _ctx,
   trx,
 )
-// apply all transitions to context, if guards pass
+processAllImmediateTransitions :: (Show pay, Show ctx) => pay
+  -> Maybe ctx
+  -> List (Transition pay ctx)
+  -> Maybe ctx
+processAllImmediateTransitions = processRawTransitions(Nothing)
 processAllTransitions :: (Show pay, Show ctx) => String
   -> pay
   -> Maybe ctx
   -> List (Transition pay ctx)
   -> Maybe ctx
-processAllTransitions = (ev, payload, _ctx, trx) => List.reduce(
-  (innerCtx, tr) => if (Transition.checkMany(ev, payload, innerCtx, trx)) do {
-    // actions get the current context but don't change it
-    processActions(ev, payload, innerCtx, tr)
-    // reducers change it
-    postctx = processReducers(ev, payload, innerCtx, tr)
-    // post actions get the updated content and don't change it
-    // ctrl2 = processActionControllers(ctrl, ev, payload, postctx, tr)
-    postprocessActions(ev, payload, postctx, tr)
-    return postctx
-  } else {
-    innerCtx
-  },
-  _ctx,
-  trx,
+processAllTransitions = pipe(
+  Just,
+  processRawTransitions,
 )
 // glue to connect our context transformation to our events
 applyActionsToContext :: (Show pay, Show ctx) => pay
