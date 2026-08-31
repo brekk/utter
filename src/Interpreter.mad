@@ -189,23 +189,28 @@ processAllImmediateTransitions :: (Show pay, Show ctx) => String
   -> #[Maybe String, Maybe ctx]
 processAllImmediateTransitions = (stateName, payload, _ctx, trx) => pipe(
   List.reduce(
-    (#[st, innerCtx], tr) => if (
-      Transition.checkImmediate(Transition.id(tr), payload, innerCtx, trx)
-    ) do {
-      // jimble jamble up an event from thin snare
+    (#[st, innerCtx], tr) => {
+      id = Transition.id(tr)
+      return if (
+        Log
+          .env
+          .interpreter("@@@checking " ++ id, Transition.checkImmediate(id, payload, innerCtx, tr))
+      ) do {
+        // jimble jamble up an event from thin snare
 
-      ev = Transition.name(tr)
-      // actions get the current context but don't change it
-      processActions(ev, payload, innerCtx, tr)
-      // reducers change it
-      postctx = processReducers(ev, payload, innerCtx, tr)
-      // post actions get the updated content and don't change it
-      // ctrl2 = processActionControllers(ctrl, ev, payload, postctx, tr)
-      Log.env.interpreter("PYAP", #[ev, stateName])
-      postprocessActions(ev, payload, postctx, tr)
-      return #[ev, postctx]
-    } else {
-      #[st, innerCtx]
+        ev = Transition.name(tr)
+        // actions get the current context but don't change it
+        processActions(ev, payload, innerCtx, tr)
+        // reducers change it
+        postctx = processReducers(ev, payload, innerCtx, tr)
+        // post actions get the updated content and don't change it
+        // ctrl2 = processActionControllers(ctrl, ev, payload, postctx, tr)
+        Log.env.interpreter("PYAP", #[ev, stateName])
+        postprocessActions(ev, payload, postctx, tr)
+        return #[ev, postctx]
+      } else {
+        #[st, innerCtx]
+      }
     },
     #[stateName, _ctx],
   ),
@@ -287,7 +292,8 @@ export send = (ev, payload, ctrl) => where(ctrl) {
 
         return pipe(
           setContext(immediateContext),
-          setState(isJust(newStateIsh2) ? newStateIsh2 : newStateIsh),
+          // setState(isJust(newStateIsh2) ? newStateIsh2 : newStateIsh),
+          setState(newStateIsh2),
         )(ctrl)
         // return Controller(newContext, mch, newStateIsh, run)
       } else do {

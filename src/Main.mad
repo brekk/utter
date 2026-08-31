@@ -21,22 +21,27 @@ shield = Guard.herald(Log.env.guard)
 THE_LIMIT = 5
 GUARD_THE_LIMIT = Guard.create(
   (ev, pay, mCtx) => {
-    return where(#[mCtx, pay]) {
-      #[Just(ctx), Just(_pay)] =>
-        do {
-          count = ctx.count + _pay.count
-          return count <= THE_LIMIT
-        }
+    return Log
+      .env
+      .main(
+        "EV: " ++ ev,
+        where(#[mCtx, pay]) {
+          #[Just(ctx), Just(_pay)] =>
+            do {
+              count = ctx.count + _pay.count
+              return count <= THE_LIMIT
+            }
 
-      #[Just(_ctx), Nothing] =>
-        _ctx.count <= THE_LIMIT
+          #[Just(_ctx), Nothing] =>
+            _ctx.count <= THE_LIMIT
 
-      #[Nothing, Just(_pay)] =>
-        _pay.count <= THE_LIMIT
+          #[Nothing, Just(_pay)] =>
+            _pay.count <= THE_LIMIT
 
-      _ =>
-        false
-    }
+          _ =>
+            false
+        },
+      )
   },
 )
 INCREASE_THE_LIMIT = Reducer.create(
@@ -63,7 +68,11 @@ machine2 = Machine.create(
       "validate",
       [
         Transition.createImmediate("validateOnLoad", "loaded", [ANNOUNCE, GUARD_THE_LIMIT]),
-        Transition.createImmediate("validateOnError", "error", [Guard.invert(GUARD_THE_LIMIT)]),
+        Transition.createImmediate(
+          "validateOnError",
+          "error",
+          [ANNOUNCE, Guard.invert(GUARD_THE_LIMIT)],
+        ),
       ],
     ),
     State.createFinal("loaded"),
