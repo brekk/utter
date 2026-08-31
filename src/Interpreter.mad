@@ -21,10 +21,10 @@ import String from "String"
 import _Action from "@/Action"
 import Log from "@/Log"
 import Machine from "@/Machine"
+import Modifier from "@/Modifier"
 import ActionReducer from "@/Reducer"
 import _State from "@/State"
 import Transition from "@/Transition"
-import Modifier from "@/TransitionModifier"
 import { Controller, InvalidController, State } from "@/Utter"
 
 

@@ -3,7 +3,7 @@ import type { Maybe } from "Maybe"
 import type { TransitionModifier } from "@/Utter"
 
 import Id from "@/Identifier"
-import Mod from "@/TransitionModifier"
+import Mod from "@/Modifier"
 import { Action, PostAction } from "@/Utter"
 
 

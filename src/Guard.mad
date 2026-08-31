@@ -8,7 +8,7 @@ import Random from "Random"
 
 import Id from "@/Identifier"
 import Log from "@/Log"
-import Modifier from "@/TransitionModifier"
+import Modifier from "@/Modifier"
 import { Guard } from "@/Utter"
 
 

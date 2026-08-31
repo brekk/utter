@@ -9,7 +9,7 @@ import String from "String"
 import Guard from "@/Guard"
 import Id from "@/Identifier"
 import Log from "@/Log"
-import Modifier from "@/TransitionModifier"
+import Modifier from "@/Modifier"
 import { ImmediatePath, ImmediateTransition, Transition, TransitionPath } from "@/Utter"
 
 
