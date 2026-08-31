@@ -40,7 +40,7 @@ export invertWithId = (newId, x) => pipe(
       Guard(newId, (ev, pay, mCtx) => !fn(ev, pay, mCtx))
 
     _ =>
-      ???
+      x
   },
 )(x)
 export invert = (x) => invertWithId(keygen(), x)
@@ -51,22 +51,22 @@ export mapGuard = (and, guard) => pipe(
       Guard(id, and(fn))
 
     _ =>
-      ???
+      guard
   },
 )(guard)
-export herald = (binaryLogger, k, guard) => pipe(
+export herald = (binaryLogger, k, x) => pipe(
   Modifier.ensureGuard,
   where {
-    Guard(id, fn) =>
+    Guard(_id, fn) =>
       Guard(
-        id,
+        _id,
         pipe(
-          binaryLogger(id ++ ":" ++ k),
           fn,
+          binaryLogger(_id ++ ":" ++ k),
         ),
       )
 
     _ =>
-      ???
+      x
   },
-)(guard)
+)(x)

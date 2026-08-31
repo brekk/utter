@@ -1,6 +1,6 @@
 import type { Maybe } from "Maybe"
 
-import type { Transition, TransitionModifier, TransitionPath } from "@/Utter"
+import type { Id, Transition, TransitionModifier, TransitionPath } from "@/Utter"
 
 import List from "List"
 import { Just, Nothing } from "Maybe"
@@ -15,16 +15,16 @@ import { ImmediatePath, ImmediateTransition, Transition, TransitionPath } from "
 
 
 keygen = Id.create("transition")
-export createDirect = (id, k, v, m) => Transition(id, TransitionPath(k, v), m)
+export createDirect = (i, k, v, m) => Transition(i, TransitionPath(k, v), m)
 // useful in testing, mostly shouldn't be used for realsies
 export createWrap = createDirect($, $, $, [])
-export createRaw = (id, fromEventName, toDestination, x) => pipe(
-  createDirect(id, fromEventName, toDestination),
+export createRaw = (i, fromEventName, toDestination, x) => pipe(
+  createDirect(i, fromEventName, toDestination),
   Log.tapped.transition("created", name),
 )(x)
 export create = createRaw(keygen())
-export createImmediate = (id, a, d) => pipe(
-  ImmediateTransition(id, ImmediatePath(a)),
+export createImmediate = (i, a, d) => pipe(
+  ImmediateTransition(i, ImmediatePath(a)),
   Log.tapped.transition("created immediate", name),
 )(d)
 isImmediate :: Transition pay ctx -> Boolean
@@ -64,6 +64,13 @@ export name = pipe(
   transition,
   event,
 )
+export id = where {
+  Transition(i, _, _) =>
+    i
+
+  ImmediateTransition(i, _, _) =>
+    i
+}
 transition :: Transition pay ctx -> TransitionPath
 export transition = where {
   Transition(_, t, _) =>
@@ -120,13 +127,18 @@ export checkMany = (ev, pay, ctx, trx) => List.reduce(
   true,
   trx,
 )
-export checkImmediate = (pay, ctx, trx) => List.reduce(
+checkImmediate :: (Show pay, Show ctx) => String
+  -> pay
+  -> Maybe ctx
+  -> List (Transition pay ctx)
+  -> Boolean
+export checkImmediate = (i, pay, ctx, trx) => List.reduce(
   (passing, a) => {
     ev = name(a)
     return Log
       .env
       .guard(
-        "checking immediate transitions: " ++ ev,
+        "(" ++ i ++ ") checking immediate: " ++ ev,
         if (passing) {
           pipe(
             checkGuard(ev, pay, ctx),

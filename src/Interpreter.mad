@@ -1,6 +1,14 @@
 import type { Maybe } from "Maybe"
 
-import type { Controller, Machine, State, Stateish, Transition, TransitionModifier } from "@/Utter"
+import type {
+  Controller,
+  Machine,
+  State,
+  Stateish,
+  Transition,
+  TransitionModifier,
+  Transitions,
+} from "@/Utter"
 
 import Dict from "Dictionary"
 import Fn from "Function"
@@ -174,16 +182,37 @@ processActionsWithFilter = (filter, ev, payload, ctx, tr) => pipe(
 )(tr)
 processActions = processActionsWithFilter(Modifier.isAction)
 postprocessActions = processActionsWithFilter(Modifier.isPostAction)
-// apply all transitions to context, if guards pass
-processRawTransitions = (mEv, payload, _ctx, trx) => List.reduce(
-  (innerCtx, tr) => if (Transition.checkImmediate(payload, innerCtx, trx)) do {
-    // jimble jamble up an event from thin snare
+processAllImmediateTransitions :: (Show pay, Show ctx) => String
+  -> pay
+  -> Maybe ctx
+  -> Transitions pay ctx
+  -> #[Maybe String, Maybe ctx]
+processAllImmediateTransitions = (stateName, payload, _ctx, trx) => pipe(
+  List.reduce(
+    (#[st, innerCtx], tr) => if (
+      Transition.checkImmediate(Transition.id(tr), payload, innerCtx, trx)
+    ) do {
+      // jimble jamble up an event from thin snare
 
-    ev = if (isJust(mEv)) {
-      mEv ?? "@@rawTransition@@"
+      ev = Transition.name(tr)
+      // actions get the current context but don't change it
+      processActions(ev, payload, innerCtx, tr)
+      // reducers change it
+      postctx = processReducers(ev, payload, innerCtx, tr)
+      // post actions get the updated content and don't change it
+      // ctrl2 = processActionControllers(ctrl, ev, payload, postctx, tr)
+      Log.env.interpreter("PYAP", #[ev, stateName])
+      postprocessActions(ev, payload, postctx, tr)
+      return #[ev, postctx]
     } else {
-      Transition.name(tr)
-    }
+      #[st, innerCtx]
+    },
+    #[stateName, _ctx],
+  ),
+  (#[a, b]) => #[Just(a), b],
+)(trx)
+processAllTransitions = (ev, payload, _ctx, trx) => List.reduce(
+  (innerCtx, tr) => if (Transition.checkMany(ev, payload, innerCtx, trx)) do {
     // actions get the current context but don't change it
     processActions(ev, payload, innerCtx, tr)
     // reducers change it
@@ -197,20 +226,6 @@ processRawTransitions = (mEv, payload, _ctx, trx) => List.reduce(
   },
   _ctx,
   trx,
-)
-processAllImmediateTransitions :: (Show pay, Show ctx) => pay
-  -> Maybe ctx
-  -> List (Transition pay ctx)
-  -> Maybe ctx
-processAllImmediateTransitions = processRawTransitions(Nothing)
-processAllTransitions :: (Show pay, Show ctx) => String
-  -> pay
-  -> Maybe ctx
-  -> List (Transition pay ctx)
-  -> Maybe ctx
-processAllTransitions = pipe(
-  Just,
-  processRawTransitions,
 )
 // glue to connect our context transformation to our events
 applyActionsToContext :: (Show pay, Show ctx) => pay
@@ -234,24 +249,23 @@ fromTo = pipe(
   ),
   String.join(" -> "),
 )
-processImmediateTransitions :: (Show ctx, Eq ctx, Show pay, Eq pay) => pay
-  -> Stateish pay ctx
-  -> Maybe ctx
-  -> Maybe ctx
-processImmediateTransitions = (payload, st, mCtx) => pipe(
-  // make a monadic accessor for transitions?
-  where {
-    Just(State(stateName, trx)) =>
-      pipe(
-        List.filter(Transition.isImmediate),
-        Log.tapped.interpreter("processing immediate transitions: ", List.length),
-        processAllImmediateTransitions(payload, mCtx),
-      )(trx)
+// processImmediateTransitions :: (Show ctx, Eq ctx, Show pay, Eq pay) => pay
+//   -> Stateish pay ctx
+//   -> Maybe ctx
+//   -> #[Stateish pay ctx, Maybe ctx]
+processImmediateTransitions = (payload, mSt, mCtx) => where(mSt) {
+  Just(State(stateName, trx)) =>
+    pipe(
+      List.filter(Transition.isImmediate),
+      Log
+        .tapped
+        .interpreter("(" ++ stateName ++ "): immediate transitions to process: ", List.length),
+      processAllImmediateTransitions(stateName, payload, mCtx),
+    )(trx)
 
-    _ =>
-      mCtx
-  },
-)(st)
+  _ =>
+    #[Nothing, mCtx]
+}
 send :: (Eq ctx, Eq pay, Show ctx, Show pay) => String
   -> pay
   -> Controller pay ctx
@@ -263,10 +277,17 @@ export send = (ev, payload, ctrl) => where(ctrl) {
       return if (isJust(newStateIsh)) do {
         newContext = applyActionsToContext(payload, ctx, ev, currentState)
         Log.tapped.interpreter("changing state:", fromTo, [currentState, newStateIsh])
-        immediateContext = processImmediateTransitions(payload, newStateIsh, newContext)
+        #[mStateString, immediateContext] = processImmediateTransitions(
+          payload,
+          newStateIsh,
+          newContext,
+        )
+        newStateIsh2 = Machine.getState(mStateString, mch)
+        Log.tapped.interpreter("changing state again:", fromTo, [newStateIsh, newStateIsh2])
+
         return pipe(
           setContext(immediateContext),
-          setState(newStateIsh),
+          setState(isJust(newStateIsh2) ? newStateIsh2 : newStateIsh),
         )(ctrl)
         // return Controller(newContext, mch, newStateIsh, run)
       } else do {

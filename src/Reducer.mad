@@ -22,6 +22,22 @@ export reduce = (ev, pay, ctx, act) => pipe(
       call(ev, pay, ctx)
 
     _ =>
-      ???
+      ctx
   },
 )(act)
+export herald = (binaryLogger, k, x) => pipe(
+  Mod.ensureReducer,
+  where {
+    Reducer(_id, fn) =>
+      Reducer(
+        _id,
+        pipe(
+          fn,
+          binaryLogger(_id ++ ":" ++ k),
+        ),
+      )
+
+    _ =>
+      x
+  },
+)(x)

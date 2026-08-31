@@ -17,28 +17,26 @@ import Transition from "@/Transition"
 
 
 
+shield = Guard.herald(Log.env.guard)
 THE_LIMIT = 5
 GUARD_THE_LIMIT = Guard.create(
   (ev, pay, mCtx) => {
-    return ev
-      == "again"
-      && where(#[mCtx, pay]) {
-        #[Just(ctx), Just(_pay)] =>
-          do {
-            IO.pTrace("THE CHEAT", #[pay, ctx])
-            count = ctx.count + _pay.count
-            return count <= THE_LIMIT
-          }
+    return where(#[mCtx, pay]) {
+      #[Just(ctx), Just(_pay)] =>
+        do {
+          count = ctx.count + _pay.count
+          return count <= THE_LIMIT
+        }
 
-        #[Just(_ctx), Nothing] =>
-          _ctx.count <= THE_LIMIT
+      #[Just(_ctx), Nothing] =>
+        _ctx.count <= THE_LIMIT
 
-        #[Nothing, Just(_pay)] =>
-          _pay.count <= THE_LIMIT
+      #[Nothing, Just(_pay)] =>
+        _pay.count <= THE_LIMIT
 
-        _ =>
-          false
-      }
+      _ =>
+        false
+    }
   },
 )
 INCREASE_THE_LIMIT = Reducer.create(
@@ -64,21 +62,7 @@ machine2 = Machine.create(
     State.create(
       "validate",
       [
-        Transition.createImmediate(
-          "validateOnLoad",
-          "loaded",
-          [
-            Reducer.create(
-              (ev, pay, con) => where(con) {
-                Just(ctx) =>
-                  IO.pTrace("YOYOYO", Just({ ...ctx, count: 4, hooray: true }))
-
-                _ =>
-                  con
-              },
-            ),
-          ],
-        ),
+        Transition.createImmediate("validateOnLoad", "loaded", [ANNOUNCE, GUARD_THE_LIMIT]),
         Transition.createImmediate("validateOnError", "error", [Guard.invert(GUARD_THE_LIMIT)]),
       ],
     ),
@@ -88,19 +72,13 @@ machine2 = Machine.create(
 )
 // /*
 main = () => {
-  DATA = { count: 0 }
-  service = Interpreter.create("uno-service", Just(DATA), machine)
-  IO.pTrace("A CONTEXT 1", Interpreter.context(service))
-  service_2 = Interpreter.send("again", Just({ count: 3 }), service)
-  IO.pTrace("A CONTEXT 2", Interpreter.context(service_2))
-
   DATA2 = { count: 0, hooray: false }
   service2 = Interpreter.create("duo-service", Just(DATA2), machine2)
   IO.pTrace("B CONTEXT 1", Interpreter.context(service2))
-  service2_2 = Interpreter.send("fetch", Nothing, service)
+  service2_2 = Interpreter.send("fetch", Nothing, service2)
   IO.pTrace("B CONTEXT 2", Interpreter.context(service2_2))
-  service2_3 = Interpreter.send("done", Nothing, service2)
-  IO.pTrace("B CONTEXT 3", Interpreter.context(service2_3))
+  service2_3 = Interpreter.send("done", Nothing, service2_2)
+  IO.pTrace("B CONTEXT 3", #[Interpreter.context(service2_3), Interpreter.state(service2_3)])
   //
   // service4 = Interpreter.send("again", Just({ count: 1 }), service3)
   // IO.pTrace("CONTEXT 4", Interpreter.context(service4))

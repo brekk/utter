@@ -36,3 +36,4 @@ export type TransitionPath = TransitionPath(String, String) | ImmediatePath(Stri
 export type Transition pay ctx
   = Transition(Id, TransitionPath, TransitionModifiers pay ctx)
   | ImmediateTransition(Id, TransitionPath, TransitionModifiers pay ctx)
+export alias Transitions pay ctx = List (Transition pay ctx)

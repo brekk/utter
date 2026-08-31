@@ -23,6 +23,31 @@ export invoke = (ev, pay, ctx, act) => pipe(
       call(ev, pay, ctx)
 
     _ =>
-      ???
+      {}
   },
 )(act)
+export herald = (binaryLogger, k, x) => pipe(
+  Mod.ensureAction,
+  where {
+    Action(_id, fn) =>
+      Action(
+        _id,
+        pipe(
+          binaryLogger(_id ++ ":" ++ k),
+          fn,
+        ),
+      )
+
+    PostAction(_id, fn) =>
+      PostAction(
+        _id,
+        pipe(
+          binaryLogger(_id ++ ":" ++ k),
+          fn,
+        ),
+      )
+
+    _ =>
+      x
+  },
+)(x)

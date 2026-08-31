@@ -7,6 +7,7 @@ import { lt } from "Compare"
 import Dict from "Dictionary"
 import Fn from "Function"
 import List from "List"
+import { Just, Nothing } from "Maybe"
 import Maybe from "Maybe"
 import Set from "Set"
 import String from "String"
@@ -31,6 +32,17 @@ export rawStates = where {
   Machine(_, sts, _) =>
     sts
 }
+getState :: Maybe String -> Machine pay ctx -> Stateish pay ctx
+export getState = (s, m) => pipe(
+  rawStates,
+  (st) => where(s) {
+    Just(_s) =>
+      List.find(State.nameMatches(_s), st)
+
+    _ =>
+      Nothing
+  },
+)(m)
 states :: Machine pay ctx -> Set String
 export states = pipe(
   rawStates,
