@@ -5,10 +5,12 @@ import Random from "Random"
 
 
 export create = (k) => {
-  c = 0
+  c :: Short
+  c = 1
   and = () => {
-    c := c + 1
-    return c
+    d = c + 1
+    c := d
+    return d
   }
   gen = () => k ++ "-" ++ show(and())
   return { gen }

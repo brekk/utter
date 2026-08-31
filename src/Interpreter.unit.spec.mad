@@ -62,7 +62,6 @@ Study.report(
   "safeCreate",
   [#[COUNTING_MACHINE, COUNTING_SERVICE]],
 )
-*/
 Study.report(
   Study.caseN3(Inter.initialControl),
   "initialControl",
@@ -71,6 +70,7 @@ Study.report(
     #[#["never-no-nothing", Nothing, NOTHING_MACHINE], NOTHING_SERVICE],
   ],
 )
+*/
 Study.report(
   Inter.context,
   "context",
