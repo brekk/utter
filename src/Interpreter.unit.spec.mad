@@ -3,9 +3,8 @@ import Set from "Set"
 
 import Study from "Study"
 
+import Interpreter from "@/Controller"
 import Guard from "@/Guard"
-import Interpreter from "@/Interpreter"
-import Inter from "@/Interpreter"
 import Machine from "@/Machine"
 import Reducer from "@/Reducer"
 import State from "@/State"
@@ -72,7 +71,7 @@ Study.report(
 )
 */
 Study.report(
-  Inter.context,
+  Interpreter.context,
   "context",
   [#[COUNTING_SERVICE, Just({ count: 0 })], #[BAD_SERVICE, Nothing]],
 )

@@ -7,7 +7,7 @@ import {} from "Number"
 import { Data } from "Stream"
 import Stream from "Stream"
 
-import Interpreter from "@/Interpreter"
+import Interpreter from "@/Controller"
 import Log from "@/Log"
 import Machine from "@/Machine"
 
