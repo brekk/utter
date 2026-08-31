@@ -23,6 +23,7 @@ export createRaw = (i, fromEventName, toDestination, x) => pipe(
   Log.tapped.transition("created", name),
 )(x)
 export create = createRaw(keygen())
+export between = create($, $, [])
 export createImmediate = (i, a, d) => pipe(
   ImmediateTransition(i, ImmediatePath(a)),
   Log.tapped.transition("created immediate", name),

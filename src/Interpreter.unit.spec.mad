@@ -14,7 +14,7 @@ import T from "@/Utter"
 
 
 
-UNDER_TEN = T.Guard(
+UNDER_TEN = Guard.create(
   (ev, pay, mCtx) => where(mCtx) {
     Just({ count }) =>
       count + 1 < 10
@@ -23,7 +23,7 @@ UNDER_TEN = T.Guard(
       false
   },
 )
-ADD_ONE = T.Reducer(
+ADD_ONE = Reducer.create(
   (ev, pay, mCtx) => where(mCtx) {
     Just({ count }) =>
       Just({ count: count + 1 })
@@ -33,8 +33,8 @@ ADD_ONE = T.Reducer(
   },
 )
 STATES = {
-  initial: State.create("INITIAL", [Transition.createRaw("LOADING", "READY")]),
-  loaded: State.create("READY", [Transition.createRaw("COUNT", "COUNTING")]),
+  initial: State.create("INITIAL", [Transition.between("LOADING", "READY")]),
+  loaded: State.create("READY", [Transition.between("COUNT", "COUNTING")]),
   counting: State.create(
     "COUNTING",
     [
@@ -53,20 +53,22 @@ NOTHING_MACHINE = T.Machine(
   [STATES.initial, STATES.loaded, STATES.counting, STATES.done],
   Nothing,
 )
-COUNTING_SERVICE = Interpreter.create(Just({ count: 0 }), COUNTING_MACHINE)
-NOTHING_SERVICE = Interpreter.create(Nothing, NOTHING_MACHINE)
-BAD_SERVICE = T.InvalidController("this is a test", NOTHING_MACHINE, Set.empty)
+COUNTING_SERVICE = Interpreter.create("countabilly", Just({ count: 0 }), COUNTING_MACHINE)
+NOTHING_SERVICE = Interpreter.create("never-no-nothing", Nothing, NOTHING_MACHINE)
+BAD_SERVICE = T.InvalidController("barfo", "this is a test", NOTHING_MACHINE, Set.empty)
+/*
 Study.report(
   Inter.safeCreate(Just({ count: 0 })),
   "safeCreate",
   [#[COUNTING_MACHINE, COUNTING_SERVICE]],
 )
+*/
 Study.report(
-  Study.caseN2(Inter.initialControl),
+  Study.caseN3(Inter.initialControl),
   "initialControl",
   [
-    #[#[Just({ count: 0 }), COUNTING_MACHINE], COUNTING_SERVICE],
-    #[#[Nothing, NOTHING_MACHINE], NOTHING_SERVICE],
+    #[#["countabilly", Just({ count: 0 }), COUNTING_MACHINE], COUNTING_SERVICE],
+    #[#["never-no-nothing", Nothing, NOTHING_MACHINE], NOTHING_SERVICE],
   ],
 )
 Study.report(

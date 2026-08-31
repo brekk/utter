@@ -6,9 +6,10 @@ import Event from "@/Event"
 import Guard from "@/Guard"
 import Interpreter from "@/Interpreter"
 import Machine from "@/Machine"
+import Reducer from "@/Reducer"
 import State from "@/State"
 import Transition from "@/Transition"
-import { Action, Reducer } from "@/Utter"
+import U from "@/Utter"
 
 
 
@@ -17,10 +18,10 @@ import { Action, Reducer } from "@/Utter"
 test(
   "Basic state change - no payload, no context",
   () => do {
-    ONE = State.create("one", [Transition.createRaw("ping", "two")])
-    TWO = State.create("two", [Transition.createRaw("pong", "one")])
+    ONE = State.create("one", [Transition.between("ping", "two")])
+    TWO = State.create("two", [Transition.between("pong", "one")])
     machine = Machine.create("ping-pong", [ONE, TWO])
-    service = Interpreter.create(Nothing, machine)
+    service = Interpreter.create("service", Nothing, machine)
     // _ <- assertEquals(Interpreter.state(service), Just(ONE))
     // service2 = Interpreter.send("ping", Nothing, service)
     // _ <- assertEquals(Interpreter.state(service2), Just(TWO))
@@ -31,10 +32,10 @@ test(
 test(
   "Basic state change - no payload, with context",
   () => do {
-    ONE = State.create("one", [Transition.createRaw("ping", "two")])
-    TWO = State.create("two", [Transition.createRaw("pong", "one")])
+    ONE = State.create("one", [Transition.between("ping", "two")])
+    TWO = State.create("two", [Transition.between("pong", "one")])
     machine = Machine.create("ping-pong", [ONE, TWO])
-    service = Interpreter.safeCreate(Just({ complex: { info: "yes" } }), machine)
+    service = Interpreter.create("blah", Just({ complex: { info: "yes" } }), machine)
     return assertEquals(true, true)
     // _ <- assertEquals(Interpreter.state(service), Just(ONE))
     // service2 = Interpreter.send("ping", Nothing, service)
@@ -53,7 +54,7 @@ test(
           "again",
           "one",
           [
-            Reducer(
+            Reducer.create(
               (_, pay, con) => where(#[pay, con]) {
                 #[Just(payload), Just(ctx)] =>
                   do {
@@ -71,7 +72,7 @@ test(
     )
     machine = Machine.create("uno", [ONE])
     DATA = { hooray: false }
-    service = Interpreter.create(Just(DATA), machine)
+    service = Interpreter.create("service", Just(DATA), machine)
     _ <- assertEquals(Interpreter.context(service), Just(DATA))
     service2 = Interpreter.send("again", Just({ hooray: true }), service)
     return assertEquals(Interpreter.context(service2), Just({ hooray: true }))
@@ -98,7 +99,7 @@ GUARD_THE_LIMIT = Guard.create(
       }
   },
 )
-INCREASE_THE_LIMIT = Reducer(
+INCREASE_THE_LIMIT = Reducer.create(
   (ev, pay, con) => where(#[pay, con]) {
     #[Just(payload), Just(ctx)] =>
       do {
@@ -120,7 +121,7 @@ test(
     )
     machine = Machine.create("uno", [ONLY])
     DATA = { count: 0 }
-    service = Interpreter.create(Just(DATA), machine)
+    service = Interpreter.create("service", Just(DATA), machine)
     _ <- assertEquals(Interpreter.context(service), Just(DATA))
     service2 = Interpreter.send("again", Just({ count: 1 }), service)
     _ <- assertEquals(Interpreter.context(service2), Just({ count: 1 }))

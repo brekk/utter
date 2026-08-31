@@ -19,6 +19,7 @@ Study.report(
         Just("two"),
         Just("three"),
         T.Action(
+          "testo",
           (ev, pay, mCtx) => where(#[pay, mCtx]) {
             #[Just(_b), Just(_c)] =>
               do {
