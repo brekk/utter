@@ -14,7 +14,7 @@ import { ImmediatePath, ImmediateTransition, Transition, TransitionPath } from "
 
 
 
-keygen = Id.create("transition")
+key = Id.create("transition")
 export createDirect = (i, k, v, m) => Transition(i, TransitionPath(k, v), m)
 // useful in testing, mostly shouldn't be used for realsies
 export createWrap = createDirect($, $, $, [])
@@ -22,7 +22,7 @@ export createRaw = (i, fromEventName, toDestination, x) => pipe(
   createDirect(i, fromEventName, toDestination),
   Log.tapped.transition("created", name),
 )(x)
-export create = createRaw(keygen())
+export create = (f, t, x) => createRaw(key.gen(), f, t, x)
 export between = create($, $, [])
 export createImmediate = (i, a, d) => pipe(
   ImmediateTransition(i, ImmediatePath(a)),

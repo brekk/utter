@@ -10,8 +10,8 @@ export create = (k) => {
     c := c + 1
     return c
   }
-  keyed = () => k ++ "-" ++ show(and())
-  return keyed
+  gen = () => k ++ "-" ++ show(and())
+  return { gen }
 }
 
 // export create = where {

@@ -8,10 +8,10 @@ import { Action, PostAction } from "@/Utter"
 
 
 
-keygen = Id.create("action")
+key = Id.create("action")
 export createRawAction = Action
-export create = Action(keygen())
-export createPost = PostAction(keygen())
+export create = (fn) => Action(key.gen(), fn)
+export createPost = (fn) => PostAction(key.gen(), fn)
 invoke :: (Show pay, Show ctx) => String -> pay -> Maybe ctx -> TransitionModifier pay ctx -> {}
 export invoke = (ev, pay, ctx, act) => pipe(
   Mod.ensureAction,

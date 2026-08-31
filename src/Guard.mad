@@ -13,9 +13,9 @@ import { Guard } from "@/Utter"
 
 
 
-keygen = Id.create("guard")
+key = Id.create("guard")
 export createRaw = Guard
-export create = Guard(keygen())
+export create = (fn) => Guard(key.gen(), fn)
 check :: (Show pay, Show ctx) => String -> pay -> Maybe ctx -> TransitionModifier pay ctx -> Boolean
 export check = (ev, pay, ctx, guard) => pipe(
   Modifier.ensureGuard,
@@ -43,7 +43,7 @@ export invertWithId = (newId, x) => pipe(
       x
   },
 )(x)
-export invert = (x) => invertWithId(keygen(), x)
+export invert = (x) => invertWithId(key.gen(), x)
 export mapGuard = (and, guard) => pipe(
   Modifier.ensureGuard,
   where {

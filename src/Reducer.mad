@@ -8,8 +8,8 @@ import { Reducer } from "@/Utter"
 
 
 
-keygen = Id.create("reducer")
-export create = Reducer(keygen())
+key = Id.create("reducer")
+export create = (fn) => Reducer(key.gen(), fn)
 reduce :: (Show pay, Show ctx) => String
   -> pay
   -> Maybe ctx
