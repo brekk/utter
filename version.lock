@@ -1,12 +1,14 @@
 {
-  "buildHash": "a3aa06f6bceb6e45389ef807519a26c5",
+  "buildHash": "bf023e904a000744095eb8d0c1979496",
   "jsApi": {
     "apiInstances": [],
     "apiAliases": {
       "TransitionModifiers pay ctx": "(List (TransitionModifier pay ctx))",
       "ReducerFn pay ctx": "(String -> pay -> Maybe ctx -> Maybe ctx)",
+      "ControllerFn pay ctx": "(Machine pay ctx -> Stateish pay ctx -> String -> Either (Stateish pay ctx) (Stateish pay ctx))",
       "Stateish pay ctx": "(Maybe (State pay ctx))",
       "ActionFn pay ctx": "(String -> pay -> Maybe ctx -> {})",
+      "Transitions pay ctx": "(List (Transition pay ctx))",
       "GuardianFn pay ctx": "(String -> pay -> Maybe ctx -> Boolean)"
     },
     "apiInterfaces": {},
@@ -14,7 +16,7 @@
     "apiTypes": {
       "Controller pay ctx": [
         "InvalidController String (Machine pay ctx) (Set String)",
-        "Controller (Maybe ctx) (Machine pay ctx) (Stateish pay ctx) (Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx)"
+        "Controller (Maybe ctx) (Machine pay ctx) (Stateish pay ctx) (ControllerFn pay ctx)"
       ],
       "Transition pay ctx": [
         "Transition TransitionPath (TransitionModifiers pay ctx)",
@@ -45,8 +47,10 @@
     "apiAliases": {
       "TransitionModifiers pay ctx": "(List (TransitionModifier pay ctx))",
       "ReducerFn pay ctx": "(String -> pay -> Maybe ctx -> Maybe ctx)",
+      "ControllerFn pay ctx": "(Machine pay ctx -> Stateish pay ctx -> String -> Either (Stateish pay ctx) (Stateish pay ctx))",
       "Stateish pay ctx": "(Maybe (State pay ctx))",
       "ActionFn pay ctx": "(String -> pay -> Maybe ctx -> {})",
+      "Transitions pay ctx": "(List (Transition pay ctx))",
       "GuardianFn pay ctx": "(String -> pay -> Maybe ctx -> Boolean)"
     },
     "apiInterfaces": {},
@@ -54,7 +58,7 @@
     "apiTypes": {
       "Controller pay ctx": [
         "InvalidController String (Machine pay ctx) (Set String)",
-        "Controller (Maybe ctx) (Machine pay ctx) (Stateish pay ctx) (Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx)"
+        "Controller (Maybe ctx) (Machine pay ctx) (Stateish pay ctx) (ControllerFn pay ctx)"
       ],
       "Transition pay ctx": [
         "Transition TransitionPath (TransitionModifiers pay ctx)",
