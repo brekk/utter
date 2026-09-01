@@ -4,10 +4,10 @@ import StreamPrelude from "Stream"
 import { assertEquals, test } from "Test"
 
 import Action from "@/Action"
+import Interpreter from "@/Controller"
 import Event from "@/Event"
 import Graph from "@/Graph"
 import Guard from "@/Guard"
-import Interpreter from "@/Interpreter"
 import Log from "@/Log"
 import Machine from "@/Machine"
 import Reducer from "@/Reducer"
@@ -59,35 +59,43 @@ ONLY = State.create(
   [Transition.create("again", "only", [ANNOUNCE, GUARD_THE_LIMIT, INCREASE_THE_LIMIT])],
 )
 machine = Machine.create("uno", [ONLY])
-machine2 = Machine.create(
+formMachine = Machine.create(
   "immediate",
   [
-    State.create("idle", [Transition.createWrap("idle2loading", "fetch", "loading")]),
-    State.create("loading", [Transition.createWrap("loading2validate", "done", "validate")]),
+    State.create("idle", [Transition.via("fetch", "loading")]),
+    State.create("loading", [Transition.via("done", "validate")]),
     State.create(
       "validate",
       [
-        Transition.createImmediate("validateOnLoad", "loaded", [ANNOUNCE, GUARD_THE_LIMIT]),
-        Transition.createImmediate(
-          "validateOnError",
-          "error",
-          [ANNOUNCE, Guard.invert(GUARD_THE_LIMIT)],
-        ),
+        Transition.createImmediate("loaded", [ANNOUNCE, GUARD_THE_LIMIT]),
+        Transition.createImmediate("error", [ANNOUNCE, Guard.invert(GUARD_THE_LIMIT)]),
       ],
     ),
     State.createFinal("loaded"),
     State.createFinal("error"),
   ],
 )
+makePingPong = () => {
+  ONE = State.create("one", [Transition.via("ping", "two")])
+  TWO = State.create("two", [Transition.via("pong", "one")])
+  m = Machine.create("ping-pong", [ONE, TWO])
+  return { machine: m, TWO, ONE }
+}
 // /*
 main = () => {
   DATA2 = { count: 0, hooray: false }
-  service2 = Interpreter.create("duo-service", Just(DATA2), machine2)
+  service2 = Interpreter.create(Just(DATA2), formMachine)
   IO.pTrace("B CONTEXT 1", Interpreter.context(service2))
   service2_2 = Interpreter.send("fetch", Nothing, service2)
   IO.pTrace("B CONTEXT 2", Interpreter.context(service2_2))
   service2_3 = Interpreter.send("done", Nothing, service2_2)
   IO.pTrace("B CONTEXT 3", #[Interpreter.context(service2_3), Interpreter.state(service2_3)])
+  IO.put("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n")
+  pp = makePingPong()
+  pingPongService = Interpreter.create(Nothing, pp.machine)
+  IO.pTrace("PING STATE 1", Interpreter.state(pingPongService))
+  pingPongService2 = Interpreter.send("ping", Nothing, pingPongService)
+  IO.pTrace("PING STATE 2", Interpreter.state(pingPongService2))
   //
   // service4 = Interpreter.send("again", Just({ count: 1 }), service3)
   // IO.pTrace("CONTEXT 4", Interpreter.context(service4))

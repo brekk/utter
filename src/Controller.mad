@@ -1,7 +1,9 @@
+import type { Either } from "Either"
 import type { Maybe } from "Maybe"
 
 import type {
   Controller,
+  ControllerFn,
   Machine,
   State,
   Stateish,
@@ -11,6 +13,8 @@ import type {
 } from "@/Utter"
 
 import Dict from "Dictionary"
+import Either from "Either"
+import { Left, Right } from "Either"
 import Fn from "Function"
 import List from "List"
 import { fromMaybe } from "Maybe"
@@ -29,13 +33,12 @@ import { Controller, InvalidController, State } from "@/Utter"
 
 
 
-alias Id = String
-initialControl :: (Eq ctx, Show ctx) => Id -> Maybe ctx -> Machine pay ctx -> Controller pay ctx
-export initialControl = (id, mCtx, mch) => {
+initialControl :: (Eq ctx, Show ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
+export initialControl = (mCtx, mch) => {
   ref = Machine.state(mch)
 
   return pipe(
-    Controller(id, mCtx, mch, $, _stepWithPayload),
+    Controller(mCtx, mch, $, _stepWithPayload),
   )(isJust(ref) ? ref : Machine.firstState(mch))
 }
 noStates :: Machine pay ctx -> Boolean
@@ -44,13 +47,9 @@ export noStates = pipe(
   Set.length,
   Fn.equals(0),
 )
-create :: (Show ctx, Eq ctx) => Id -> Maybe ctx -> Machine pay ctx -> Controller pay ctx
-export create = (id, ctx, mch) => pipe(
-  Fn.ifElse(
-    noStates,
-    InvalidController("utter:ly:aimless", "No states", $, Set.empty),
-    initialControl(id, ctx),
-  ),
+create :: (Show ctx, Eq ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
+export create = (ctx, mch) => pipe(
+  Fn.ifElse(noStates, InvalidController("No states", $, Set.empty), initialControl(ctx)),
 )(mch)
 // safeCreate :: (Show ctx, Eq ctx) => Maybe ctx -> Machine pay ctx -> Controller pay ctx
 // export safeCreate = (ctx, mch) => pipe(
@@ -70,7 +69,7 @@ export create = (id, ctx, mch) => pipe(
 
 context :: Controller pay ctx -> Maybe ctx
 export context = where {
-  Controller(_, ctx, _, _, _) =>
+  Controller(ctx, _, _, _) =>
     ctx
 
   _ =>
@@ -78,15 +77,15 @@ export context = where {
 }
 machine :: Controller pay ctx -> Machine pay ctx
 export machine = where {
-  InvalidController(_, _, mch, _) =>
+  InvalidController(_, mch, _) =>
     mch
 
-  Controller(_, _, mch, _, _) =>
+  Controller(_, mch, _, _) =>
     mch
 }
 state :: Controller pay ctx -> Stateish pay ctx
 export state = where {
-  Controller(_, _, _, st, _) =>
+  Controller(_, _, st, _) =>
     st
 
   _ =>
@@ -95,24 +94,24 @@ export state = where {
 // basic mutators
 setContext :: Maybe ctx -> Controller pay ctx -> Controller pay ctx
 export setContext = (cty, ctrl) => where(ctrl) {
-  Controller(id, _, a, b, c) =>
-    Controller(id, cty, a, b, c)
+  Controller(_, a, b, c) =>
+    Controller(cty, a, b, c)
 
   _ =>
     ctrl
 }
 setMachine :: Machine pay ctx -> Controller pay ctx -> Controller pay ctx
 export setMachine = (mch, ctrl) => where(ctrl) {
-  Controller(id, a, _, b, c) =>
-    Controller(id, a, mch, b, c)
+  Controller(a, _, b, c) =>
+    Controller(a, mch, b, c)
 
   _ =>
     ctrl
 }
 setState :: Stateish pay ctx -> Controller pay ctx -> Controller pay ctx
 export setState = (st, ctrl) => where(ctrl) {
-  Controller(id, a, b, _, c) =>
-    Controller(id, a, Machine.setState(st, b), st, c)
+  Controller(a, b, _, c) =>
+    Controller(a, Machine.setState(st, b), st, c)
 
   _ =>
     ctrl
@@ -144,13 +143,16 @@ _step = (ev, stateName, mch) => if (Machine.hasEvent(ev, mch)) {
 }
 // stepWithPayload does not check validity either!
 // it is the default interior run step for the Controller
-_stepWithPayload :: Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx
-_stepWithPayload = (mCtx, mch, current, ev) => where(#[mCtx, current]) {
-  #[Just(ctx), Just(State(stateName, trx))] =>
-    _step(ev, stateName, mch)
+_stepWithPayload :: Machine pay ctx
+  -> Stateish pay ctx
+  -> String
+  -> Either (Stateish pay ctx) (Stateish pay ctx)
+_stepWithPayload = (mch, current, ev) => where(current) {
+  Just(State(stateName, trx)) =>
+    Right(_step(ev, stateName, mch))
 
   _ =>
-    Nothing
+    Left(current)
 }
 // apply all action reducers and transform the current context
 processReducers :: (Show pay, Show ctx) => String
@@ -190,12 +192,7 @@ processAllImmediateTransitions :: (Show pay, Show ctx) => String
 processAllImmediateTransitions = (stateName, payload, _ctx, trx) => pipe(
   List.reduce(
     (#[st, innerCtx], tr) => {
-      id = Transition.id(tr)
-      return if (
-        Log
-          .env
-          .interpreter("@@@checking " ++ id, Transition.checkImmediate(id, payload, innerCtx, tr))
-      ) do {
+      return if (Transition.checkImmediate(payload, innerCtx, tr)) do {
         // jimble jamble up an event from thin snare
 
         ev = Transition.name(tr)
@@ -205,7 +202,6 @@ processAllImmediateTransitions = (stateName, payload, _ctx, trx) => pipe(
         postctx = processReducers(ev, payload, innerCtx, tr)
         // post actions get the updated content and don't change it
         // ctrl2 = processActionControllers(ctrl, ev, payload, postctx, tr)
-        Log.env.interpreter("PYAP", #[ev, stateName])
         postprocessActions(ev, payload, postctx, tr)
         return #[ev, postctx]
       } else {
@@ -276,29 +272,36 @@ send :: (Eq ctx, Eq pay, Show ctx, Show pay) => String
   -> Controller pay ctx
   -> Controller pay ctx
 export send = (ev, payload, ctrl) => where(ctrl) {
-  Controller(id, ctx, mch, currentState, run) =>
+  Controller(ctx, mch, currentState, run) =>
     do {
-      newStateIsh = run(ctx, mch, currentState, ev)
-      return if (isJust(newStateIsh)) do {
-        newContext = applyActionsToContext(payload, ctx, ev, currentState)
-        Log.tapped.interpreter("changing state:", fromTo, [currentState, newStateIsh])
-        #[mStateString, immediateContext] = processImmediateTransitions(
-          payload,
-          newStateIsh,
-          newContext,
-        )
-        newStateIsh2 = Machine.getState(mStateString, mch)
-        Log.tapped.interpreter("changing state again:", fromTo, [newStateIsh, newStateIsh2])
+      Log.env.interpreter("sending:", ev)
+      return where(run(mch, currentState, ev)) {
+        Right(newStateIsh) =>
+          do {
+            newContext = applyActionsToContext(payload, ctx, ev, currentState)
+            #[mStateString, immediateContext] = processImmediateTransitions(
+              payload,
+              newStateIsh,
+              newContext,
+            )
+            newStateIsh2 = Machine.getState(mStateString, mch)
+            Log
+              .tapped
+              .interpreter("immediate state:", fromTo, [currentState, newStateIsh, newStateIsh2])
 
-        return pipe(
-          setContext(immediateContext),
-          // setState(isJust(newStateIsh2) ? newStateIsh2 : newStateIsh),
-          setState(newStateIsh2),
-        )(ctrl)
-        // return Controller(newContext, mch, newStateIsh, run)
-      } else do {
-        Log.env.interpreter(ev ++ " failed", payload)
-        return ctrl
+            // setState(newStateIsh2),
+            return pipe(
+              setContext(immediateContext),
+              setState(isJust(newStateIsh2) ? newStateIsh2 : newStateIsh),
+            )(ctrl)
+            // return Controller(newContext, mch, newStateIsh, run)
+          }
+
+        Left(newStateIsh) =>
+          do {
+            Log.env.interpreter(ev ++ " did not transition", payload)
+            return ctrl
+          }
       }
     }
 

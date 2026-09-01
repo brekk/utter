@@ -1,3 +1,4 @@
+import type { Either } from "Either"
 import type { Maybe } from "Maybe"
 
 import List from "List"
@@ -6,34 +7,39 @@ import String from "String"
 
 
 
-export alias Id = String
 // sugar
 export alias GuardianFn pay ctx = String -> pay -> Maybe ctx -> Boolean
 export alias ActionFn pay ctx = String -> pay -> Maybe ctx -> {}
 export alias ReducerFn pay ctx = String -> pay -> Maybe ctx -> Maybe ctx
+export alias ControllerFn pay ctx = Machine pay ctx
+  -> Stateish pay ctx
+  -> String
+  -> Either (Stateish pay ctx) (Stateish pay ctx)
 // proper types
-export type Machine pay ctx = Machine(Id, List (State pay ctx), Maybe (State pay ctx))
+export type Machine pay ctx = Machine(String, List (State pay ctx), Maybe (State pay ctx))
 export type State pay ctx = State(String, List (Transition pay ctx)) | FinalState(String)
 export type Controller pay ctx
-  = InvalidController(Id, String, Machine pay ctx, Set String)
-  | Controller(
-    Id,
-    Maybe ctx,
-    Machine pay ctx,
-    Stateish pay ctx,
-    Maybe ctx -> Machine pay ctx -> Stateish pay ctx -> String -> Stateish pay ctx,
-  )
+  = InvalidController(String, Machine pay ctx, Set String)
+  | Controller(Maybe ctx, Machine pay ctx, Stateish pay ctx, ControllerFn pay ctx)
 export alias Stateish pay ctx = Maybe (State pay ctx)
 export type TransitionModifier pay ctx
-  = Guard(Id, GuardianFn pay ctx)
-  | Action(Id, ActionFn pay ctx)
-  | PostAction(Id, ActionFn pay ctx)
-  | Reducer(Id, ReducerFn pay ctx)
-  | InvalidModifier(Id, String)
+  = Guard(GuardianFn pay ctx)
+  | Action(ActionFn pay ctx)
+  | PostAction(ActionFn pay ctx)
+  | Reducer(ReducerFn pay ctx)
+  | InvalidModifier(String)
+export type Trait pay ctx = Named(String)
+export alias Traits pay ctx = List (Trait pay ctx)
+export type TraitModifier pay ctx
+  = TraitModifier(Trait pay ctx, TransitionModifier pay ctx)
+  | TraitsModifier(Traits pay ctx, TransitionModifier pay ctx)
 // aliases
 export alias TransitionModifiers pay ctx = List (TransitionModifier pay ctx)
 export type TransitionPath = TransitionPath(String, String) | ImmediatePath(String)
 export type Transition pay ctx
-  = Transition(Id, TransitionPath, TransitionModifiers pay ctx)
-  | ImmediateTransition(Id, TransitionPath, TransitionModifiers pay ctx)
+  = Transition(TransitionPath, TransitionModifiers pay ctx)
+  | ImmediateTransition(TransitionPath, TransitionModifiers pay ctx)
+export type TransitionWithTrait pay ctx
+  = TransitionWithTrait(TraitModifier pay ctx, Transition pay ctx)
+  | TransitionWithTraits(List (TraitModifier pay ctx), Transition pay ctx)
 export alias Transitions pay ctx = List (Transition pay ctx)

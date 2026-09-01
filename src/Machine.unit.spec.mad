@@ -13,15 +13,11 @@ import T from "@/Utter"
 
 // wild stateful delights
 THE_NOTHING_MACHINE = T.Machine("id", [], Nothing)
-SELF_CENTERED = T.Transition("self-centered", T.TransitionPath("again", "only"), [])
+SELF_CENTERED = T.Transition(T.TransitionPath("again", "only"), [])
 SOLO_DOLO = T.State("only", [SELF_CENTERED])
 THE_LOOPER = T.Machine("loop", [SOLO_DOLO], Just(SOLO_DOLO))
-WAKE_UP_SHEEPLE = T.Transition("wake-up-sheeple", T.TransitionPath("wake up", "ragin"), [])
-NOT_996_THO = T.Transition(
-  "not-996-tho",
-  T.TransitionPath("long day is tiring though", "sleepin"),
-  [],
-)
+WAKE_UP_SHEEPLE = T.Transition(T.TransitionPath("wake up", "ragin"), [])
+NOT_996_THO = T.Transition(T.TransitionPath("long day is tiring though", "sleepin"), [])
 SLEEPIN = T.State("sleepin", [WAKE_UP_SHEEPLE])
 RAGIN = T.State("ragin", [NOT_996_THO])
 // starts out RAGIN!
@@ -93,7 +89,7 @@ Study.report(
     ],
   ],
 )
-YEET_ME = T.State("current", [Transition.createRaw("vacation", "redirect", "elsewhere", [])])
+YEET_ME = T.State("current", [Transition.create("redirect", "elsewhere", [])])
 BAD_MACHINE = T.Machine("bad", [YEET_ME], Just(YEET_ME))
 Study.report(
   Machine.isComplete,

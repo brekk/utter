@@ -1,25 +1,26 @@
 import type { Maybe } from "Maybe"
 
-import type { TransitionModifier } from "@/Utter"
+import type { TraitModifier, TransitionModifier } from "@/Utter"
 
-import Id from "@/Identifier"
+import List from "List"
+import { Just, Nothing, isJust } from "Maybe"
+
+import _List from "@/List"
 import Mod from "@/Modifier"
-import { Action, PostAction } from "@/Utter"
+import { Action, Named, PostAction, TraitModifier, TraitsModifier } from "@/Utter"
 
 
 
-key = Id.create("action")
-export createRawAction = Action
-export create = (fn) => Action(key.gen(), fn)
-export createPost = (fn) => PostAction(key.gen(), fn)
+export create = Action
+export createPost = PostAction
 invoke :: (Show pay, Show ctx) => String -> pay -> Maybe ctx -> TransitionModifier pay ctx -> {}
 export invoke = (ev, pay, ctx, act) => pipe(
   Mod.ensureAction,
   where {
-    Action(_, call) =>
+    Action(call) =>
       call(ev, pay, ctx)
 
-    PostAction(_, call) =>
+    PostAction(call) =>
       call(ev, pay, ctx)
 
     _ =>
@@ -27,25 +28,66 @@ export invoke = (ev, pay, ctx, act) => pipe(
   },
 )(act)
 export herald = (binaryLogger, k, x) => pipe(
-  Mod.ensureAction,
   where {
-    Action(_id, fn) =>
-      Action(
-        _id,
-        pipe(
-          binaryLogger(_id ++ ":" ++ k),
-          fn,
+    TraitModifier(Named(_id), Action(fn)) =>
+      TraitModifier(
+        Named(_id),
+        Action(
+          pipe(
+            binaryLogger(_id ++ ":" ++ k),
+            fn,
+          ),
         ),
       )
 
-    PostAction(_id, fn) =>
-      PostAction(
-        _id,
-        pipe(
-          binaryLogger(_id ++ ":" ++ k),
-          fn,
+    TraitsModifier(lx, Action(fn)) =>
+      do {
+        updated = if (_List.some(Mod.hasTraitNamed, lx)) {
+          where(List.find(Mod.hasTraitNamed, lx) ?? Named("UnnamedAction")) {
+            Named(_id) =>
+              Action(
+                pipe(
+                  binaryLogger(_id ++ ":" ++ k),
+                  fn,
+                ),
+              )
+          }
+        } else {
+          Action(fn)
+        }
+
+        return TraitsModifier(lx, updated)
+      }
+
+    TraitModifier(Named(_id), PostAction(fn)) =>
+      TraitModifier(
+        Named(_id),
+        PostAction(
+          pipe(
+            binaryLogger(_id ++ ":" ++ k),
+            fn,
+          ),
         ),
       )
+
+    TraitsModifier(lx, PostAction(fn)) =>
+      do {
+        updated = if (_List.some(Mod.hasTraitNamed, lx)) {
+          where(List.find(Mod.hasTraitNamed, lx) ?? Named("UnnamedPostAction")) {
+            Named(_id) =>
+              PostAction(
+                pipe(
+                  binaryLogger(_id ++ ":" ++ k),
+                  fn,
+                ),
+              )
+          }
+        } else {
+          PostAction(fn)
+        }
+
+        return TraitsModifier(lx, updated)
+      }
 
     _ =>
       x

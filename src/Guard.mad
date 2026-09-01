@@ -1,69 +1,77 @@
 import type { Maybe } from "Maybe"
 
 import type { GuardianFn, TransitionModifier } from "@/Utter"
-import type { Id } from "@/Utter"
 
+import List from "List"
+import { Just, Nothing, isJust } from "Maybe"
 // import Crypto from "@/Crypto"
 import Random from "Random"
 
 import Id from "@/Identifier"
+import _List from "@/List"
 import Log from "@/Log"
+import Mod from "@/Modifier"
 import Modifier from "@/Modifier"
-import { Guard } from "@/Utter"
+import { Guard, Named, TraitModifier, TraitsModifier } from "@/Utter"
 
 
 
 key = Id.create("guard")
-export createRaw = Guard
-export create = (fn) => Guard(key.gen(), fn)
+export create = Guard
 check :: (Show pay, Show ctx) => String -> pay -> Maybe ctx -> TransitionModifier pay ctx -> Boolean
 export check = (ev, pay, ctx, guard) => pipe(
   Modifier.ensureGuard,
   where {
-    Guard(_, engarde) =>
+    Guard(engarde) =>
       engarde(ev, pay, ctx)
 
     _ =>
-      ???
+      true
   },
 )(guard)
 complement :: GuardianFn pay ctx -> String -> pay -> Maybe ctx -> Boolean
 export complement = (fn, ev, mPay, mCtx) => !fn(ev, mPay, mCtx)
 // protect ya neck
-invertWithId :: (Show pay, Show ctx) => Id
-  -> TransitionModifier pay ctx
-  -> TransitionModifier pay ctx
-export invertWithId = (newId, x) => pipe(
+invert :: (Show pay, Show ctx) => TransitionModifier pay ctx -> TransitionModifier pay ctx
+export invert = (x) => pipe(
   Modifier.ensureGuard,
   where {
-    Guard(_, fn) =>
-      Guard(newId, (ev, pay, mCtx) => !fn(ev, pay, mCtx))
+    Guard(fn) =>
+      Guard((ev, pay, mCtx) => !fn(ev, pay, mCtx))
 
     _ =>
       x
   },
 )(x)
-export invert = (x) => invertWithId(key.gen(), x)
-export mapGuard = (and, guard) => pipe(
-  Modifier.ensureGuard,
-  where {
-    Guard(id, fn) =>
-      Guard(id, and(fn))
-
-    _ =>
-      guard
-  },
-)(guard)
 export herald = (binaryLogger, k, x) => pipe(
-  Modifier.ensureGuard,
   where {
-    Guard(_id, fn) =>
-      Guard(
-        _id,
-        pipe(
-          fn,
-          binaryLogger(_id ++ ":" ++ k),
+    TraitModifier(Named(_id), Guard(fn)) =>
+      TraitModifier(
+        Named(_id),
+        Guard(
+          pipe(
+            fn,
+            binaryLogger(_id ++ ":" ++ k),
+          ),
         ),
+      )
+
+    TraitsModifier(lx, Guard(fn)) =>
+      TraitsModifier(
+        lx,
+        if (_List.some(Mod.hasTraitNamed, lx)) {
+          where(List.find(Mod.hasTraitNamed, lx) ?? Named("UnnamedGuard")) {
+            Named(_id) =>
+              Guard(
+                pipe(
+                  fn,
+                  binaryLogger(_id ++ ":" ++ k),
+                ),
+              )
+          }
+        } else {
+          Guard(fn)
+        },
       )
 
     _ =>

@@ -1,0 +1,9 @@
+import List from "List"
+import { isJust } from "Maybe"
+
+
+
+export some = (fn, xs) => pipe(
+  List.find(fn),
+  isJust,
+)(xs)

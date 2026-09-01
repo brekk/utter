@@ -32,8 +32,8 @@ ADD_ONE = Reducer.create(
   },
 )
 STATES = {
-  initial: State.create("INITIAL", [Transition.between("LOADING", "READY")]),
-  loaded: State.create("READY", [Transition.between("COUNT", "COUNTING")]),
+  initial: State.create("INITIAL", [Transition.via("LOADING", "READY")]),
+  loaded: State.create("READY", [Transition.via("COUNT", "COUNTING")]),
   counting: State.create(
     "COUNTING",
     [
@@ -52,9 +52,9 @@ NOTHING_MACHINE = T.Machine(
   [STATES.initial, STATES.loaded, STATES.counting, STATES.done],
   Nothing,
 )
-COUNTING_SERVICE = Interpreter.create("countabilly", Just({ count: 0 }), COUNTING_MACHINE)
-NOTHING_SERVICE = Interpreter.create("never-no-nothing", Nothing, NOTHING_MACHINE)
-BAD_SERVICE = T.InvalidController("barfo", "this is a test", NOTHING_MACHINE, Set.empty)
+COUNTING_SERVICE = Interpreter.create(Just({ count: 0 }), COUNTING_MACHINE)
+NOTHING_SERVICE = Interpreter.create(Nothing, NOTHING_MACHINE)
+BAD_SERVICE = T.InvalidController("this is a test", NOTHING_MACHINE, Set.empty)
 /*
 Study.report(
   Inter.safeCreate(Just({ count: 0 })),

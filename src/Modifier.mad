@@ -1,80 +1,84 @@
+import type { Trait, Traits } from "@/Utter"
+
+import Fn from "Function"
+import List from "List"
+import { Just, Nothing } from "Maybe"
+
 import CONSTANTS from "@/Constants"
 import Log from "@/Log"
-import { Action, Guard, InvalidModifier, PostAction, Reducer } from "@/Utter"
+import {
+  Action,
+  Guard,
+  InvalidModifier,
+  Named,
+  PostAction,
+  Reducer,
+  TraitModifier,
+  TraitsModifier,
+} from "@/Utter"
 
 
 
-export isAction = where {
-  Action(_, _) =>
+export hasTraitNamed = where {
+  Named(_) =>
     true
 
-  PostAction(_, _) =>
+  _ =>
+    false
+}
+export isAction = where {
+  Action(_) =>
+    true
+
+  PostAction(_) =>
     true
 
   _ =>
     false
 }
 export isPostAction = where {
-  PostAction(_, _) =>
+  PostAction(_) =>
     true
 
   _ =>
     false
 }
 export isStrictAction = where {
-  Action(_, _) =>
+  Action(_) =>
     true
 
   _ =>
     false
 }
 export isGuard = where {
-  Guard(_, _) =>
+  Guard(_) =>
     true
 
   _ =>
     false
 }
 export isReducer = where {
-  Reducer(_, _) =>
+  Reducer(_) =>
     true
 
   _ =>
     false
 }
-export isInvalidModifier = where {
-  InvalidModifier(_, _) =>
+export isInvalid = where {
+  InvalidModifier(_) =>
     true
 
   _ =>
     false
 }
-export id = where {
-  Guard(i, _) =>
-    i
-
-  Action(i, _) =>
-    i
-
-  PostAction(i, _) =>
-    i
-
-  Reducer(i, _) =>
-    i
-
-  InvalidModifier(i, _) =>
-    i
-}
+export withTrait = TraitModifier
+export withTraits = TraitsModifier
 export orInvalid = (why, checker, x) => if (checker(x)) {
   x
 } else {
   Log
     .tapped
-    .modifier(
-      "Modifier processed in an invalid location",
-      (y) => #[x, y],
-      InvalidModifier("utter:ly:typedWrong", why),
-    )
+    .modifier("Modifier processed in an invalid location", (y) => #[x, y], InvalidModifier(why))
 }
 export onlyGuard = orInvalid($, isGuard)
 export ensureGuard = onlyGuard(CONSTANTS.EXPECTED_GUARD)

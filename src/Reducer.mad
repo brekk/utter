@@ -2,14 +2,16 @@ import type { Maybe } from "Maybe"
 
 import type { TransitionModifier } from "@/Utter"
 
-import Id from "@/Identifier"
+import List from "List"
+import { Just } from "Maybe"
+
+import _List from "@/List"
 import Mod from "@/Modifier"
-import { Reducer } from "@/Utter"
+import { Named, Reducer, TraitModifier, TraitsModifier } from "@/Utter"
 
 
 
-key = Id.create("reducer")
-export create = (fn) => Reducer(key.gen(), fn)
+export create = Reducer
 reduce :: (Show pay, Show ctx) => String
   -> pay
   -> Maybe ctx
@@ -18,7 +20,7 @@ reduce :: (Show pay, Show ctx) => String
 export reduce = (ev, pay, ctx, act) => pipe(
   Mod.ensureReducer,
   where {
-    Reducer(_, call) =>
+    Reducer(call) =>
       call(ev, pay, ctx)
 
     _ =>
@@ -26,15 +28,34 @@ export reduce = (ev, pay, ctx, act) => pipe(
   },
 )(act)
 export herald = (binaryLogger, k, x) => pipe(
-  Mod.ensureReducer,
   where {
-    Reducer(_id, fn) =>
-      Reducer(
-        _id,
-        pipe(
-          fn,
-          binaryLogger(_id ++ ":" ++ k),
+    TraitModifier(Named(_id), Reducer(fn)) =>
+      TraitModifier(
+        Named(_id),
+        Reducer(
+          pipe(
+            fn,
+            binaryLogger(_id ++ ":" ++ k),
+          ),
         ),
+      )
+
+    TraitsModifier(lx, Reducer(fn)) =>
+      TraitsModifier(
+        lx,
+        if (_List.some(Mod.hasTraitNamed, lx)) {
+          where(List.find(Mod.hasTraitNamed, lx) ?? Named("UnnamedReducer")) {
+            Named(_id) =>
+              Reducer(
+                pipe(
+                  fn,
+                  binaryLogger(_id ++ ":" ++ k),
+                ),
+              )
+          }
+        } else {
+          Reducer(fn)
+        },
       )
 
     _ =>
