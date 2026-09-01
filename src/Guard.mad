@@ -2,36 +2,25 @@ import type { Maybe } from "Maybe"
 
 import type { GuardianFn, TransitionModifier } from "@/Utter"
 
-import List from "List"
-import { Just, Nothing, isJust } from "Maybe"
-// import Crypto from "@/Crypto"
-import Random from "Random"
-
-import Id from "@/Identifier"
-import _List from "@/List"
 import Log from "@/Log"
-import Mod from "@/Modifier"
 import Modifier from "@/Modifier"
-import { Guard, Named, TraitModifier, TraitsModifier } from "@/Utter"
+import { Guard } from "@/Utter"
 
 
 
-key = Id.create("guard")
 export create = Guard
+// we don't have to ensure only guards here, as we can always return true
 check :: (Show pay, Show ctx) => String -> pay -> Maybe ctx -> TransitionModifier pay ctx -> Boolean
-export check = (ev, pay, ctx, guard) => pipe(
-  Modifier.ensureGuard,
-  where {
-    Guard(engarde) =>
-      engarde(ev, pay, ctx)
+export check = (ev, pay, ctx, guard) => where(guard) {
+  Guard(engarde) =>
+    engarde(ev, pay, ctx)
 
-    _ =>
-      true
-  },
-)(guard)
+  _ =>
+    true
+}
 complement :: GuardianFn pay ctx -> String -> pay -> Maybe ctx -> Boolean
 export complement = (fn, ev, mPay, mCtx) => !fn(ev, mPay, mCtx)
-// protect ya neck
+// we have to ensure
 invert :: (Show pay, Show ctx) => TransitionModifier pay ctx -> TransitionModifier pay ctx
 export invert = (x) => pipe(
   Modifier.ensureGuard,
@@ -43,6 +32,8 @@ export invert = (x) => pipe(
       x
   },
 )(x)
+
+/*
 export herald = (binaryLogger, k, x) => pipe(
   where {
     TraitModifier(Named(_id), Guard(fn)) =>
@@ -78,3 +69,4 @@ export herald = (binaryLogger, k, x) => pipe(
       x
   },
 )(x)
+*/

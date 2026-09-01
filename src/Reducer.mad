@@ -7,7 +7,7 @@ import { Just } from "Maybe"
 
 import _List from "@/List"
 import Mod from "@/Modifier"
-import { Named, Reducer, TraitModifier, TraitsModifier } from "@/Utter"
+import { Reducer } from "@/Utter"
 
 
 
@@ -27,6 +27,8 @@ export reduce = (ev, pay, ctx, act) => pipe(
       ctx
   },
 )(act)
+
+/*
 export herald = (binaryLogger, k, x) => pipe(
   where {
     TraitModifier(Named(_id), Reducer(fn)) =>
@@ -62,3 +64,4 @@ export herald = (binaryLogger, k, x) => pipe(
       x
   },
 )(x)
+*/

@@ -1,0 +1,13 @@
+import List from "List"
+
+import Study from "Study"
+
+import _List from "@/List"
+
+
+
+Study.report(
+  _List.some($, List.range(0, 5)),
+  "List.some",
+  [#[(x) => x % 2 == 0, true], #[(x) => x == 1, true], #[(x) => x == 9, false]],
+)

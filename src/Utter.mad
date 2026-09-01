@@ -28,18 +28,18 @@ export type TransitionModifier pay ctx
   | PostAction(ActionFn pay ctx)
   | Reducer(ReducerFn pay ctx)
   | InvalidModifier(String)
-export type Trait pay ctx = Named(String)
-export alias Traits pay ctx = List (Trait pay ctx)
-export type TraitModifier pay ctx
-  = TraitModifier(Trait pay ctx, TransitionModifier pay ctx)
-  | TraitsModifier(Traits pay ctx, TransitionModifier pay ctx)
+// export type Trait pay ctx = Named(String)
+// export alias Traits pay ctx = List (Trait pay ctx)
+// export type TraitModifier pay ctx
+//   = TraitModifier(Trait pay ctx, TransitionModifier pay ctx)
+//   | TraitsModifier(Traits pay ctx, TransitionModifier pay ctx)
 // aliases
 export alias TransitionModifiers pay ctx = List (TransitionModifier pay ctx)
 export type TransitionPath = TransitionPath(String, String) | ImmediatePath(String)
 export type Transition pay ctx
   = Transition(TransitionPath, TransitionModifiers pay ctx)
   | ImmediateTransition(TransitionPath, TransitionModifiers pay ctx)
-export type TransitionWithTrait pay ctx
-  = TransitionWithTrait(TraitModifier pay ctx, Transition pay ctx)
-  | TransitionWithTraits(List (TraitModifier pay ctx), Transition pay ctx)
+// export type TransitionWithTrait pay ctx
+//   = TransitionWithTrait(TraitModifier pay ctx, Transition pay ctx)
+//   | TransitionWithTraits(List (TraitModifier pay ctx), Transition pay ctx)
 export alias Transitions pay ctx = List (Transition pay ctx)

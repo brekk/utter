@@ -1,0 +1,37 @@
+import List from "List"
+import { Just, Nothing } from "Maybe"
+
+import Study from "Study"
+
+import Action from "@/Action"
+import Guard from "@/Guard"
+import Mod from "@/Modifier"
+import Reducer from "@/Reducer"
+import Utter from "@/Utter"
+
+
+
+FIXTURE_GUARD = Guard.create((_, _, _) => true)
+FIXTURE_ACTION = Action.create((_, _, _) => {})
+FIXTURE_POSTACTION = Action.createPost((_, _, _) => {})
+FIXTURE_REDUCER = Reducer.create((_, _, x) => x)
+FIXTURE_INVALID = Utter.InvalidModifier("HOORAY")
+FIXTURE_LIST = [FIXTURE_GUARD, FIXTURE_ACTION, FIXTURE_POSTACTION, FIXTURE_REDUCER, FIXTURE_INVALID]
+Study.report(
+  List.filter(Mod.isAction),
+  "Mod.isAction",
+  [#[FIXTURE_LIST, [FIXTURE_ACTION, FIXTURE_POSTACTION]]],
+)
+Study.report(
+  List.filter(Mod.isPostAction),
+  "Mod.isPostAction",
+  [#[FIXTURE_LIST, [FIXTURE_POSTACTION]]],
+)
+Study.report(
+  List.filter(Mod.isStrictAction),
+  "Mod.isStrictAction",
+  [#[FIXTURE_LIST, [FIXTURE_ACTION]]],
+)
+Study.report(List.filter(Mod.isGuard), "Mod.isGuard", [#[FIXTURE_LIST, [FIXTURE_GUARD]]])
+Study.report(List.filter(Mod.isReducer), "Mod.isReducer", [#[FIXTURE_LIST, [FIXTURE_REDUCER]]])
+Study.report(List.filter(Mod.isInvalid), "Mod.isInvalid", [#[FIXTURE_LIST, [FIXTURE_INVALID]]])

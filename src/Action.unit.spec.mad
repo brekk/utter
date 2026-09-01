@@ -13,12 +13,6 @@ import T from "@/Utter"
 
 nothingActionFn :: ActionFn pay ctx
 nothingActionFn = (ev, pay, mCtx) => {}
-// Study.report(
-//   Action.create,
-//   "actions can be created, and they have an id",
-//   [#[nothingActionFn, "action-2"]],
-// )
-// xctrl = InvalidController("This is a test", Machine("test", [], Nothing), Set.empty)
 Study.report(
   Study.caseN4(Action.invoke),
   "actions can be invoked",
@@ -28,7 +22,7 @@ Study.report(
         "one",
         Just("two"),
         Just("three"),
-        T.Action(
+        Action.create(
           (ev, pay, mCtx) => where(#[pay, mCtx]) {
             #[Just(_b), Just(_c)] =>
               do {
@@ -38,6 +32,50 @@ Study.report(
             _ =>
               do {
                 assertEquals(false, true)
+              }
+          },
+        ),
+      ],
+      {},
+    ],
+    #[
+      #[
+        "one",
+        Just("two"),
+        Just("three"),
+        Action.createPost(
+          (ev, pay, mCtx) => where(#[pay, mCtx]) {
+            #[Just(_b), Just(_c)] =>
+              do {
+                assertEquals(#[ev, _b, _c], #["one", "two", "three"])
+              }
+
+            _ =>
+              do {
+                assertEquals(false, true)
+              }
+          },
+        ),
+      ],
+      {},
+    ],
+    #[
+      #[
+        "one",
+        Just("two"),
+        Just("three"),
+        T.Guard(
+          (ev, pay, mCtx) => where(#[pay, mCtx]) {
+            #[Just(_b), Just(_c)] =>
+              do {
+                assertEquals(#[ev, _b, _c], #["one", "two", "three"])
+                return false
+              }
+
+            _ =>
+              do {
+                assertEquals(false, true)
+                return false
               }
           },
         ),

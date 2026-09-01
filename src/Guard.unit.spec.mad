@@ -2,6 +2,7 @@ import { Just, Nothing } from "Maybe"
 
 import Study from "Study"
 
+import Action from "@/Action"
 import Guard from "@/Guard"
 
 
@@ -17,5 +18,7 @@ Study.report(
     #[#[Test("four"), Nothing, Guard.create(Guard.complement((_, _, _) => false))], true],
     #[#[Test("four"), Nothing, Guard.invert(Guard.create((_, _, _) => false))], true],
     #[#[Test("five"), Nothing, Guard.invert(Guard.create((_, _, _) => true))], false],
+    #[#[Test("six"), Nothing, Action.create((_, _, _) => {})], true],
+    #[#[Test("seven"), Nothing, Guard.invert(Action.create((_, _, _) => {}))], true],
   ],
 )

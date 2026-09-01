@@ -3,7 +3,6 @@ import type { Maybe } from "Maybe"
 
 import type {
   Controller,
-  ControllerFn,
   Machine,
   State,
   Stateish,

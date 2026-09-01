@@ -1,13 +1,9 @@
 import type { Maybe } from "Maybe"
 
-import type { TraitModifier, TransitionModifier } from "@/Utter"
+import type { TransitionModifier } from "@/Utter"
 
-import List from "List"
-import { Just, Nothing, isJust } from "Maybe"
-
-import _List from "@/List"
 import Mod from "@/Modifier"
-import { Action, Named, PostAction, TraitModifier, TraitsModifier } from "@/Utter"
+import { Action, PostAction } from "@/Utter"
 
 
 
@@ -15,7 +11,6 @@ export create = Action
 export createPost = PostAction
 invoke :: (Show pay, Show ctx) => String -> pay -> Maybe ctx -> TransitionModifier pay ctx -> {}
 export invoke = (ev, pay, ctx, act) => pipe(
-  Mod.ensureAction,
   where {
     Action(call) =>
       call(ev, pay, ctx)
@@ -27,6 +22,8 @@ export invoke = (ev, pay, ctx, act) => pipe(
       {}
   },
 )(act)
+
+/*
 export herald = (binaryLogger, k, x) => pipe(
   where {
     TraitModifier(Named(_id), Action(fn)) =>
@@ -93,3 +90,4 @@ export herald = (binaryLogger, k, x) => pipe(
       x
   },
 )(x)
+*/
