@@ -1,11 +1,11 @@
 {
-  "buildHash": "bf023e904a000744095eb8d0c1979496",
+  "buildHash": "0a1a1e0e368a872a8992dd43e8a7049a",
   "jsApi": {
     "apiInstances": [],
     "apiAliases": {
       "TransitionModifiers pay ctx": "(List (TransitionModifier pay ctx))",
       "ReducerFn pay ctx": "(String -> pay -> Maybe ctx -> Maybe ctx)",
-      "ControllerFn pay ctx": "(Machine pay ctx -> Stateish pay ctx -> String -> Either (Stateish pay ctx) (Stateish pay ctx))",
+      "ControllerFn pay ctx": "(String -> Machine pay ctx -> Stateish pay ctx -> Either (Stateish pay ctx) (Stateish pay ctx))",
       "Stateish pay ctx": "(Maybe (State pay ctx))",
       "ActionFn pay ctx": "(String -> pay -> Maybe ctx -> {})",
       "Transitions pay ctx": "(List (Transition pay ctx))",
@@ -47,7 +47,7 @@
     "apiAliases": {
       "TransitionModifiers pay ctx": "(List (TransitionModifier pay ctx))",
       "ReducerFn pay ctx": "(String -> pay -> Maybe ctx -> Maybe ctx)",
-      "ControllerFn pay ctx": "(Machine pay ctx -> Stateish pay ctx -> String -> Either (Stateish pay ctx) (Stateish pay ctx))",
+      "ControllerFn pay ctx": "(String -> Machine pay ctx -> Stateish pay ctx -> Either (Stateish pay ctx) (Stateish pay ctx))",
       "Stateish pay ctx": "(Maybe (State pay ctx))",
       "ActionFn pay ctx": "(String -> pay -> Maybe ctx -> {})",
       "Transitions pay ctx": "(List (Transition pay ctx))",
