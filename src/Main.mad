@@ -17,7 +17,7 @@ import Transition from "@/Transition"
 
 
 
-shield = Guard.herald(Log.env.guard)
+// shield = Guard.herald(Log.env.guard)
 THE_LIMIT = 5
 GUARD_THE_LIMIT = Guard.create(
   (ev, pay, mCtx) => {

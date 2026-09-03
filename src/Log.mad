@@ -1,3 +1,7 @@
+/* ★★★ utter@0.7.0 ★★★
+ * THIS FILE AUTOMATICALLY GENERATED FROM SOURCE: utter.clown-car
+ */
+
 import Party from "PartyBus"
 
 
@@ -6,15 +10,13 @@ export tags = {
   utter: Party.tag("utter"),
   event: Party.tagWithScope("utter", ["event"]),
   guard: Party.tagWithScope("utter", ["guard"]),
-  modifier: Party.tagWithScope("utter", ["transition", "modifier"]),
+  transition: Party.tagWithScope("utter", ["transition"]),
+  modifier: Party.tagWithScope("utter", ["modifier"]),
   reducer: Party.tagWithScope("utter", ["reducer"]),
   action: Party.tagWithScope("utter", ["action"]),
-  machine: Party.tagWithScope("utter", ["machine"]),
   state: Party.tagWithScope("utter", ["state"]),
-  transition: Party.tagWithScope("utter", ["transition"]),
-  interpreter: Party.tagWithScope("utter", ["interpreter"]),
+  controller: Party.tagWithScope("utter", ["controller"]),
   stream: Party.tagWithScope("utter", ["stream"]),
-  streamEvent: Party.tagWithScope("utter", ["stream", "event"]),
   main: Party.tagWithScope("utter", ["main"]),
   graph: Party.tagWithScope("utter", ["graph"]),
 }
@@ -22,15 +24,13 @@ export env = {
   utter: Party.env(tags.utter),
   event: Party.env(tags.event),
   guard: Party.env(tags.guard),
+  transition: Party.env(tags.transition),
   modifier: Party.env(tags.modifier),
   reducer: Party.env(tags.reducer),
   action: Party.env(tags.action),
-  machine: Party.env(tags.machine),
   state: Party.env(tags.state),
-  transition: Party.env(tags.transition),
-  interpreter: Party.env(tags.interpreter),
+  controller: Party.env(tags.controller),
   stream: Party.env(tags.stream),
-  streamEvent: Party.env(tags.streamEvent),
   main: Party.env(tags.main),
   graph: Party.env(tags.graph),
 }
@@ -38,15 +38,13 @@ export tapped = {
   utter: Party.tap(env.utter),
   event: Party.tap(env.event),
   guard: Party.tap(env.guard),
+  transition: Party.tap(env.transition),
   modifier: Party.tap(env.modifier),
   reducer: Party.tap(env.reducer),
   action: Party.tap(env.action),
-  machine: Party.tap(env.machine),
   state: Party.tap(env.state),
-  transition: Party.tap(env.transition),
-  interpreter: Party.tap(env.interpreter),
+  controller: Party.tap(env.controller),
   stream: Party.tap(env.stream),
-  streamEvent: Party.tap(env.streamEvent),
   main: Party.tap(env.main),
   graph: Party.tap(env.graph),
 }

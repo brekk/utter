@@ -119,7 +119,7 @@ export checkMany = (ev, pay, ctx, trx) => List.reduce(
 checkImmediate :: (Show pay, Show ctx) => pay -> Maybe ctx -> Transition pay ctx -> Boolean
 export checkImmediate = (pay, ctx, tr) => {
   ev = name(tr)
-  return Log.env.guard("checking immediate: " ++ ev, checkGuard(ev, pay, ctx, tr))
+  return checkGuard(ev, pay, ctx, tr)
 }
 toPair :: TransitionPath -> #[String, String]
 export toPair = where {

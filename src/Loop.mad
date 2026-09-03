@@ -1,0 +1,39 @@
+import type { Maybe } from "Maybe"
+
+import type { Controller } from "@/Utter"
+
+import Fn from "Function"
+import { Just, Nothing } from "Maybe"
+
+import Controller from "@/Controller"
+import Log from "@/Log"
+
+
+
+alias LeakyControllerFn a pay ctx = a -> Controller pay ctx -> #[a, Controller pay ctx]
+export alias Remote pay ctx = {
+  get :: {} -> Controller pay ctx,
+  send :: (Controller pay ctx -> Controller pay ctx) -> Controller pay ctx,
+}
+makePermaloop :: Controller pay ctx -> Remote pay ctx
+export makePermaloop = (ctrl) => {
+  command = ctrl
+  send = (run) => {
+    command := pipe(
+      run,
+      Log
+        .tapped
+        .loop(
+          "state",
+          pipe(
+            Interpreter.state,
+            map(State.name),
+          ),
+        ),
+    )(command)
+    return command
+  }
+  face = { send, get: () => command }
+  return face
+}
+handsFree = (x, a) => #[x, a]

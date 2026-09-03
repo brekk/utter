@@ -11,9 +11,9 @@ import String from "String"
 export alias GuardianFn pay ctx = String -> pay -> Maybe ctx -> Boolean
 export alias ActionFn pay ctx = String -> pay -> Maybe ctx -> {}
 export alias ReducerFn pay ctx = String -> pay -> Maybe ctx -> Maybe ctx
-export alias ControllerFn pay ctx = Machine pay ctx
+export alias ControllerFn pay ctx = String
+  -> Machine pay ctx
   -> Stateish pay ctx
-  -> String
   -> Either (Stateish pay ctx) (Stateish pay ctx)
 // proper types
 export type Machine pay ctx = Machine(String, List (State pay ctx), Maybe (State pay ctx))

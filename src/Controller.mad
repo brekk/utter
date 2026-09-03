@@ -56,9 +56,9 @@ export create = (ctx, mch) => pipe(
 //   Fn.ifElse(
 //     pipe(
 //       Set.length,
-//       Log.env.interpreter("incomplete values"),
+//       Log.env.controller("incomplete values"),
 //       (x) => x == 0,
-//       Log.env.interpreter("incomplete?"),
+//       Log.env.controller("incomplete?"),
 //     ),
 //     (_) => create(ctx, mch),
 //     InvalidController("utter:ly:incompleteController", "Machine incomplete", mch),
@@ -89,6 +89,26 @@ export state = where {
 
   _ =>
     Nothing
+}
+export runner = where {
+  Controller(_, _, _, run) =>
+    Just(run)
+
+  _ =>
+    Nothing
+}
+// complex accessor
+
+export mapRun = (fn, ctrl) => pipe(
+  runner,
+  map(fn),
+)(ctrl)
+export setRunner = (r, x) => where(x) {
+  Controller(a, b, c, _) =>
+    Controller(a, b, c, r)
+
+  _ =>
+    x
 }
 // basic mutators
 setContext :: Maybe ctx -> Controller pay ctx -> Controller pay ctx
@@ -142,11 +162,11 @@ _step = (ev, stateName, mch) => if (Machine.hasEvent(ev, mch)) {
 }
 // stepWithPayload does not check validity either!
 // it is the default interior run step for the Controller
-_stepWithPayload :: Machine pay ctx
+_stepWithPayload :: String
+  -> Machine pay ctx
   -> Stateish pay ctx
-  -> String
   -> Either (Stateish pay ctx) (Stateish pay ctx)
-_stepWithPayload = (mch, current, ev) => where(current) {
+_stepWithPayload = (ev, mch, current) => where(current) {
   Just(State(stateName, trx)) =>
     Right(_step(ev, stateName, mch))
 
@@ -259,7 +279,7 @@ processImmediateTransitions = (payload, mSt, mCtx) => where(mSt) {
       List.filter(Transition.isImmediate),
       Log
         .tapped
-        .interpreter("(" ++ stateName ++ "): immediate transitions to process: ", List.length),
+        .controller("(" ++ stateName ++ "): immediate transitions to process: ", List.length),
       processAllImmediateTransitions(stateName, payload, mCtx),
     )(trx)
 
@@ -273,8 +293,7 @@ send :: (Eq ctx, Eq pay, Show ctx, Show pay) => String
 export send = (ev, payload, ctrl) => where(ctrl) {
   Controller(ctx, mch, currentState, run) =>
     do {
-      Log.env.interpreter("sending:", ev)
-      return where(run(mch, currentState, ev)) {
+      return where(run(ev, mch, currentState)) {
         Right(newStateIsh) =>
           do {
             newContext = applyActionsToContext(payload, ctx, ev, currentState)
@@ -284,21 +303,17 @@ export send = (ev, payload, ctrl) => where(ctrl) {
               newContext,
             )
             newStateIsh2 = Machine.getState(mStateString, mch)
-            Log
-              .tapped
-              .interpreter("immediate state:", fromTo, [currentState, newStateIsh, newStateIsh2])
+            newState = isJust(newStateIsh2) ? newStateIsh2 : newStateIsh
 
-            // setState(newStateIsh2),
             return pipe(
               setContext(immediateContext),
-              setState(isJust(newStateIsh2) ? newStateIsh2 : newStateIsh),
+              setState(newState),
             )(ctrl)
-            // return Controller(newContext, mch, newStateIsh, run)
           }
 
         Left(newStateIsh) =>
           do {
-            Log.env.interpreter(ev ++ " did not transition", payload)
+            Log.env.controller(ev ++ " did not transition", payload)
             return ctrl
           }
       }
