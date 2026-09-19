@@ -8,5 +8,6 @@ utter
  - state
  - controller
  - stream
+ - stream:event
  - main
  - graph

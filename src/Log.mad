@@ -1,4 +1,4 @@
-/* ★★★ utter@0.7.0 ★★★
+/* ★★★ utter@0.8.0 ★★★
  * THIS FILE AUTOMATICALLY GENERATED FROM SOURCE: utter.clown-car
  */
 
@@ -17,6 +17,7 @@ export tags = {
   state: Party.tagWithScope("utter", ["state"]),
   controller: Party.tagWithScope("utter", ["controller"]),
   stream: Party.tagWithScope("utter", ["stream"]),
+  streamEvent: Party.tagWithScope("utter", ["stream", "event"]),
   main: Party.tagWithScope("utter", ["main"]),
   graph: Party.tagWithScope("utter", ["graph"]),
 }
@@ -31,6 +32,7 @@ export env = {
   state: Party.env(tags.state),
   controller: Party.env(tags.controller),
   stream: Party.env(tags.stream),
+  streamEvent: Party.env(tags.streamEvent),
   main: Party.env(tags.main),
   graph: Party.env(tags.graph),
 }
@@ -45,6 +47,7 @@ export tapped = {
   state: Party.tap(env.state),
   controller: Party.tap(env.controller),
   stream: Party.tap(env.stream),
+  streamEvent: Party.tap(env.streamEvent),
   main: Party.tap(env.main),
   graph: Party.tap(env.graph),
 }
