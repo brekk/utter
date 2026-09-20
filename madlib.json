@@ -7,8 +7,8 @@
   },
   "dependencies": [
     {
-      "minVersion": "0.3.0",
-      "url": "https://github.com/brekk/party-bus/archive/refs/tags/v0.3.0.zip",
+      "minVersion": "0.3.1",
+      "url": "https://github.com/brekk/party-bus/archive/refs/tags/v0.3.1.zip",
       "description": "PartyBus"
     },
     {
@@ -17,8 +17,8 @@
       "description": "Study"
     },
     {
-      "minVersion": "0.0.3",
-      "url": "https://github.com/brekk/vizier/archive/refs/tags/v0.0.3.zip",
+      "minVersion": "0.1.0",
+      "url": "https://github.com/brekk/vizier/archive/refs/tags/v0.1.0.zip",
       "description": "vizier"
     }
   ]
